@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Незнакомка (AnonChat)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK (КОРРЕКТНАЯ ВЕРСИЯ) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             /* Светлая тема */
@@ -23,6 +27,7 @@
             --success: #34c759;
             --warning: #ff9500;
             --danger: #ff3b30;
+            --admin-color: #9c27b0;
             --radius: 20px;
             --radius-sm: 12px;
             --shadow: 0 4px 20px rgba(233, 30, 99, 0.15);
@@ -46,6 +51,7 @@
             --success: #30d158;
             --warning: #ff9f0a;
             --danger: #ff453a;
+            --admin-color: #e040fb;
         }
 
         * {
@@ -145,6 +151,11 @@
         .header-btn:hover {
             background-color: var(--accent);
             color: white;
+        }
+
+        .admin-badge {
+            background-color: var(--admin-color) !important;
+            color: white !important;
         }
 
         /* Основной контент */
@@ -282,6 +293,15 @@
         .btn-success {
             background-color: var(--success);
             color: white;
+        }
+
+        .btn-admin {
+            background-color: var(--admin-color);
+            color: white;
+        }
+
+        .btn-admin:hover {
+            opacity: 0.9;
         }
 
         /* Термины */
@@ -457,6 +477,10 @@
             flex-shrink: 0;
         }
 
+        .user-avatar.admin {
+            background: linear-gradient(135deg, var(--admin-color), #9c27b0);
+        }
+
         .user-details {
             display: flex;
             flex-direction: column;
@@ -465,6 +489,16 @@
         .username {
             font-weight: 600;
             font-size: 15px;
+        }
+
+        .admin-label {
+            background-color: var(--admin-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 6px;
+            vertical-align: middle;
         }
 
         .status {
@@ -566,6 +600,11 @@
             border-bottom-left-radius: 8px;
         }
 
+        .admin-message .message-bubble {
+            background-color: var(--admin-color);
+            color: white;
+        }
+
         .message-sender {
             font-size: 12px;
             margin-bottom: 6px;
@@ -641,6 +680,37 @@
             color: white;
             border-color: var(--accent);
             transform: scale(1.05);
+        }
+
+        /* Админские кнопки в сообщениях */
+        .admin-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        .admin-btn {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 10px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .ban-btn:hover {
+            background-color: var(--warning);
+            color: white;
+            border-color: var(--warning);
         }
 
         /* Поле ввода сообщения */
@@ -786,6 +856,56 @@
 
         .modal-body p {
             margin-bottom: 10px;
+        }
+
+        /* Админ-панель */
+        .admin-panel {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--admin-color);
+        }
+
+        .admin-panel h3 {
+            color: var(--admin-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .admin-stat {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .admin-stat .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .admin-stat .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .admin-actions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
         }
 
         /* Контакты */
@@ -1006,6 +1126,9 @@
                 <button class="header-btn hidden" id="profileBtn" title="Профиль">
                     <i class="fas fa-user-cog"></i>
                 </button>
+                <button class="header-btn hidden admin-badge" id="adminBtn" title="Админ-панель">
+                    <i class="fas fa-shield-alt"></i>
+                </button>
                 <button class="header-btn theme-toggle" id="themeToggle" title="Переключить тему">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -1021,7 +1144,7 @@
                         <h2>Вход</h2>
                         <form id="loginForm">
                             <div class="form-group">
-                                <label for="login">Логин</label>
+                                <label for="login">Логин (будет виден только вам)</label>
                                 <input type="text" id="login" class="form-control" 
                                        placeholder="Ваш уникальный логин" required
                                        minlength="3" maxlength="20">
@@ -1240,6 +1363,11 @@
                             <i class="fas fa-exclamation-triangle"></i> Telegram не подтверждён
                         </p>
                     </div>
+                    <div id="adminStatus" style="margin-top: 10px; display: none;">
+                        <p style="color: var(--admin-color); font-size: 14px;">
+                            <i class="fas fa-shield-alt"></i> Администратор
+                        </p>
+                    </div>
                 </div>
                 
                 <div class="divider"></div>
@@ -1256,10 +1384,61 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+    <!-- Модальное окно админ-панели -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-shield-alt"></i> Админ-панель</h2>
+                <button class="modal-close" id="closeAdminBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-panel">
+                    <h3><i class="fas fa-chart-bar"></i> Статистика</h3>
+                    <div class="admin-stats">
+                        <div class="admin-stat">
+                            <div class="number" id="totalUsers">0</div>
+                            <div class="label">Пользователей</div>
+                        </div>
+                        <div class="admin-stat">
+                            <div class="number" id="totalMessages">0</div>
+                            <div class="label">Сообщений</div>
+                        </div>
+                        <div class="admin-stat">
+                            <div class="number" id="onlineUsers">1</div>
+                            <div class="label">Онлайн</div>
+                        </div>
+                        <div class="admin-stat">
+                            <div class="number" id="bannedUsers">0</div>
+                            <div class="label">Заблокировано</div>
+                        </div>
+                    </div>
+                    
+                    <h3><i class="fas fa-cog"></i> Управление</h3>
+                    <div class="admin-actions-list">
+                        <button class="btn btn-admin btn-small" id="clearMessagesBtn">
+                            <i class="fas fa-trash"></i> Очистить все сообщения
+                        </button>
+                        <button class="btn btn-warning btn-small" id="banUserBtn">
+                            <i class="fas fa-ban"></i> Заблокировать пользователя
+                        </button>
+                        <button class="btn btn-success btn-small" id="sendAnnouncementBtn">
+                            <i class="fas fa-bullhorn"></i> Отправить объявление
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h4>Быстрый доступ к пользователям:</h4>
+                        <div id="adminUsersList" class="contacts-list">
+                            <div class="empty-contacts">
+                                <i class="fas fa-users"></i>
+                                <p>Загрузка пользователей...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // === КОНФИГУРАЦИЯ FIREBASE ===
@@ -1276,6 +1455,11 @@
         // Токен твоего Telegram бота
         const TELEGRAM_BOT_TOKEN = '7279221253:AAHY9zYXxdZmGy60EXAs2SJBh37ik4mNSsw';
 
+        // Список админов (твой UID из Firebase будет добавлен позже)
+        const ADMIN_USERS = [
+            // Твой UID будет добавлен автоматически после первой регистрации
+        ];
+
         // === СОСТОЯНИЕ ПРИЛОЖЕНИЯ ===
         const state = {
             currentUser: null,
@@ -1285,7 +1469,8 @@
             contacts: [],
             theme: 'light',
             onlineUsers: 1,
-            anonymousId: null
+            anonymousId: null,
+            isAdmin: false
         };
 
         // === FIREBASE ИНИЦИАЛИЗАЦИЯ ===
@@ -1305,6 +1490,9 @@
                         // Пользователь вошёл через Firebase
                         state.currentUser = user;
                         
+                        // Проверяем, админ ли пользователь
+                        await checkAdminStatus(user.uid);
+                        
                         // Проверяем, подтверждён ли Telegram
                         const userDoc = await db.collection('users').doc(user.uid).get();
                         if (userDoc.exists && userDoc.data().telegramVerified) {
@@ -1323,6 +1511,7 @@
                     } else {
                         // Пользователь не вошёл
                         state.currentUser = null;
+                        state.isAdmin = false;
                         showAuthScreen();
                     }
                 });
@@ -1336,10 +1525,39 @@
             }
         }
 
+        // === ПРОВЕРКА АДМИНСКОГО СТАТУСА ===
+        async function checkAdminStatus(userId) {
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    state.isAdmin = userDoc.data().isAdmin || false;
+                    
+                    // Показываем/скрываем кнопку админ-панели
+                    const adminBtn = document.getElementById('adminBtn');
+                    if (state.isAdmin) {
+                        adminBtn.classList.remove('hidden');
+                        document.getElementById('adminStatus').style.display = 'block';
+                    } else {
+                        adminBtn.classList.add('hidden');
+                        document.getElementById('adminStatus').style.display = 'none';
+                    }
+                    
+                    // Если пользователь админ и его нет в списке - добавляем
+                    if (state.isAdmin && !ADMIN_USERS.includes(userId)) {
+                        ADMIN_USERS.push(userId);
+                        console.log("✅ Пользователь добавлен в список админов:", userId);
+                    }
+                }
+            } catch (error) {
+                console.error("Ошибка проверки админ-статуса:", error);
+            }
+        }
+
         // === DOM ЭЛЕМЕНТЫ ===
         const themeToggle = document.getElementById('themeToggle');
         const termsBtn = document.getElementById('termsBtn');
         const profileBtn = document.getElementById('profileBtn');
+        const adminBtn = document.getElementById('adminBtn');
         const authScreen = document.getElementById('authScreen');
         const verificationScreen = document.getElementById('verificationScreen');
         const chatScreen = document.getElementById('chatScreen');
@@ -1349,6 +1567,7 @@
         const messagesContainer = document.getElementById('messagesContainer');
         const termsModal = document.getElementById('termsModal');
         const profileModal = document.getElementById('profileModal');
+        const adminModal = document.getElementById('adminModal');
         const verificationCodeEl = document.getElementById('verificationCode');
         const verifyCodeBtn = document.getElementById('verifyCodeBtn');
         const resendCodeBtn = document.getElementById('resendCodeBtn');
@@ -1362,12 +1581,17 @@
         const termsLink = document.getElementById('termsLink');
         const closeTermsBtn = document.getElementById('closeTermsBtn');
         const closeProfileBtn = document.getElementById('closeProfileBtn');
+        const closeAdminBtn = document.getElementById('closeAdminBtn');
         const acceptTermsBtn = document.getElementById('acceptTermsBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const onlineCountEl = document.getElementById('onlineCount');
         const userAvatar = document.getElementById('userAvatar');
         const displayUsername = document.getElementById('displayUsername');
         const userStatus = document.getElementById('userStatus');
+        const clearMessagesBtn = document.getElementById('clearMessagesBtn');
+        const banUserBtn = document.getElementById('banUserBtn');
+        const sendAnnouncementBtn = document.getElementById('sendAnnouncementBtn');
+        const adminUsersList = document.getElementById('adminUsersList');
 
         // === ИНИЦИАЛИЗАЦИЯ ===
         document.addEventListener('DOMContentLoaded', () => {
@@ -1386,6 +1610,7 @@
             themeToggle.addEventListener('click', toggleTheme);
             termsBtn.addEventListener('click', () => showModal(termsModal));
             profileBtn.addEventListener('click', () => showProfileModal());
+            adminBtn.addEventListener('click', () => showAdminPanel());
             
             loginForm.addEventListener('submit', handleLogin);
             
@@ -1420,7 +1645,12 @@
             closeTermsBtn.addEventListener('click', () => hideModal(termsModal));
             acceptTermsBtn.addEventListener('click', () => hideModal(termsModal));
             closeProfileBtn.addEventListener('click', () => hideModal(profileModal));
+            closeAdminBtn.addEventListener('click', () => hideModal(adminModal));
             logoutBtn.addEventListener('click', handleLogout);
+            
+            clearMessagesBtn.addEventListener('click', clearAllMessages);
+            banUserBtn.addEventListener('click', banUser);
+            sendAnnouncementBtn.addEventListener('click', sendAnnouncement);
         }
 
         // === ТЕМА ===
@@ -1474,7 +1704,8 @@
             
             try {
                 // Пытаемся войти
-                await auth.signInWithEmailAndPassword(login + "@neznakomka.local", password);
+                const email = login.toLowerCase() + "@neznakomka.local";
+                await auth.signInWithEmailAndPassword(email, password);
                 
                 // Обновляем данные пользователя с Telegram
                 const user = auth.currentUser;
@@ -1483,7 +1714,8 @@
                     telegramUsername: telegram,
                     telegramVerified: false,
                     anonymousId: generateAnonymousId(),
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
                 }, { merge: true });
                 
                 state.telegramUsername = telegram;
@@ -1496,7 +1728,8 @@
                 if (error.code === 'auth/user-not-found') {
                     try {
                         // Регистрируем нового пользователя
-                        const userCredential = await auth.createUserWithEmailAndPassword(login + "@neznakomka.local", password);
+                        const email = login.toLowerCase() + "@neznakomka.local";
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                         const user = userCredential.user;
                         
                         // Создаём запись в Firestore
@@ -1505,7 +1738,9 @@
                             telegramUsername: telegram,
                             telegramVerified: false,
                             anonymousId: generateAnonymousId(),
-                            createdAt: new Date().toISOString()
+                            createdAt: new Date().toISOString(),
+                            lastLogin: new Date().toISOString(),
+                            isAdmin: false // По умолчанию не админ
                         });
                         
                         state.telegramUsername = telegram;
@@ -1631,6 +1866,7 @@
             
             termsBtn.classList.add('hidden');
             profileBtn.classList.add('hidden');
+            adminBtn.classList.add('hidden');
         }
 
         // === ПОКАЗАТЬ ЭКРАН ВЕРИФИКАЦИИ ===
@@ -1641,6 +1877,7 @@
             
             termsBtn.classList.remove('hidden');
             profileBtn.classList.remove('hidden');
+            if (state.isAdmin) adminBtn.classList.remove('hidden');
         }
 
         // === ПОКАЗАТЬ ЧАТ ===
@@ -1651,6 +1888,7 @@
             
             termsBtn.classList.remove('hidden');
             profileBtn.classList.remove('hidden');
+            if (state.isAdmin) adminBtn.classList.remove('hidden');
             
             updateUserInfo();
             messageInput.disabled = false;
@@ -1674,8 +1912,16 @@
                     
                     if (userData.telegramVerified) {
                         userStatus.innerHTML = `<i class="fas fa-circle status-verified"></i> Telegram подтверждён`;
+                        userAvatar.classList.add('verified');
                     } else {
                         userStatus.innerHTML = `<i class="fas fa-circle status-pending"></i> Telegram не подтверждён`;
+                        userAvatar.classList.remove('verified');
+                    }
+                    
+                    // Если админ - добавляем соответствующие классы
+                    if (state.isAdmin) {
+                        userAvatar.classList.add('admin');
+                        displayUsername.innerHTML = `Аноним #${anonymousId} <span class="admin-label">ADMIN</span>`;
                     }
                 }
             });
@@ -1700,11 +1946,138 @@
                             telegramVerifiedText.style.display = 'none';
                             telegramNotVerifiedText.style.display = 'block';
                         }
+                        
+                        // Если админ - показываем статус
+                        if (state.isAdmin) {
+                            profileAvatar.classList.add('admin');
+                            document.getElementById('adminStatus').style.display = 'block';
+                        } else {
+                            profileAvatar.classList.remove('admin');
+                            document.getElementById('adminStatus').style.display = 'none';
+                        }
                     }
                 });
             }
             showModal(profileModal);
         }
+
+        // === ПОКАЗАТЬ АДМИН-ПАНЕЛЬ ===
+        async function showAdminPanel() {
+            if (!state.isAdmin) return;
+            
+            // Загружаем статистику
+            await loadAdminStats();
+            
+            // Загружаем список пользователей
+            await loadAdminUsers();
+            
+            showModal(adminModal);
+        }
+
+        // === ЗАГРУЗИТЬ СТАТИСТИКУ ДЛЯ АДМИНА ===
+        async function loadAdminStats() {
+            try {
+                // Считаем пользователей
+                const usersSnapshot = await db.collection('users').get();
+                document.getElementById('totalUsers').textContent = usersSnapshot.size;
+                
+                // Считаем сообщения
+                const messagesSnapshot = await db.collection('messages').get();
+                document.getElementById('totalMessages').textContent = messagesSnapshot.size;
+                
+                // Считаем заблокированных
+                let bannedCount = 0;
+                usersSnapshot.forEach(doc => {
+                    if (doc.data().isBanned) bannedCount++;
+                });
+                document.getElementById('bannedUsers').textContent = bannedCount;
+                
+            } catch (error) {
+                console.error("Ошибка загрузки статистики:", error);
+            }
+        }
+
+        // === ЗАГРУЗИТЬ ПОЛЬЗОВАТЕЛЕЙ ДЛЯ АДМИНА ===
+        async function loadAdminUsers() {
+            try {
+                const usersSnapshot = await db.collection('users').orderBy('createdAt', 'desc').limit(20).get();
+                adminUsersList.innerHTML = '';
+                
+                if (usersSnapshot.empty) {
+                    adminUsersList.innerHTML = '<div class="empty-contacts"><i class="fas fa-users"></i><p>Нет пользователей</p></div>';
+                    return;
+                }
+                
+                usersSnapshot.forEach(doc => {
+                    const user = doc.data();
+                    const userItem = document.createElement('div');
+                    userItem.className = 'contact-item';
+                    
+                    const isBanned = user.isBanned ? '<span style="color: var(--danger);">[ЗАБЛОКИРОВАН]</span>' : '';
+                    const isAdmin = user.isAdmin ? '<span style="color: var(--admin-color);">[ADMIN]</span>' : '';
+                    
+                    userItem.innerHTML = `
+                        <div class="contact-header">
+                            <div class="contact-username">${user.login} ${isAdmin} ${isBanned}</div>
+                            <small>ID: ${doc.id.substring(0, 8)}...</small>
+                        </div>
+                        <div class="contact-telegram">Telegram: ${user.telegramUsername || 'не указан'}</div>
+                        <div class="contact-telegram">Аноним #${user.anonymousId || '000'}</div>
+                        <div class="contact-time">
+                            <i class="fas fa-calendar"></i> Зарегистрирован: ${new Date(user.createdAt).toLocaleDateString()}
+                        </div>
+                        <div class="contact-actions">
+                            <button class="btn btn-small btn-warning" onclick="toggleBanUser('${doc.id}', ${user.isBanned || false})">
+                                <i class="fas ${user.isBanned ? 'fa-unlock' : 'fa-ban'}"></i> ${user.isBanned ? 'Разблокировать' : 'Заблокировать'}
+                            </button>
+                            <button class="btn btn-small btn-admin" onclick="toggleAdminUser('${doc.id}', ${user.isAdmin || false})">
+                                <i class="fas fa-shield-alt"></i> ${user.isAdmin ? 'Убрать админку' : 'Сделать админом'}
+                            </button>
+                        </div>
+                    `;
+                    
+                    adminUsersList.appendChild(userItem);
+                });
+            } catch (error) {
+                console.error("Ошибка загрузки пользователей:", error);
+                adminUsersList.innerHTML = '<div class="empty-contacts"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки</p></div>';
+            }
+        }
+
+        // === БЛОКИРОВКА/РАЗБЛОКИРОВКА ПОЛЬЗОВАТЕЛЯ ===
+        window.toggleBanUser = async function(userId, currentlyBanned) {
+            if (!state.isAdmin) return;
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isBanned: !currentlyBanned,
+                    bannedAt: !currentlyBanned ? new Date().toISOString() : null
+                });
+                
+                alert(`Пользователь ${currentlyBanned ? 'разблокирован' : 'заблокирован'}!`);
+                loadAdminUsers();
+                loadAdminStats();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        };
+
+        // === ДОБАВЛЕНИЕ/УДАЛЕНИЕ АДМИНКИ ===
+        window.toggleAdminUser = async function(userId, currentlyAdmin) {
+            if (!state.isAdmin) return;
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isAdmin: !currentlyAdmin
+                });
+                
+                alert(`Пользователь ${!currentlyAdmin ? 'стал админом' : 'лишён админки'}!`);
+                loadAdminUsers();
+                loadAdminStats();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        };
 
         // === ВЫХОД ===
         function handleLogout() {
@@ -1713,6 +2086,7 @@
                 state.currentUser = null;
                 state.telegramUsername = '';
                 state.verificationCode = '';
+                state.isAdmin = false;
                 
                 hideModal(profileModal);
                 showAuthScreen();
@@ -1760,6 +2134,11 @@
                     return;
                 }
                 
+                if (userData.isBanned) {
+                    alert('Вы заблокированы!');
+                    return;
+                }
+                
                 // Создаём сообщение
                 const message = {
                     text: text,
@@ -1767,6 +2146,7 @@
                     anonymousId: state.anonymousId,
                     login: userData.login,
                     telegramVerified: userData.telegramVerified,
+                    isAdmin: state.isAdmin,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
                 };
@@ -1793,7 +2173,10 @@
             const messageElement = document.createElement('div');
             const isMyMessage = message.senderId === state.currentUser?.uid;
             
-            messageElement.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
+            const messageClass = isMyMessage ? 'my-message' : 'other-message';
+            if (message.isAdmin) messageClass += ' admin-message';
+            
+            messageElement.className = `message ${messageClass}`;
             messageElement.dataset.messageId = message.id;
             
             const time = message.timestamp?.toDate 
@@ -1803,9 +2186,8 @@
             const expiresAt = new Date(message.expiresAt);
             const timeLeft = formatTimeLeft(expiresAt, 'сообщение');
             
-            const displayName = isMyMessage ? 
-                'Вы' : 
-                `Аноним #${message.anonymousId || '000'}`;
+            let displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
+            if (message.isAdmin && !isMyMessage) displayName += ' [ADMIN]';
             
             const verifiedBadge = message.telegramVerified && !isMyMessage ? 
                 '<span class="verified-badge"><i class="fas fa-check-circle"></i></span>' : '';
@@ -1815,6 +2197,18 @@
                 <div class="message-actions">
                     <button class="handshake-btn" onclick="offerHandshake('${message.senderId}', ${message.anonymousId})">
                         <i class="fas fa-handshake"></i> Предложить рукопожатие
+                    </button>
+                </div>
+            ` : '';
+            
+            // Админские кнопки (для админов и не для своих сообщений)
+            const adminActions = state.isAdmin && !isMyMessage ? `
+                <div class="admin-actions">
+                    <button class="admin-btn delete-btn" onclick="deleteMessage('${message.id}')">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                    <button class="admin-btn ban-btn" onclick="banUserFromMessage('${message.senderId}')">
+                        <i class="fas fa-ban"></i> Заблокировать
                     </button>
                 </div>
             ` : '';
@@ -1830,6 +2224,7 @@
                     <div class="message-time">${time}</div>
                 </div>
                 ${handshakeButton}
+                ${adminActions}
                 <div class="message-expiry">
                     <i class="fas fa-clock"></i> Удалится через: ${timeLeft}
                 </div>
@@ -1882,6 +2277,105 @@
                 alert('Ошибка отправки предложения рукопожатия');
             }
         };
+
+        // === АДМИНСКИЕ ФУНКЦИИ ===
+        window.deleteMessage = async function(messageId) {
+            if (!state.isAdmin) return;
+            
+            if (confirm('Удалить это сообщение?')) {
+                try {
+                    await db.collection('messages').doc(messageId).delete();
+                    const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                    if (messageElement) {
+                        messageElement.style.opacity = '0.5';
+                        setTimeout(() => messageElement.remove(), 300);
+                    }
+                } catch (error) {
+                    alert('Ошибка удаления сообщения: ' + error.message);
+                }
+            }
+        };
+
+        window.banUserFromMessage = async function(userId) {
+            if (!state.isAdmin) return;
+            
+            if (confirm('Заблокировать этого пользователя?')) {
+                try {
+                    await db.collection('users').doc(userId).update({
+                        isBanned: true,
+                        bannedAt: new Date().toISOString()
+                    });
+                    alert('Пользователь заблокирован!');
+                } catch (error) {
+                    alert('Ошибка блокировки: ' + error.message);
+                }
+            }
+        };
+
+        async function clearAllMessages() {
+            if (!state.isAdmin) return;
+            
+            if (confirm('Очистить ВСЕ сообщения? Это действие нельзя отменить!')) {
+                try {
+                    const messagesSnapshot = await db.collection('messages').get();
+                    const batch = db.batch();
+                    
+                    messagesSnapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    
+                    await batch.commit();
+                    messagesContainer.innerHTML = '';
+                    alert('Все сообщения удалены!');
+                } catch (error) {
+                    alert('Ошибка очистки сообщений: ' + error.message);
+                }
+            }
+        }
+
+        async function banUser() {
+            if (!state.isAdmin) return;
+            
+            const userId = prompt('Введите ID пользователя для блокировки:');
+            if (!userId) return;
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isBanned: true,
+                    bannedAt: new Date().toISOString()
+                });
+                alert('Пользователь заблокирован!');
+                loadAdminStats();
+            } catch (error) {
+                alert('Ошибка блокировки: ' + error.message);
+            }
+        }
+
+        async function sendAnnouncement() {
+            if (!state.isAdmin) return;
+            
+            const text = prompt('Введите текст объявления:');
+            if (!text) return;
+            
+            try {
+                // Создаём сообщение от имени системы
+                const message = {
+                    text: `📢 ОБЪЯВЛЕНИЕ ОТ АДМИНИСТРАЦИИ:\n\n${text}`,
+                    senderId: 'system',
+                    anonymousId: 0,
+                    login: 'Система',
+                    telegramVerified: true,
+                    isAdmin: true,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                };
+                
+                await db.collection('messages').add(message);
+                alert('Объявление отправлено!');
+            } catch (error) {
+                alert('Ошибка отправки объявления: ' + error.message);
+            }
+        }
 
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
         function showModal(modal) {
