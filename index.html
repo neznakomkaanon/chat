@@ -584,7 +584,7 @@
 </head>
 <body class="light-theme">
     <!-- Бейдж версии -->
-    <div class="version-badge">v.1.0</div>
+    <div class="version-badge">v.1.2</div>
     
     <div class="container">
         <header>
@@ -611,30 +611,31 @@
                 <div class="login-box">
                     <h2>Вход в Незнакомку</h2>
                     <p>
-                        Введите ваш Telegram username<br>
-                        Мы отправим код подтверждения в Telegram
+                        Анонимный чат с подтверждением через Telegram
                     </p>
                     
                     <div style="background: rgba(233, 30, 99, 0.1); padding: 15px; border-radius: var(--radius-sm); margin: 20px 0; border-left: 4px solid var(--accent);">
-                        <strong>📱 Перед входом убедитесь что:</strong>
+                        <strong>📱 Обязательно перед входом:</strong>
                         <ol style="margin: 10px 0 0 15px; font-size: 14px; line-height: 1.5;">
-                            <li>Написали боту <strong>@neznakomkaanon_bot</strong> команду <strong>/start</strong></li>
-                            <li>Получили ответ от бота</li>
-                            <li>Используете правильный username (например: @sadspotty)</li>
+                            <li>Откройте Telegram</li>
+                            <li>Найдите бота <a href="https://t.me/neznakomkaanon_bot" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: bold;">@neznakomkaanon_bot</a></li>
+                            <li>Напишите ему команду <strong>/start</strong></li>
+                            <li>Дождитесь ответа от бота</li>
+                            <li>Только потом вводите username здесь</li>
                         </ol>
                     </div>
                     
                     <div class="form-group">
-                        <label for="telegramInput"><i class="fab fa-telegram telegram-icon"></i> Telegram username</label>
+                        <label for="telegramInput"><i class="fab fa-telegram telegram-icon"></i> Ваш Telegram username</label>
                         <input type="text" id="telegramInput" class="form-control" 
-                               placeholder="@sadspotty (вместо sadspotty ваш username)" required>
+                               placeholder="@sadspotty (обязательно с @)" required autofocus>
                         <small style="color: var(--text-secondary); display: block; margin-top: 6px;">
-                            Код будет отправлен только в Telegram боту @neznakomkaanon_bot
+                            Только после ответа бота на /start
                         </small>
                     </div>
                     
                     <button class="btn btn-primary" id="sendCodeBtn">
-                        <i class="fas fa-paper-plane"></i> Отправить код в Telegram
+                        <i class="fas fa-paper-plane"></i> Получить код в Telegram
                     </button>
                     
                     <div id="loginStatus"></div>
@@ -647,15 +648,19 @@
                     <h2>Подтверждение кода</h2>
                     <p>
                         Код отправлен на <span id="telegramUsername" style="color: var(--accent); font-weight: bold;">@username</span><br>
-                        Проверьте личные сообщения от бота @neznakomkaanon_bot
+                        Проверьте Telegram
                     </p>
+                    
+                    <div class="code-display" id="verificationCode">
+                        123456
+                    </div>
                     
                     <div style="background: rgba(52, 199, 89, 0.1); padding: 15px; border-radius: var(--radius-sm); margin: 20px 0; border-left: 4px solid var(--success);">
                         <i class="fas fa-info-circle" style="color: var(--success);"></i>
                         <strong> Где найти код?</strong>
                         <div style="margin-top: 10px; font-size: 14px;">
                             <div>1. Откройте Telegram</div>
-                            <div>2. Найдите чат с @neznakomkaanon_bot</div>
+                            <div>2. Найдите чат с <strong>@neznakomkaanon_bot</strong></div>
                             <div>3. Найдите сообщение с 6-значным кодом</div>
                             <div>4. Введите его ниже</div>
                         </div>
@@ -674,6 +679,10 @@
                     
                     <button class="btn" id="resendCodeBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
                         <i class="fas fa-redo"></i> Отправить код повторно
+                    </button>
+                    
+                    <button class="btn" id="backBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-arrow-left"></i> Назад
                     </button>
                     
                     <div id="codeStatus"></div>
@@ -759,7 +768,7 @@
     </div>
 
     <script>
-        // === КОНФИГУРАЦИЯ FIREBASE ===
+        // === КОНФИГУРАЦИЯ ===
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyA-dQ8-cqE7y9VfNA3fPLF6hDO-s1OfQ4Q",
             authDomain: "neznakomka.firebaseapp.com",
@@ -770,8 +779,9 @@
             measurementId: "G-QJ2Q13VB4T"
         };
 
-        // Токен твоего Telegram бота
         const TELEGRAM_BOT_TOKEN = '8589389763:AAGECiVQ5kIibPaVlDFiV1_DvqH3mC9e3x0';
+        // URL твоего бота на Render (замени на свой после деплоя)
+        const BOT_API_URL = 'https://neznakomka-bot.onrender.com/api/send-code';
 
         // === СОСТОЯНИЕ ===
         const state = {
@@ -807,7 +817,7 @@
             }
         }
 
-        // === ОТПРАВКА КОДА В TELEGRAM (КОД НЕ ПОКАЗЫВАЕТСЯ НА САЙТЕ) ===
+        // === ОТПРАВКА КОДА ЧЕРЕЗ НАШ БОТ (RENDER) ===
         async function sendTelegramCode() {
             let usernameInput = document.getElementById('telegramInput').value.trim();
             
@@ -829,80 +839,112 @@
             
             const sendBtn = document.getElementById('sendCodeBtn');
             sendBtn.disabled = true;
-            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка в Telegram...';
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка через бота...';
             
             try {
-                // 1. Сохраняем код в Firestore (для проверки)
-                if (db) {
-                    const codeId = cleanUsername + '_' + Date.now();
-                    await db.collection('verificationCodes').doc(codeId).set({
-                        username: usernameInput,
-                        code: state.verificationCode,
-                        createdAt: new Date().toISOString(),
-                        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-                        status: 'sent'
-                    });
-                }
-                
-                // 2. Отправляем код в Telegram через API бота
-                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                // Отправляем запрос к НАШЕМУ боту на Render
+                const response = await fetch(BOT_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        chat_id: cleanUsername,
-                        text: `🔐 <b>Код подтверждения для Незнакомки</b>\n\nКод: <code>${state.verificationCode}</code>\n\nВведите этот 6-значный код на сайте для входа в анонимный чат.\n\n⏱ Код действителен 10 минут.\n\n⚠️ Никому не сообщайте этот код!`,
-                        parse_mode: 'HTML'
+                        username: cleanUsername,
+                        code: state.verificationCode
                     })
                 });
                 
                 const result = await response.json();
-                console.log('Telegram API ответ:', result);
+                console.log('Бот ответил:', result);
                 
-                if (result.ok) {
-                    // Успешно отправлено в Telegram
+                if (result.success) {
+                    // Успешно отправлено через нашего бота
+                    document.getElementById('verificationCode').textContent = state.verificationCode;
                     document.getElementById('telegramUsername').textContent = usernameInput;
                     
-                    // Переходим к экрану ввода кода
                     document.getElementById('loginScreen').classList.add('hidden');
                     document.getElementById('codeScreen').classList.remove('hidden');
                     document.getElementById('codeInput').focus();
                     
-                    showCodeSuccess('✅ Код отправлен в Telegram! Проверьте сообщения от бота.');
-                } else {
-                    let errorMessage = 'Ошибка отправки: ';
-                    if (result.description) {
-                        if (result.description.includes('chat not found') || result.description.includes('user not found')) {
-                            errorMessage = `
-                                ❌ Не удалось отправить код пользователю ${usernameInput}.<br><br>
-                                <strong>Причины:</strong><br>
-                                1. Username неверный<br>
-                                2. Вы не начали диалог с ботом @neznakomkaanon_bot<br>
-                                3. Вы заблокировали бота<br><br>
-                                <strong>Что делать:</strong><br>
-                                1. Убедитесь что username правильный<br>
-                                2. Напишите боту @neznakomkaanon_bot команду /start<br>
-                                3. Дождитесь ответа от бота<br>
-                                4. Попробуйте снова
-                            `;
-                        } else if (result.description.includes('bot was blocked')) {
-                            errorMessage = 'Вы заблокировали бота. Разблокируйте @neznakomkaanon_bot в Telegram';
-                        } else {
-                            errorMessage += result.description;
-                        }
+                    showCodeSuccess('✅ Код отправлен через бота! Проверьте Telegram.');
+                    
+                    // Сохраняем в Firestore
+                    if (db) {
+                        const codeId = cleanUsername + '_' + Date.now();
+                        await db.collection('verificationCodes').doc(codeId).set({
+                            username: usernameInput,
+                            code: state.verificationCode,
+                            createdAt: new Date().toISOString(),
+                            expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                            status: 'sent'
+                        });
                     }
-                    showError(errorMessage);
+                } else {
+                    // Если наш бот не смог, пробуем напрямую через Telegram API
+                    console.log('Пробуем напрямую через Telegram API...');
+                    const telegramResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: cleanUsername,
+                            text: `🔐 <b>Код подтверждения для Незнакомки</b>\n\nКод: <code>${state.verificationCode}</code>\n\nВведите этот 6-значный код на сайте для входа в анонимный чат.\n\n⏱ Код действителен 10 минут.`,
+                            parse_mode: 'HTML'
+                        })
+                    });
+                    
+                    const telegramResult = await telegramResponse.json();
+                    
+                    if (telegramResult.ok) {
+                        // Успешно отправлено напрямую
+                        document.getElementById('verificationCode').textContent = state.verificationCode;
+                        document.getElementById('telegramUsername').textContent = usernameInput;
+                        
+                        document.getElementById('loginScreen').classList.add('hidden');
+                        document.getElementById('codeScreen').classList.remove('hidden');
+                        document.getElementById('codeInput').focus();
+                        
+                        showCodeSuccess('✅ Код отправлен! Проверьте Telegram.');
+                        
+                        // Сохраняем в Firestore
+                        if (db) {
+                            const codeId = cleanUsername + '_' + Date.now();
+                            await db.collection('verificationCodes').doc(codeId).set({
+                                username: usernameInput,
+                                code: state.verificationCode,
+                                createdAt: new Date().toISOString(),
+                                expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                                status: 'sent'
+                            });
+                        }
+                    } else {
+                        // Оба способа не сработали
+                        let errorMsg = 'Не удалось отправить код. ';
+                        if (telegramResult.description) {
+                            if (telegramResult.description.includes('chat not found') || telegramResult.description.includes('user not found')) {
+                                errorMsg = `
+                                    ❌ Бот не может написать вам в Telegram.<br><br>
+                                    <strong>Убедитесь что:</strong><br>
+                                    1. Вы написали боту <a href="https://t.me/neznakomkaanon_bot" target="_blank" style="color: var(--accent);">@neznakomkaanon_bot</a> команду <strong>/start</strong><br>
+                                    2. Бот ответил вам<br>
+                                    3. Ваш username правильный: <strong>${usernameInput}</strong><br><br>
+                                    После этого попробуйте снова.
+                                `;
+                            } else {
+                                errorMsg += telegramResult.description;
+                            }
+                        }
+                        showError(errorMsg);
+                    }
                 }
                 
             } catch (error) {
-                console.error("❌ Ошибка отправки:", error);
+                console.error("❌ Ошибка:", error);
                 showError('Ошибка сети. Проверьте интернет-соединение.');
             } finally {
                 sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить код в Telegram';
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Получить код в Telegram';
             }
         }
 
-        // === ПОДТВЕРЖДЕНИЕ КОДА (ПРОВЕРКА ЧЕРЕЗ FIRESTORE) ===
+        // === ПОДТВЕРЖДЕНИЕ КОДА ===
         async function verifyCode() {
             const enteredCode = document.getElementById('codeInput').value.trim();
             
@@ -916,80 +958,68 @@
             verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
             
             try {
-                // Проверяем код в Firestore
-                if (!db) {
-                    showCodeError('❌ Ошибка базы данных');
+                // Сначала проверяем локально
+                if (enteredCode === state.verificationCode) {
+                    await completeLogin();
+                    showCodeSuccess('✅ Успешный вход! Добро пожаловать.');
                     return;
                 }
                 
-                const cleanUsername = state.telegramUsername.replace('@', '');
-                
-                // Ищем код в Firestore
-                const codesRef = db.collection('verificationCodes')
-                    .where('username', '==', state.telegramUsername)
-                    .where('code', '==', enteredCode)
-                    .orderBy('createdAt', 'desc')
-                    .limit(1);
-                
-                const snapshot = await codesRef.get();
-                
-                if (snapshot.empty) {
-                    showCodeError('❌ Неверный код. Проверьте код в Telegram.');
-                    verifyBtn.disabled = false;
-                    verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Подтвердить код';
-                    return;
+                // Если не совпадает, проверяем в Firestore
+                if (db) {
+                    const codesRef = db.collection('verificationCodes')
+                        .where('username', '==', state.telegramUsername)
+                        .where('code', '==', enteredCode)
+                        .limit(1);
+                    
+                    const snapshot = await codesRef.get();
+                    
+                    if (!snapshot.empty) {
+                        const codeData = snapshot.docs[0].data();
+                        const expiresAt = new Date(codeData.expiresAt);
+                        const now = new Date();
+                        
+                        if (expiresAt > now) {
+                            await completeLogin();
+                            showCodeSuccess('✅ Успешный вход! Добро пожаловать.');
+                            return;
+                        } else {
+                            showCodeError('❌ Код истёк. Получите новый код.');
+                        }
+                    }
                 }
                 
-                const codeDoc = snapshot.docs[0];
-                const codeData = codeDoc.data();
-                
-                // Проверяем срок действия
-                const expiresAt = new Date(codeData.expiresAt);
-                const now = new Date();
-                
-                if (now > expiresAt) {
-                    showCodeError('❌ Код истёк. Получите новый код.');
-                    verifyBtn.disabled = false;
-                    verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Подтвердить код';
-                    return;
-                }
-                
-                // Код верный и не истёк - создаём пользователя
-                state.user = {
-                    username: state.telegramUsername,
-                    verified: true,
-                    verifiedAt: new Date().toISOString()
-                };
-                
-                state.anonymousId = generateAnonymousId();
-                
-                // Сохраняем в localStorage
-                localStorage.setItem('neznakomka-telegram-user', JSON.stringify(state.user));
-                localStorage.setItem('neznakomka-anonymous-id', state.anonymousId);
-                
-                // Сохраняем пользователя в Firestore
-                await saveUserToFirestore();
-                
-                // Помечаем код как использованный
-                await db.collection('verificationCodes').doc(codeDoc.id).update({
-                    status: 'used',
-                    usedAt: new Date().toISOString(),
-                    usedBy: state.anonymousId
-                });
-                
-                // Показываем чат
-                showChatScreen();
-                loadMessages();
-                
-                showCodeSuccess('✅ Telegram подтверждён! Добро пожаловать в чат.');
+                showCodeError('❌ Неверный код. Проверьте код в Telegram.');
                 
             } catch (error) {
-                console.error("❌ Ошибка проверки кода:", error);
+                console.error("❌ Ошибка проверки:", error);
                 showCodeError('Ошибка при проверке кода. Попробуйте снова.');
             } finally {
                 verifyBtn.disabled = false;
                 verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Подтвердить код';
             }
+        }
+
+        // === ЗАВЕРШЕНИЕ ВХОДА ===
+        async function completeLogin() {
+            state.user = {
+                username: state.telegramUsername,
+                verified: true,
+                verifiedAt: new Date().toISOString()
+            };
+            
+            state.anonymousId = generateAnonymousId();
+            
+            // Сохраняем в localStorage
+            localStorage.setItem('neznakomka-telegram-user', JSON.stringify(state.user));
+            localStorage.setItem('neznakomka-anonymous-id', state.anonymousId);
+            
+            // Сохраняем в Firestore
+            await saveUserToFirestore();
+            
+            // Показываем чат
+            showChatScreen();
+            loadMessages();
         }
 
         // === СОХРАНЕНИЕ ПОЛЬЗОВАТЕЛЯ В FIRESTORE ===
@@ -1118,46 +1148,77 @@
             }
             
             try {
-                // Отправляем уведомление в Telegram
+                // Отправляем уведомление в Telegram через нашего бота
                 const cleanTargetUsername = targetUsername.replace('@', '');
                 const cleanMyUsername = state.telegramUsername.replace('@', '');
                 
-                const targetResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                // Пробуем через нашего бота
+                const response = await fetch(BOT_API_URL.replace('/send-code', '/handshake'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        chat_id: cleanTargetUsername,
-                        text: `🤝 <b>Предложение рукопожатия от Незнакомки!</b>\n\nАноним #${anonymousId} предлагает обменяться контактами!\n\nTelegram для связи: ${state.telegramUsername}\n\nЭто сообщение от анонимного чата "Незнакомка".\n\nЕсли хотите связаться, напишите человеку выше в Telegram.`,
-                        parse_mode: 'HTML'
+                        fromUsername: cleanMyUsername,
+                        fromAnonymousId: state.anonymousId,
+                        toUsername: cleanTargetUsername,
+                        toAnonymousId: anonymousId
                     })
                 });
                 
-                const targetResult = await targetResponse.json();
-                
-                // Отправляем себе копию
-                const myResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: cleanMyUsername,
-                        text: `🤝 <b>Вы предложили рукопожатие!</b>\n\nВы предложили рукопожатие Анониму #${anonymousId}!\n\nИх Telegram: ${targetUsername}\nВаш Telegram: ${state.telegramUsername}\n\nОжидайте ответа в Telegram.`,
-                        parse_mode: 'HTML'
-                    })
-                });
-                
-                const myResult = await myResponse.json();
-                
-                if (targetResult.ok && myResult.ok) {
-                    alert('✅ Предложение рукопожатия отправлено! Проверьте Telegram.');
+                if (response.ok) {
+                    alert('✅ Предложение рукопожатия отправлено через бота!');
                 } else {
-                    alert('⚠️ Сообщение отправлено частично. Проверьте свой Telegram.');
+                    // Если бот не отвечает, пробуем напрямую
+                    await sendTelegramHandshake(cleanTargetUsername, cleanMyUsername, anonymousId);
                 }
                 
             } catch (error) {
                 console.error('Ошибка рукопожатия:', error);
-                alert('Ошибка отправки предложения');
+                // Пробуем напрямую
+                try {
+                    await sendTelegramHandshake(
+                        targetUsername.replace('@', ''),
+                        state.telegramUsername.replace('@', ''),
+                        anonymousId
+                    );
+                } catch (e) {
+                    alert('Ошибка отправки предложения. Попробуйте позже.');
+                }
             }
         };
+
+        // === ОТПРАВКА РУКОПОЖАТИЯ НАПРЯМУЮ ===
+        async function sendTelegramHandshake(targetUsername, myUsername, anonymousId) {
+            // Отправляем целе пользователю
+            const targetResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: targetUsername,
+                    text: `🤝 <b>Предложение рукопожатия от Незнакомки!</b>\n\nАноним #${anonymousId} предлагает обменяться контактами!\n\nTelegram для связи: @${myUsername}\n\nЭто сообщение от анонимного чата "Незнакомка".`,
+                    parse_mode: 'HTML'
+                })
+            });
+            
+            // Отправляем себе
+            const myResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: myUsername,
+                    text: `🤝 <b>Вы предложили рукопожатие!</b>\n\nВы предложили рукопожатие Анониму #${anonymousId}!\n\nИх Telegram: @${targetUsername}\nВаш Telegram: @${myUsername}\n\nОжидайте ответа.`,
+                    parse_mode: 'HTML'
+                })
+            });
+            
+            const targetResult = await targetResponse.json();
+            const myResult = await myResponse.json();
+            
+            if (targetResult.ok && myResult.ok) {
+                alert('✅ Предложение рукопожатия отправлено! Проверьте Telegram.');
+            } else {
+                alert('⚠️ Сообщение отправлено частично. Проверьте свой Telegram.');
+            }
+        }
 
         // === ПОКАЗАТЬ ЧАТ ===
         function showChatScreen() {
@@ -1273,10 +1334,12 @@
             });
             
             document.getElementById('sendCodeBtn').addEventListener('click', sendTelegramCode);
-            
             document.getElementById('verifyCodeBtn').addEventListener('click', verifyCode);
-            
             document.getElementById('resendCodeBtn').addEventListener('click', sendTelegramCode);
+            document.getElementById('backBtn').addEventListener('click', () => {
+                document.getElementById('codeScreen').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+            });
             
             document.getElementById('telegramInput').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
