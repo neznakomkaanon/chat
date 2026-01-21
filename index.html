@@ -25,7 +25,6 @@
             --success: #34c759;
             --warning: #ff9500;
             --danger: #ff3b30;
-            --admin-color: #9c27b0;
             --telegram-color: #0088cc;
             --radius: 20px;
             --radius-sm: 12px;
@@ -49,7 +48,6 @@
             --success: #30d158;
             --warning: #ff9f0a;
             --danger: #ff453a;
-            --admin-color: #e040fb;
             --telegram-color: #00aced;
         }
 
@@ -163,11 +161,6 @@
             color: white;
         }
 
-        .admin-badge {
-            background-color: var(--admin-color) !important;
-            color: white !important;
-        }
-
         /* Основной контент */
         .main-content {
             flex: 1;
@@ -176,7 +169,7 @@
             overflow: hidden;
         }
 
-        /* Экран входа через Telegram */
+        /* Экран входа */
         .login-screen {
             flex: 1;
             display: flex;
@@ -208,15 +201,7 @@
             line-height: 1.6;
         }
 
-        /* Telegram Login Widget */
-        .telegram-login-wrapper {
-            margin: 25px 0;
-            min-height: 60px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .manual-telegram-btn {
+        .telegram-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -232,13 +217,14 @@
             cursor: pointer;
             transition: transform 0.2s;
             font-family: inherit;
+            margin: 20px 0;
         }
 
-        .manual-telegram-btn:hover {
+        .telegram-btn:hover {
             transform: translateY(-2px);
         }
 
-        .manual-telegram-btn i {
+        .telegram-btn i {
             font-size: 24px;
         }
 
@@ -432,7 +418,7 @@
         /* Поле ввода */
         .message-input-container {
             position: fixed;
-            bottom: 30px; /* Увеличил отступ для версии */
+            bottom: 30px;
             left: 0;
             right: 0;
             background-color: var(--bg-secondary);
@@ -489,11 +475,6 @@
             transform: scale(1.05);
         }
 
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
         /* Модальные окна */
         .modal {
             display: none;
@@ -524,43 +505,8 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .container {
-                max-width: 100%;
-            }
-            
-            .message {
-                max-width: 85%;
-            }
-            
-            .login-box {
-                padding: 24px 20px;
-                margin: 0;
-                border-radius: 0;
-                border: none;
-                box-shadow: none;
-            }
-            
-            .version-badge {
-                bottom: 5px;
-                right: 5px;
-                font-size: 10px;
-                padding: 3px 6px;
-            }
-            
-            .message-input-container {
-                bottom: 25px;
-            }
-        }
-
         .hidden {
             display: none !important;
-        }
-        
-        /* Стили для Telegram Widget */
-        .telegram-login-button {
-            margin: 20px 0 !important;
         }
     </style>
 </head>
@@ -594,21 +540,11 @@
                     <h2>Добро пожаловать в Незнакомку</h2>
                     <p>
                         Анонимный чат с подтверждением через Telegram.<br>
-                        Войдите через Telegram, чтобы начать общение.
+                        Нажмите кнопку ниже для входа.
                     </p>
                     
-                    <!-- Telegram Login Widget -->
-                    <div class="telegram-login-wrapper">
-                        <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                                data-telegram-login="anonimmuivbot" 
-                                data-size="large" 
-                                data-radius="20" 
-                                data-auth-url="https://neznakomkaanon.github.io/auth.html" 
-                                data-request-access="write"></script>
-                    </div>
-                    
-                    <!-- Альтернативная кнопка (если виджет не работает) -->
-                    <button class="manual-telegram-btn hidden" id="manualTelegramBtn">
+                    <!-- Простая кнопка Telegram OAuth -->
+                    <button class="telegram-btn" id="telegramLoginBtn">
                         <i class="fab fa-telegram"></i>
                         Войти через Telegram
                     </button>
@@ -700,7 +636,7 @@
     </div>
 
     <script>
-        // === КОНФИГУРАЦИЯ FIREBASE (только Firestore) ===
+        // === КОНФИГУРАЦИЯ FIREBASE ===
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyA-dQ8-cqE7y9VfNA3fPLF6hDO-s1OfQ4Q",
             authDomain: "neznakomka.firebaseapp.com",
@@ -731,7 +667,7 @@
                 db = firebase.firestore();
                 console.log("✅ Firebase Firestore инициализирован");
                 
-                // Проверяем, есть ли сохранённый пользователь
+                // Проверяем сохранённого пользователя
                 const savedUser = localStorage.getItem('neznakomka-telegram-user');
                 if (savedUser) {
                     state.user = JSON.parse(savedUser);
@@ -743,6 +679,109 @@
             } catch (error) {
                 console.error("❌ Ошибка Firebase:", error);
             }
+        }
+
+        // === TELEGRAM OAuth без Domain ===
+        function openTelegramAuth() {
+            // ID твоего бота
+            const botId = '7279221253';
+            
+            // Текущий origin (без /chat в конце)
+            const origin = 'https://neznakomkaanon.github.io';
+            
+            // Создаём URL для Telegram OAuth
+            const authUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent(origin)}&request_access=write&return_to=${encodeURIComponent(origin + '/#telegram_auth')}`;
+            
+            // Открываем в новом окне
+            const authWindow = window.open(authUrl, 'TelegramAuth', 'width=600,height=700,left=' + (screen.width/2 - 300) + ',top=' + (screen.height/2 - 350));
+            
+            // Проверяем результат каждые 500мс
+            const checkAuth = setInterval(() => {
+                try {
+                    if (authWindow.closed) {
+                        clearInterval(checkAuth);
+                        // Проверяем URL на наличие данных Telegram
+                        checkTelegramHash();
+                    }
+                } catch (e) {
+                    clearInterval(checkAuth);
+                }
+            }, 500);
+        }
+
+        // === ПРОВЕРКА ХЭША TELEGRAM В URL ===
+        function checkTelegramHash() {
+            const hash = window.location.hash.substring(1);
+            if (!hash) return;
+            
+            const params = new URLSearchParams(hash);
+            
+            // Telegram возвращает данные в параметрах после #
+            if (params.has('tgAuthResult')) {
+                try {
+                    // Telegram может вернуть JSON строку
+                    const authResult = JSON.parse(decodeURIComponent(params.get('tgAuthResult')));
+                    if (authResult.id) {
+                        handleTelegramAuth(authResult);
+                        // Очищаем URL
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } catch (e) {
+                    // Если не JSON, проверяем стандартные параметры Telegram
+                    if (params.has('id')) {
+                        const telegramUser = {
+                            id: params.get('id'),
+                            first_name: params.get('first_name') || '',
+                            last_name: params.get('last_name') || '',
+                            username: params.get('username') || '',
+                            photo_url: params.get('photo_url') || '',
+                            auth_date: params.get('auth_date'),
+                            hash: params.get('hash')
+                        };
+                        handleTelegramAuth(telegramUser);
+                        // Очищаем URL
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                }
+            }
+            
+            // Проверяем стандартные параметры Telegram
+            if (params.has('id') && !state.user) {
+                const telegramUser = {
+                    id: params.get('id'),
+                    first_name: params.get('first_name') || '',
+                    last_name: params.get('last_name') || '',
+                    username: params.get('username') || '',
+                    photo_url: params.get('photo_url') || '',
+                    auth_date: params.get('auth_date'),
+                    hash: params.get('hash')
+                };
+                handleTelegramAuth(telegramUser);
+                // Очищаем URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        // === ОБРАБОТКА АВТОРИЗАЦИИ TELEGRAM ===
+        function handleTelegramAuth(telegramUser) {
+            console.log("Получены данные Telegram:", telegramUser);
+            
+            // Сохраняем пользователя
+            state.user = telegramUser;
+            state.anonymousId = generateAnonymousId();
+            
+            // Сохраняем в localStorage
+            localStorage.setItem('neznakomka-telegram-user', JSON.stringify(telegramUser));
+            localStorage.setItem('neznakomka-anonymous-id', state.anonymousId);
+            
+            // Сохраняем в Firestore
+            saveUserToFirestore(telegramUser);
+            
+            // Показываем чат
+            showChatScreen();
+            loadMessages();
+            
+            alert('✅ Вход выполнен! Добро пожаловать в Незнакомку.');
         }
 
         // === СОХРАНЕНИЕ ПОЛЬЗОВАТЕЛЯ В FIRESTORE ===
@@ -923,7 +962,7 @@
             // Обновляем информацию о пользователе
             if (state.user) {
                 const firstLetter = state.user.first_name?.charAt(0) || 
-                                  state.user.username?.charAt(1) || 'Т'; // @username -> берем 'u'
+                                  (state.user.username?.charAt(1) || 'Т'); // @username -> берем 'u'
                 
                 document.getElementById('userAvatar').textContent = firstLetter.toUpperCase();
                 document.getElementById('displayUsername').textContent = `Аноним #${state.anonymousId}`;
@@ -959,25 +998,6 @@
             }
         }
 
-        // === ОБРАБОТКА TELEGRAM АВТОРИЗАЦИИ ===
-        function handleTelegramAuth(telegramUser) {
-            // Сохраняем пользователя
-            state.user = telegramUser;
-            state.anonymousId = generateAnonymousId();
-            
-            localStorage.setItem('neznakomka-telegram-user', JSON.stringify(telegramUser));
-            localStorage.setItem('neznakomka-anonymous-id', state.anonymousId);
-            
-            // Сохраняем в Firestore
-            saveUserToFirestore(telegramUser);
-            
-            // Показываем чат
-            showChatScreen();
-            loadMessages();
-            
-            console.log('✅ Пользователь авторизован:', telegramUser);
-        }
-
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
         function generateAnonymousId() {
             const savedId = localStorage.getItem('neznakomka-anonymous-id');
@@ -1005,48 +1025,12 @@
             }, 100);
         }
 
-        // === РУЧНАЯ КНОПКА TELEGRAM (если виджет не работает) ===
-        function openManualTelegramAuth() {
-            const botId = '7279221253';
-            const origin = encodeURIComponent('https://neznakomkaanon.github.io');
-            const authUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write`;
-            
-            window.open(authUrl, 'TelegramAuth', 'width=600,height=700');
-        }
-
-        // === ОБРАБОТЧИК СООБЩЕНИЙ ОТ AUTH.HTML ===
-        window.addEventListener('message', (event) => {
-            // Проверяем origin для безопасности
-            if (event.origin !== 'https://neznakomkaanon.github.io') return;
-            
-            if (event.data && event.data.type === 'telegram_auth') {
-                handleTelegramAuth(event.data.user);
-            }
-        });
-
         // === ИНИЦИАЛИЗАЦИЯ ===
         document.addEventListener('DOMContentLoaded', () => {
             initFirebase();
             
-            // Проверяем хэш в URL (Telegram может вернуть данные тут)
-            const hash = window.location.hash.substring(1);
-            if (hash) {
-                const params = new URLSearchParams(hash);
-                if (params.has('id')) {
-                    const telegramUser = {
-                        id: params.get('id'),
-                        first_name: params.get('first_name') || '',
-                        last_name: params.get('last_name') || '',
-                        username: params.get('username') || '',
-                        photo_url: params.get('photo_url') || '',
-                        auth_date: params.get('auth_date'),
-                        hash: params.get('hash')
-                    };
-                    handleTelegramAuth(telegramUser);
-                    // Очищаем URL
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-            }
+            // Проверяем хэш при загрузке
+            checkTelegramHash();
             
             // Обработчики событий
             document.getElementById('themeToggle').addEventListener('click', () => {
@@ -1059,6 +1043,8 @@
                 const icon = document.getElementById('themeToggle').querySelector('i');
                 icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             });
+            
+            document.getElementById('telegramLoginBtn').addEventListener('click', openTelegramAuth);
             
             document.getElementById('profileBtn').addEventListener('click', () => {
                 document.getElementById('profileModal').classList.add('active');
@@ -1084,16 +1070,6 @@
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
                 this.style.overflowY = this.scrollHeight > 120 ? 'auto' : 'hidden';
             });
-            
-            // Ручная кнопка Telegram
-            document.getElementById('manualTelegramBtn').addEventListener('click', openManualTelegramAuth);
-            
-            // Показываем ручную кнопку через 3 секунды если виджет не загрузился
-            setTimeout(() => {
-                if (!document.querySelector('.telegram-login-button')) {
-                    document.getElementById('manualTelegramBtn').classList.remove('hidden');
-                }
-            }, 3000);
             
             // Восстанавливаем тему
             const savedTheme = localStorage.getItem('neznakomka-theme') || 'light';
