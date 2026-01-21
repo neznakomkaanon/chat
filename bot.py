@@ -1,13 +1,16 @@
 from flask import Flask, request, jsonify
 import requests
 import os
+from flask_cors import CORS
 
 print("🚀 Бот запускается...")
 
 app = Flask(__name__)
+CORS(app)  # ← ВАЖНО: разрешаем все CORS запросы
+
 TELEGRAM_TOKEN = "8589389763:AAGECiVQ5kIibPaVlDFiV1_DvqH3mC9e3x0"
 
-print("✅ Flask инициализирован")
+print("✅ Flask инициализирован с CORS")
 
 @app.route('/')
 def home():
@@ -17,8 +20,16 @@ def home():
 def health():
     return jsonify({'status': 'ok', 'service': 'neznakomka-bot'})
 
-@app.route('/api/send-code', methods=['POST'])
+@app.route('/api/send-code', methods=['POST', 'OPTIONS'])
 def send_code():
+    # Обработка preflight запросов
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        return response
+    
     try:
         data = request.json
         username = data.get('username', '').replace('@', '')
@@ -44,7 +55,9 @@ def send_code():
         
         if result.get('ok'):
             print(f"✅ Код отправлен @{username}")
-            return jsonify({'success': True})
+            response = jsonify({'success': True})
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response
         else:
             error_msg = result.get('description', 'Unknown error')
             print(f"❌ Ошибка отправки @{username}: {error_msg}")
