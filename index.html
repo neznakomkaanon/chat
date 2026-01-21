@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Незнакомка (AnonChat)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Telegram Login Widget -->
-    <script async src="https://telegram.org/js/telegram-widget.js?22" 
-            data-telegram-login="anonimmuivbot" 
-            data-size="large" 
-            data-radius="20" 
-            data-auth-url="https://neznakomkaanon.github.io/auth.html" 
-            data-request-access="write"></script>
     <!-- Firebase (только Firestore) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -77,6 +70,22 @@
         body {
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+
+        /* Версия в углу */
+        .version-badge {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.5;
+            z-index: 9999;
+            background: var(--bg-secondary);
+            padding: 4px 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
         }
 
         .container {
@@ -199,7 +208,15 @@
             line-height: 1.6;
         }
 
-        .telegram-login-btn {
+        /* Telegram Login Widget */
+        .telegram-login-wrapper {
+            margin: 25px 0;
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .manual-telegram-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -211,15 +228,17 @@
             font-size: 18px;
             font-weight: 600;
             text-decoration: none;
-            margin: 20px 0;
+            border: none;
+            cursor: pointer;
             transition: transform 0.2s;
+            font-family: inherit;
         }
 
-        .telegram-login-btn:hover {
+        .manual-telegram-btn:hover {
             transform: translateY(-2px);
         }
 
-        .telegram-login-btn i {
+        .manual-telegram-btn i {
             font-size: 24px;
         }
 
@@ -413,7 +432,7 @@
         /* Поле ввода */
         .message-input-container {
             position: fixed;
-            bottom: 0;
+            bottom: 30px; /* Увеличил отступ для версии */
             left: 0;
             right: 0;
             background-color: var(--bg-secondary);
@@ -470,6 +489,11 @@
             transform: scale(1.05);
         }
 
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Модальные окна */
         .modal {
             display: none;
@@ -517,14 +541,33 @@
                 border: none;
                 box-shadow: none;
             }
+            
+            .version-badge {
+                bottom: 5px;
+                right: 5px;
+                font-size: 10px;
+                padding: 3px 6px;
+            }
+            
+            .message-input-container {
+                bottom: 25px;
+            }
         }
 
         .hidden {
             display: none !important;
         }
+        
+        /* Стили для Telegram Widget */
+        .telegram-login-button {
+            margin: 20px 0 !important;
+        }
     </style>
 </head>
 <body class="light-theme">
+    <!-- Бейдж версии -->
+    <div class="version-badge">v.1.0</div>
+    
     <div class="container">
         <header>
             <div class="logo">
@@ -554,12 +597,21 @@
                         Войдите через Telegram, чтобы начать общение.
                     </p>
                     
-                    <!-- Кнопка входа через Telegram -->
-                    <a href="https://oauth.telegram.org/auth?bot_id=7279221253&origin=https://neznakomkaanon.github.io&request_access=write" 
-                       class="telegram-login-btn">
+                    <!-- Telegram Login Widget -->
+                    <div class="telegram-login-wrapper">
+                        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                                data-telegram-login="anonimmuivbot" 
+                                data-size="large" 
+                                data-radius="20" 
+                                data-auth-url="https://neznakomkaanon.github.io/auth.html" 
+                                data-request-access="write"></script>
+                    </div>
+                    
+                    <!-- Альтернативная кнопка (если виджет не работает) -->
+                    <button class="manual-telegram-btn hidden" id="manualTelegramBtn">
                         <i class="fab fa-telegram"></i>
                         Войти через Telegram
-                    </a>
+                    </button>
                     
                     <p style="font-size: 14px; color: var(--text-secondary); margin-top: 20px;">
                         🔒 Ваши данные защищены<br>
@@ -633,10 +685,13 @@
                     <p style="color: var(--success); font-size: 14px; margin-top: 10px;">
                         <i class="fas fa-check-circle"></i> Telegram подтверждён
                     </p>
+                    <p style="color: var(--text-secondary); font-size: 12px; margin-top: 5px;">
+                        Аноним #<span id="profileAnonymousId">000</span>
+                    </p>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="btn" id="logoutBtn" style="background: var(--danger); color: white; padding: 12px;">
+                    <button class="btn" id="logoutBtn" style="background: var(--danger); color: white; padding: 12px; border-radius: var(--radius-sm); border: none; cursor: pointer;">
                         <i class="fas fa-sign-out-alt"></i> Выйти
                     </button>
                 </div>
@@ -680,7 +735,7 @@
                 const savedUser = localStorage.getItem('neznakomka-telegram-user');
                 if (savedUser) {
                     state.user = JSON.parse(savedUser);
-                    state.anonymousId = state.user.anonymousId || generateAnonymousId();
+                    state.anonymousId = localStorage.getItem('neznakomka-anonymous-id') || generateAnonymousId();
                     showChatScreen();
                     loadMessages();
                 }
@@ -690,57 +745,20 @@
             }
         }
 
-        // === ОБРАБОТКА ВХОДА ЧЕРЕЗ TELEGRAM ===
-        function handleTelegramAuth() {
-            // Telegram передаёт данные в URL после авторизации
-            const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
-            
-            if (params.has('id')) {
-                // Данные от Telegram
-                const telegramUser = {
-                    id: params.get('id'),
-                    firstName: params.get('first_name') || '',
-                    lastName: params.get('last_name') || '',
-                    username: params.get('username') || '',
-                    photoUrl: params.get('photo_url') || '',
-                    authDate: params.get('auth_date'),
-                    hash: params.get('hash')
-                };
-                
-                // Сохраняем пользователя
-                state.user = telegramUser;
-                state.anonymousId = generateAnonymousId();
-                
-                // Сохраняем в localStorage
-                localStorage.setItem('neznakomka-telegram-user', JSON.stringify(telegramUser));
-                localStorage.setItem('neznakomka-anonymous-id', state.anonymousId);
-                
-                // Сохраняем в Firestore
-                saveUserToFirestore(telegramUser);
-                
-                // Показываем чат
-                showChatScreen();
-                loadMessages();
-                
-                // Очищаем URL от параметров Telegram
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-        }
-
         // === СОХРАНЕНИЕ ПОЛЬЗОВАТЕЛЯ В FIRESTORE ===
         async function saveUserToFirestore(telegramUser) {
             if (!db) return;
             
             try {
                 await db.collection('users').doc(telegramUser.id.toString()).set({
-                    firstName: telegramUser.firstName,
-                    lastName: telegramUser.lastName,
-                    username: telegramUser.username,
-                    photoUrl: telegramUser.photoUrl,
+                    firstName: telegramUser.first_name,
+                    lastName: telegramUser.last_name || '',
+                    username: telegramUser.username || '',
+                    photoUrl: telegramUser.photo_url || '',
                     anonymousId: state.anonymousId,
                     lastSeen: new Date().toISOString(),
-                    isAdmin: false // По умолчанию не админ
+                    isAdmin: false,
+                    createdAt: new Date().toISOString()
                 }, { merge: true });
                 
                 console.log("✅ Пользователь сохранён в Firestore");
@@ -772,12 +790,16 @@
             const text = document.getElementById('messageInput').value.trim();
             if (!text || !state.user || !state.anonymousId) return;
             
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
             try {
                 const message = {
                     text: text,
                     senderId: state.user.id,
                     anonymousId: state.anonymousId,
-                    senderName: state.user.firstName || 'Аноним',
+                    senderName: state.user.first_name || 'Аноним',
                     isVerified: true,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
@@ -791,6 +813,9 @@
             } catch (error) {
                 console.error("❌ Ошибка отправки:", error);
                 alert('Ошибка отправки сообщения');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             }
         }
 
@@ -811,7 +836,7 @@
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
             // Кнопка рукопожатия для чужих сообщений
-            const handshakeButton = !isMyMessage ? `
+            const handshakeButton = !isMyMessage && message.isVerified ? `
                 <button class="handshake-btn" onclick="offerHandshake(${message.anonymousId})">
                     <i class="fas fa-handshake"></i> Предложить рукопожатие
                 </button>
@@ -829,8 +854,8 @@
                 ${handshakeButton}
             `;
             
-            document.getElementById('messagesContainer').insertBefore(messageElement, 
-                document.getElementById('messagesContainer').firstChild);
+            const container = document.getElementById('messagesContainer');
+            container.insertBefore(messageElement, container.firstChild);
             scrollToBottom();
         }
 
@@ -841,37 +866,50 @@
                 return;
             }
             
-            // Находим пользователя по anonymousId
-            const usersSnapshot = await db.collection('users')
-                .where('anonymousId', '==', anonymousId)
-                .limit(1)
-                .get();
-            
-            if (usersSnapshot.empty) {
-                alert('Пользователь не найден');
-                return;
-            }
-            
-            const targetUser = usersSnapshot.docs[0].data();
-            
-            if (!targetUser.username) {
-                alert('У этого пользователя нет Telegram username');
-                return;
-            }
-            
-            // Отправляем уведомление в Telegram
             try {
+                // Находим пользователя по anonymousId
+                const usersSnapshot = await db.collection('users')
+                    .where('anonymousId', '==', anonymousId)
+                    .limit(1)
+                    .get();
+                
+                if (usersSnapshot.empty) {
+                    alert('Пользователь не найден');
+                    return;
+                }
+                
+                const targetUser = usersSnapshot.docs[0].data();
+                
+                if (!targetUser.username) {
+                    alert('У этого пользователя нет Telegram username');
+                    return;
+                }
+                
+                // Отправляем уведомление в Telegram
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: targetUser.username,
-                        text: `🤝 Аноним #${anonymousId} предлагает обменяться контактами!\n\nСвяжитесь: @${state.user.username}`
+                        text: `🤝 Аноним #${anonymousId} предлагает обменяться контактами!\n\nСвяжитесь: @${state.user.username}\n\nЭто сообщение от чата "Незнакомка".`
                     })
                 });
                 
-                alert('🤝 Предложение рукопожатия отправлено!');
+                // Отправляем себе копию
+                if (state.user.username !== targetUser.username) {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: state.user.username,
+                            text: `🤝 Вы предложили рукопожатие Анониму #${anonymousId}!\n\nИх Telegram: @${targetUser.username}\nВаш Telegram: @${state.user.username}`
+                        })
+                    });
+                }
+                
+                alert('🤝 Предложение рукопожатия отправлено! Проверьте Telegram.');
             } catch (error) {
+                console.error('Ошибка рукопожатия:', error);
                 alert('Ошибка отправки предложения');
             }
         };
@@ -884,21 +922,16 @@
             
             // Обновляем информацию о пользователе
             if (state.user) {
-                const avatar = document.getElementById('userAvatar');
-                const name = document.getElementById('displayUsername');
-                const profileAvatar = document.getElementById('profileAvatar');
-                const profileName = document.getElementById('profileName');
-                const profileUsername = document.getElementById('profileUsername');
+                const firstLetter = state.user.first_name?.charAt(0) || 
+                                  state.user.username?.charAt(1) || 'Т'; // @username -> берем 'u'
                 
-                const firstLetter = state.user.firstName?.charAt(0) || 
-                                  state.user.username?.charAt(0) || 'Т';
+                document.getElementById('userAvatar').textContent = firstLetter.toUpperCase();
+                document.getElementById('displayUsername').textContent = `Аноним #${state.anonymousId}`;
                 
-                avatar.textContent = firstLetter;
-                name.textContent = `Аноним #${state.anonymousId}`;
-                
-                profileAvatar.textContent = firstLetter;
-                profileName.textContent = state.user.firstName || 'Telegram User';
-                profileUsername.textContent = state.user.username ? `@${state.user.username}` : 'Без username';
+                document.getElementById('profileAvatar').textContent = firstLetter.toUpperCase();
+                document.getElementById('profileName').textContent = state.user.first_name || 'Telegram User';
+                document.getElementById('profileUsername').textContent = state.user.username ? `@${state.user.username}` : 'Без username';
+                document.getElementById('profileAnonymousId').textContent = state.anonymousId;
             }
             
             document.getElementById('messageInput').focus();
@@ -911,14 +944,38 @@
                 localStorage.removeItem('neznakomka-anonymous-id');
                 state.user = null;
                 state.anonymousId = null;
+                state.messages = [];
                 
                 document.getElementById('chatScreen').classList.add('hidden');
                 document.getElementById('loginScreen').classList.remove('hidden');
                 document.getElementById('profileBtn').classList.add('hidden');
                 document.getElementById('messagesContainer').innerHTML = '';
+                document.getElementById('profileModal').classList.remove('active');
                 
-                window.location.href = window.location.pathname; // Очищаем URL
+                // Очищаем URL если есть хэш
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                alert('Вы вышли из аккаунта');
             }
+        }
+
+        // === ОБРАБОТКА TELEGRAM АВТОРИЗАЦИИ ===
+        function handleTelegramAuth(telegramUser) {
+            // Сохраняем пользователя
+            state.user = telegramUser;
+            state.anonymousId = generateAnonymousId();
+            
+            localStorage.setItem('neznakomka-telegram-user', JSON.stringify(telegramUser));
+            localStorage.setItem('neznakomka-anonymous-id', state.anonymousId);
+            
+            // Сохраняем в Firestore
+            saveUserToFirestore(telegramUser);
+            
+            // Показываем чат
+            showChatScreen();
+            loadMessages();
+            
+            console.log('✅ Пользователь авторизован:', telegramUser);
         }
 
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
@@ -948,10 +1005,48 @@
             }, 100);
         }
 
+        // === РУЧНАЯ КНОПКА TELEGRAM (если виджет не работает) ===
+        function openManualTelegramAuth() {
+            const botId = '7279221253';
+            const origin = encodeURIComponent('https://neznakomkaanon.github.io');
+            const authUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write`;
+            
+            window.open(authUrl, 'TelegramAuth', 'width=600,height=700');
+        }
+
+        // === ОБРАБОТЧИК СООБЩЕНИЙ ОТ AUTH.HTML ===
+        window.addEventListener('message', (event) => {
+            // Проверяем origin для безопасности
+            if (event.origin !== 'https://neznakomkaanon.github.io') return;
+            
+            if (event.data && event.data.type === 'telegram_auth') {
+                handleTelegramAuth(event.data.user);
+            }
+        });
+
         // === ИНИЦИАЛИЗАЦИЯ ===
         document.addEventListener('DOMContentLoaded', () => {
             initFirebase();
-            handleTelegramAuth();
+            
+            // Проверяем хэш в URL (Telegram может вернуть данные тут)
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const params = new URLSearchParams(hash);
+                if (params.has('id')) {
+                    const telegramUser = {
+                        id: params.get('id'),
+                        first_name: params.get('first_name') || '',
+                        last_name: params.get('last_name') || '',
+                        username: params.get('username') || '',
+                        photo_url: params.get('photo_url') || '',
+                        auth_date: params.get('auth_date'),
+                        hash: params.get('hash')
+                    };
+                    handleTelegramAuth(telegramUser);
+                    // Очищаем URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
             
             // Обработчики событий
             document.getElementById('themeToggle').addEventListener('click', () => {
@@ -987,7 +1082,18 @@
             document.getElementById('messageInput').addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                this.style.overflowY = this.scrollHeight > 120 ? 'auto' : 'hidden';
             });
+            
+            // Ручная кнопка Telegram
+            document.getElementById('manualTelegramBtn').addEventListener('click', openManualTelegramAuth);
+            
+            // Показываем ручную кнопку через 3 секунды если виджет не загрузился
+            setTimeout(() => {
+                if (!document.querySelector('.telegram-login-button')) {
+                    document.getElementById('manualTelegramBtn').classList.remove('hidden');
+                }
+            }, 3000);
             
             // Восстанавливаем тему
             const savedTheme = localStorage.getItem('neznakomka-theme') || 'light';
