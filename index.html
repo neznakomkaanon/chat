@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Анонимный Чат</title>
+    <title>Незнакомка (AnonChat)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -140,6 +140,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            position: relative;
         }
 
         .header-btn {
@@ -160,6 +161,25 @@
         .header-btn:hover {
             background-color: var(--accent);
             color: white;
+        }
+
+        .notifications-btn {
+            position: relative;
+        }
+
+        .notifications-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--danger);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Основной контент */
@@ -291,6 +311,56 @@
         .btn-danger {
             background-color: var(--danger);
             color: white;
+        }
+
+        /* Соглашение с правилами */
+        .terms-container {
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .terms-container h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .terms-container p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .terms-container ul, .terms-container ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .terms-container li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .terms-checkbox input {
+            margin-top: 3px;
+        }
+
+        .terms-checkbox label {
+            font-size: 14px;
+            color: var(--text-secondary);
         }
 
         /* Экран подтверждения email */
@@ -542,6 +612,39 @@
             line-height: 1.4;
         }
 
+        /* Действия с сообщениями */
+        .message-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: none;
+            gap: 5px;
+        }
+
+        .message-bubble:hover .message-actions {
+            display: flex;
+        }
+
+        .message-action-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-primary);
+            opacity: 0.7;
+        }
+
+        .message-action-btn:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
         /* Кнопка рукопожатия */
         .handshake-btn {
             background-color: var(--bg-secondary);
@@ -760,6 +863,98 @@
             font-size: 14px;
         }
 
+        /* Уведомление о рукопожатии */
+        .handshake-notification {
+            background-color: var(--bg-tertiary);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: var(--radius-sm);
+        }
+
+        .handshake-item {
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid var(--border);
+        }
+
+        .handshake-info {
+            margin-bottom: 10px;
+        }
+
+        /* Контакты */
+        .contacts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .contact-card {
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--telegram-color), #00aced);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .contact-details h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+        }
+
+        .contact-telegram {
+            color: var(--telegram-color);
+            font-size: 12px;
+        }
+
+        .contact-time {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .contact-expires {
+            font-size: 12px;
+            color: var(--warning);
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Жалобы */
+        .report-reason {
+            font-size: 12px;
+            color: var(--danger);
+            background-color: rgba(255, 59, 48, 0.1);
+            padding: 4px 8px;
+            border-radius: 10px;
+            margin-left: 10px;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -790,31 +985,29 @@
             margin: 10px 0;
             font-size: 14px;
         }
-
-        /* Уведомление о рукопожатии */
-        .handshake-notification {
-            background-color: var(--bg-tertiary);
-            border-left: 4px solid var(--accent);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: var(--radius-sm);
-        }
     </style>
 </head>
 <body class="light-theme">
     <!-- Бейдж версии -->
-    <div class="version-badge">v.2.1</div>
+    <div class="version-badge">v.3.0</div>
     
     <div class="container">
         <header>
             <div class="logo">
                 <i class="fas fa-user-secret logo-icon"></i>
                 <div class="logo-text">
-                    <div class="logo-main">Анонимный Чат</div>
-                    <div class="logo-sub">Безопасное общение</div>
+                    <div class="logo-main">Незнакомка</div>
+                    <div class="logo-sub">AnonChat</div>
                 </div>
             </div>
             <div class="header-actions">
+                <button class="header-btn hidden" id="contactsBtn" title="Контакты">
+                    <i class="fas fa-address-book"></i>
+                </button>
+                <button class="header-btn hidden notifications-btn" id="notificationsBtn" title="Уведомления">
+                    <i class="fas fa-bell"></i>
+                    <span class="notifications-badge hidden" id="notificationsBadge">0</span>
+                </button>
                 <button class="header-btn hidden" id="profileBtn" title="Профиль">
                     <i class="fas fa-user"></i>
                 </button>
@@ -831,9 +1024,9 @@
             <!-- Экран входа/регистрации -->
             <div class="auth-screen" id="authScreen">
                 <div class="auth-box">
-                    <h2>Анонимный Чат</h2>
+                    <h2>Незнакомка (AnonChat)</h2>
                     <p style="margin-bottom: 30px; color: var(--text-secondary);">
-                        Войдите или зарегистрируйтесь для доступа к чату
+                        Анонимный чат с рукопожатиями
                     </p>
                     
                     <div class="auth-tabs">
@@ -882,6 +1075,49 @@
                                    placeholder="Повторите пароль" required>
                         </div>
                         
+                        <div class="terms-container">
+                            <h3>Пользовательское соглашение</h3>
+                            <p><strong>Незнакомка (AnonChat)</strong> — платформа для анонимного общения.</p>
+                            <p><strong>1. Основные положения:</strong></p>
+                            <ul>
+                                <li>В чате все пользователи отображаются как "Аноним #XXX"</li>
+                                <li>Для использования чата требуется подтверждение через заявку</li>
+                                <li>Все сообщения автоматически удаляются через 24 часа</li>
+                            </ul>
+                            <p><strong>2. Запрещено:</strong></p>
+                            <ul>
+                                <li>Спам, флуд, реклама</li>
+                                <li>Оскорбления, угрозы, травля</li>
+                                <li>Разжигание ненависти, дискриминация</li>
+                                <li>Незаконный контент, экстремизм</li>
+                                <li>Мошенничество, фишинг</li>
+                            </ul>
+                            <p><strong>3. Система рукопожатий:</strong></p>
+                            <ul>
+                                <li>Вы можете предложить обменяться контактами, нажав кнопку 🤝 под сообщением</li>
+                                <li>Рукопожатие действует только при взаимном согласии пользователей</li>
+                                <li>Контакты хранятся 24 часа, после чего удаляются</li>
+                                <li>Администрация не несет ответственности за последствия обмена контактами</li>
+                            </ul>
+                            <p><strong>4. Ответственность:</strong></p>
+                            <ul>
+                                <li>Администрация оставляет за собой право блокировать пользователей за нарушение правил</li>
+                                <li>Пользователь несет полную ответственность за свои действия в чате</li>
+                                <li>Администрация не проверяет достоверность информации при обмене контактами</li>
+                            </ul>
+                            <p><strong>5. Конфиденциальность:</strong></p>
+                            <ul>
+                                <li>Все сообщения шифруются и хранятся временно</li>
+                                <li>Telegram username используется только для рукопожатий</li>
+                                <li>Ваш email используется только для входа и не передается третьим лицам</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="terms-checkbox">
+                            <input type="checkbox" id="agreeTerms" required>
+                            <label for="agreeTerms">Я подтверждаю, что мне исполнилось 18 лет, прочитал(а) и согласен(на) с пользовательским соглашением</label>
+                        </div>
+                        
                         <button class="btn btn-primary" id="registerBtn">
                             <i class="fas fa-user-plus"></i> Зарегистрироваться
                         </button>
@@ -905,11 +1141,6 @@
                     <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 30px;">
                         Пожалуйста, проверьте вашу почту и перейдите по ссылке в письме для подтверждения.
                     </p>
-                    
-                    <div class="handshake-notification">
-                        <i class="fas fa-info-circle" style="color: var(--accent); margin-right: 8px;"></i>
-                        После подтверждения email вы сможете заполнить заявку на доступ к чату
-                    </div>
                     
                     <button class="btn btn-primary" id="resendVerifyBtn" style="margin-top: 20px;">
                         <i class="fas fa-redo"></i> Отправить письмо повторно
@@ -948,7 +1179,7 @@
                         <input type="text" id="telegramUsername" class="form-control" 
                                placeholder="@username (обязательно с @)" required>
                         <small style="color: var(--text-secondary); display: block; margin-top: 6px;">
-                            Этот username будет использоваться для связи при рукопожатии
+                            Этот username будет использоваться для связи при рукопожатии. Каждый Telegram можно использовать только в одной заявке.
                         </small>
                     </div>
                     
@@ -961,7 +1192,7 @@
                     
                     <div class="handshake-notification">
                         <i class="fas fa-handshake" style="color: var(--accent); margin-right: 8px;"></i>
-                        После одобрения заявки вы сможете общаться в чате и предлагать рукопожатие другим участникам
+                        После одобрения заявки вы сможете общаться в чате и предлагать рукопожатие другим участникам. Рукопожатие действует только при взаимном согласии.
                     </div>
                     
                     <button class="btn btn-primary" id="submitApplicationBtn">
@@ -981,7 +1212,7 @@
                 <div class="chat-container">
                     <div class="chat-header">
                         <div class="chat-info">
-                            <h2>Анонимный чат</h2>
+                            <h2>Анонимный чат "Незнакомка"</h2>
                             <p>
                                 <i class="fas fa-users"></i>
                                 <span id="onlineCount">0</span> онлайн • 
@@ -1058,6 +1289,39 @@
         </div>
     </div>
 
+    <!-- Модальное окно контактов -->
+    <div class="modal" id="contactsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Контакты (24 часа)</h2>
+                <button class="modal-close" id="closeContactsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="contactsContainer">
+                    <!-- Контакты загружаются динамически -->
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 20px;">
+                    Контакты хранятся 24 часа с момента рукопожатия, после чего автоматически удаляются.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно уведомлений -->
+    <div class="modal" id="notificationsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Уведомления</h2>
+                <button class="modal-close" id="closeNotificationsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="notificationsContainer">
+                    <!-- Уведомления загружаются динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Админ панель -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
@@ -1081,56 +1345,192 @@
                         <div class="stat-value" id="pendingApplications">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Активных чатов</div>
-                        <div class="stat-value" id="activeChats">0</div>
+                        <div class="stat-label">Жалоб на рассмотрении</div>
+                        <div class="stat-value" id="pendingReports">0</div>
                     </div>
+                </div>
+
+                <!-- Навигация по админ панели -->
+                <div style="display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap;">
+                    <button class="btn btn-sm" id="adminTabApplications">Заявки</button>
+                    <button class="btn btn-sm" id="adminTabApproved">Одобренные</button>
+                    <button class="btn btn-sm" id="adminTabBanned">Заблокированные</button>
+                    <button class="btn btn-sm" id="adminTabReports">Жалобы</button>
+                    <button class="btn btn-sm" id="adminTabAdmins">Администраторы</button>
                 </div>
 
                 <!-- Таблица заявок -->
-                <h3 style="margin-top: 30px;">Заявки на доступ</h3>
-                <div style="overflow-x: auto;">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Telegram</th>
-                                <th>Дата</th>
-                                <th>Статус</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody id="applicationsTable">
-                            <!-- Заявки загружаются динамически -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Управление администраторами -->
-                <h3 style="margin-top: 30px;">Администраторы</h3>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label for="addAdminEmail">Добавить администратора</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="email" id="addAdminEmail" class="form-control" 
-                               placeholder="email@example.com" style="flex: 1;">
-                        <button class="btn btn-success btn-sm" id="addAdminBtn">
-                            <i class="fas fa-plus"></i> Добавить
-                        </button>
+                <div id="adminApplicationsTab">
+                    <h3>Заявки на доступ</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Telegram</th>
+                                    <th>Дата</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicationsTable">
+                                <!-- Заявки загружаются динамически -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div style="overflow-x: auto; margin-top: 15px;">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Роль</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminsTable">
-                            <!-- Админы загружаются динамически -->
-                        </tbody>
-                    </table>
+                <!-- Таблица одобренных -->
+                <div id="adminApprovedTab" class="hidden">
+                    <h3>Одобренные заявки</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Telegram</th>
+                                    <th>Дата одобрения</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvedTable">
+                                <!-- Одобренные загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Таблица заблокированных -->
+                <div id="adminBannedTab" class="hidden">
+                    <h3>Заблокированные пользователи</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Telegram</th>
+                                    <th>Причина</th>
+                                    <th>Дата блокировки</th>
+                                    <th>Заблокировал</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bannedTable">
+                                <!-- Заблокированные загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Таблица жалоб -->
+                <div id="adminReportsTab" class="hidden">
+                    <h3>Жалобы на сообщения</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Жалоба от</th>
+                                    <th>На сообщение</th>
+                                    <th>Причина</th>
+                                    <th>Дата</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTable">
+                                <!-- Жалобы загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Управление администраторами -->
+                <div id="adminAdminsTab" class="hidden">
+                    <h3>Администраторы</h3>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="addAdminEmail">Добавить администратора</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="email" id="addAdminEmail" class="form-control" 
+                                   placeholder="email@example.com" style="flex: 1;">
+                            <button class="btn btn-success btn-sm" id="addAdminBtn">
+                                <i class="fas fa-plus"></i> Добавить
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto; margin-top: 15px;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Роль</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminsTable">
+                                <!-- Админы загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения рукопожатия -->
+    <div class="modal" id="confirmHandshakeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Подтверждение рукопожатия</h2>
+                <button class="modal-close" id="closeConfirmHandshakeBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="handshakeConfirmInfo">
+                    <!-- Информация загружается динамически -->
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-success" id="confirmHandshakeBtn">
+                        <i class="fas fa-handshake"></i> Подтвердить рукопожатие
+                    </button>
+                    <button class="btn" id="cancelHandshakeBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-times"></i> Отменить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно жалобы -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Пожаловаться на сообщение</h2>
+                <button class="modal-close" id="closeReportBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Выберите причину:</label>
+                    <select id="reportReason" class="form-control">
+                        <option value="spam">Спам или реклама</option>
+                        <option value="insult">Оскорбления или угрозы</option>
+                        <option value="hate">Разжигание ненависти</option>
+                        <option value="illegal">Незаконный контент</option>
+                        <option value="fraud">Мошенничество</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportDetails">Дополнительная информация (необязательно):</label>
+                    <textarea id="reportDetails" class="form-control" rows="3" placeholder="Опишите подробнее..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-danger" id="submitReportBtn">
+                        <i class="fas fa-flag"></i> Отправить жалобу
+                    </button>
+                    <button class="btn" id="cancelReportBtn" style="background: var(--bg-tertiary);">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
                 </div>
             </div>
         </div>
@@ -1155,9 +1555,13 @@
             isAdmin: false,
             isVerified: false,
             emailVerified: false,
+            acceptedTerms: false,
             messages: [],
             onlineUsers: [],
-            theme: 'light'
+            theme: 'light',
+            pendingHandshakeTarget: null,
+            reportTargetMessage: null,
+            adminActiveTab: 'applications'
         };
 
         // === ИНИЦИАЛИЗАЦИЯ FIREBASE ===
@@ -1177,13 +1581,17 @@
                         state.emailVerified = user.emailVerified;
                         
                         if (!user.emailVerified) {
-                            // Email не подтвержден
                             showVerifyEmailScreen();
                         } else {
                             await loadUserData();
                             
-                            // Проверяем статус пользователя
                             if (state.userData) {
+                                // Проверяем принятие пользовательского соглашения
+                                if (!state.userData.acceptedTerms) {
+                                    showTermsAgreement();
+                                    return;
+                                }
+                                
                                 if (state.userData.isAdmin) {
                                     state.isAdmin = true;
                                     document.getElementById('adminBtn').classList.remove('hidden');
@@ -1193,6 +1601,8 @@
                                     state.isVerified = true;
                                     showChatScreen();
                                     loadMessages();
+                                    loadNotifications();
+                                    loadContacts();
                                 } else {
                                     showApplicationScreen();
                                     checkApplicationStatus();
@@ -1200,12 +1610,7 @@
                             }
                         }
                     } else {
-                        // Не авторизован
-                        state.user = null;
-                        state.userData = null;
-                        state.isAdmin = false;
-                        state.isVerified = false;
-                        state.emailVerified = false;
+                        resetState();
                         showAuthScreen();
                     }
                 });
@@ -1213,6 +1618,20 @@
             } catch (error) {
                 console.error("❌ Ошибка Firebase:", error);
             }
+        }
+
+        // === СБРОС СОСТОЯНИЯ ===
+        function resetState() {
+            state.user = null;
+            state.userData = null;
+            state.isAdmin = false;
+            state.isVerified = false;
+            state.emailVerified = false;
+            state.acceptedTerms = false;
+            state.messages = [];
+            state.onlineUsers = [];
+            state.pendingHandshakeTarget = null;
+            state.reportTargetMessage = null;
         }
 
         // === ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ ===
@@ -1225,6 +1644,7 @@
                 
                 if (doc.exists) {
                     state.userData = doc.data();
+                    state.acceptedTerms = state.userData.acceptedTerms || false;
                     updateProfileUI();
                 } else {
                     // Создаем нового пользователя
@@ -1233,12 +1653,17 @@
                         isAdmin: state.user.email === 'sad.spotty@gmail.com', // Первый админ
                         isVerified: false,
                         emailVerified: true,
+                        acceptedTerms: false,
                         application: null,
                         telegramUsername: null,
                         createdAt: new Date().toISOString(),
                         lastSeen: new Date().toISOString(),
                         online: true,
-                        anonymousId: generateAnonymousId()
+                        anonymousId: generateAnonymousId(),
+                        isBanned: false,
+                        banReason: null,
+                        bannedAt: null,
+                        bannedBy: null
                     };
                     
                     await userRef.set(state.userData);
@@ -1255,11 +1680,117 @@
             }
         }
 
+        // === ПРИНЯТИЕ ПОЛЬЗОВАТЕЛЬСКОГО СОГЛАШЕНИЯ ===
+        async function acceptTerms() {
+            if (!state.user || !db) return;
+            
+            try {
+                await db.collection('users').doc(state.user.uid).update({
+                    acceptedTerms: true,
+                    acceptedTermsAt: new Date().toISOString()
+                });
+                
+                state.userData.acceptedTerms = true;
+                state.acceptedTerms = true;
+                
+                showApplicationScreen();
+                checkApplicationStatus();
+                
+            } catch (error) {
+                console.error("❌ Ошибка сохранения соглашения:", error);
+                alert('Ошибка сохранения соглашения. Попробуйте позже.');
+            }
+        }
+
+        // === ПОКАЗАТЬ СОГЛАШЕНИЕ ===
+        function showTermsAgreement() {
+            const html = `
+                <div class="verify-box">
+                    <div class="verify-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h2>Пользовательское соглашение</h2>
+                    
+                    <div class="terms-container" style="max-height: 400px;">
+                        <h3>Незнакомка (AnonChat) — Правила использования</h3>
+                        <p><strong>1. Основные положения:</strong></p>
+                        <ul>
+                            <li>В чате все пользователи отображаются как "Аноним #XXX"</li>
+                            <li>Для использования чата требуется подтверждение через заявку</li>
+                            <li>Все сообщения автоматически удаляются через 24 часа</li>
+                            <li>Требуется минимальный возраст 18 лет</li>
+                        </ul>
+                        <p><strong>2. Запрещено:</strong></p>
+                        <ul>
+                            <li>Спам, флуд, реклама, рассылка ссылок</li>
+                            <li>Оскорбления, угрозы, травля, буллинг</li>
+                            <li>Разжигание ненависти, дискриминация по любым признакам</li>
+                            <li>Незаконный контент, экстремизм, пропаганда</li>
+                            <li>Мошенничество, фишинг, обман</li>
+                            <li>Распространение личных данных без согласия</li>
+                        </ul>
+                        <p><strong>3. Система рукопожатий:</strong></p>
+                        <ul>
+                            <li>Вы можете предложить обменяться контактами через кнопку 🤝</li>
+                            <li>Рукопожатие действует только при взаимном согласии</li>
+                            <li>Контакты хранятся 24 часа, затем автоматически удаляются</li>
+                            <li>Администрация не проверяет достоверность контактов</li>
+                            <li>Администрация не несет ответственности за последствия обмена</li>
+                        </ul>
+                        <p><strong>4. Ответственность:</strong></p>
+                        <ul>
+                            <li>Пользователь несет полную ответственность за свои действия</li>
+                            <li>Администрация вправе блокировать нарушителей без предупреждения</li>
+                            <li>Все спорные ситуации решаются в пользу администрации</li>
+                            <li>Администрация не хранит логи сообщений дольше 24 часов</li>
+                        </ul>
+                        <p><strong>5. Конфиденциальность:</strong></p>
+                        <ul>
+                            <li>Сообщения шифруются и временно хранятся на серверах</li>
+                            <li>Telegram username используется исключительно для рукопожатий</li>
+                            <li>Email используется только для входа и восстановления</li>
+                            <li>IP-адреса не сохраняются и не обрабатываются</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terms-checkbox">
+                        <input type="checkbox" id="agreeTermsModal" required>
+                        <label for="agreeTermsModal">Мне исполнилось 18 лет, я прочитал(а) и полностью согласен(на) с пользовательским соглашением</label>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="acceptTermsBtn">
+                        <i class="fas fa-check-circle"></i> Принять соглашение
+                    </button>
+                    
+                    <button class="btn" id="rejectTermsBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-times"></i> Отказаться и выйти
+                    </button>
+                </div>
+            `;
+            
+            document.querySelector('.main-content').innerHTML = html;
+            
+            document.getElementById('acceptTermsBtn').addEventListener('click', async () => {
+                if (!document.getElementById('agreeTermsModal').checked) {
+                    alert('Для продолжения необходимо подтвердить согласие с правилами');
+                    return;
+                }
+                await acceptTerms();
+            });
+            
+            document.getElementById('rejectTermsBtn').addEventListener('click', async () => {
+                if (confirm('Вы уверены, что хотите отказаться от пользовательского соглашения? Это приведет к выходу из аккаунта.')) {
+                    await handleLogout();
+                }
+            });
+        }
+
         // === РЕГИСТРАЦИЯ ===
         async function handleRegister() {
             const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value.trim();
             const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const agreeTerms = document.getElementById('agreeTerms');
             
             if (!email || !password || !confirmPassword) {
                 showRegisterError('Заполните все поля');
@@ -1276,6 +1807,11 @@
                 return;
             }
             
+            if (!agreeTerms || !agreeTerms.checked) {
+                showRegisterError('Необходимо принять пользовательское соглашение');
+                return;
+            }
+            
             const registerBtn = document.getElementById('registerBtn');
             registerBtn.disabled = true;
             registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Регистрация...';
@@ -1286,6 +1822,23 @@
                 
                 // Отправляем письмо подтверждения
                 await user.sendEmailVerification();
+                
+                // Сразу сохраняем принятие соглашения
+                await db.collection('users').doc(user.uid).set({
+                    email: user.email,
+                    isAdmin: user.email === 'sad.spotty@gmail.com',
+                    isVerified: false,
+                    emailVerified: false,
+                    acceptedTerms: true,
+                    acceptedTermsAt: new Date().toISOString(),
+                    application: null,
+                    telegramUsername: null,
+                    createdAt: new Date().toISOString(),
+                    lastSeen: new Date().toISOString(),
+                    online: true,
+                    anonymousId: generateAnonymousId(),
+                    isBanned: false
+                });
                 
                 showRegisterSuccess('Регистрация успешна! Проверьте email для подтверждения.');
                 
@@ -1402,7 +1955,6 @@
                     // Даем время для отображения сообщения
                     setTimeout(async () => {
                         await loadUserData();
-                        showApplicationScreen();
                     }, 1500);
                 } else {
                     showVerifyError('Email еще не подтвержден. Проверьте вашу почту.');
@@ -1416,6 +1968,24 @@
             }
         }
 
+        // === ПРОВЕРКА УНИКАЛЬНОСТИ TELEGRAM USERNAME ===
+        async function checkTelegramUsernameUnique(username) {
+            if (!db) return true;
+            
+            try {
+                const usersSnapshot = await db.collection('users')
+                    .where('telegramUsername', '==', username)
+                    .where('isVerified', '==', true)
+                    .limit(1)
+                    .get();
+                
+                return usersSnapshot.empty;
+            } catch (error) {
+                console.error("❌ Ошибка проверки username:", error);
+                return true;
+            }
+        }
+
         // === ОТПРАВКА ЗАЯВКИ ===
         async function submitApplication() {
             const telegramUsername = document.getElementById('telegramUsername').value.trim();
@@ -1423,6 +1993,13 @@
             
             if (!telegramUsername || !telegramUsername.startsWith('@')) {
                 showApplicationError('Введите Telegram username в формате @username');
+                return;
+            }
+            
+            // Проверяем уникальность Telegram username
+            const isUnique = await checkTelegramUsernameUnique(telegramUsername);
+            if (!isUnique) {
+                showApplicationError('Этот Telegram username уже привязан к другому аккаунту. Пожалуйста, используйте другой.');
                 return;
             }
             
@@ -1489,6 +2066,8 @@
                 setTimeout(() => {
                     showChatScreen();
                     loadMessages();
+                    loadNotifications();
+                    loadContacts();
                 }, 2000);
                 
             } else if (application.status === 'rejected') {
@@ -1511,11 +2090,24 @@
                 // Загружаем статистику
                 await loadStats();
                 
-                // Загружаем заявки
-                await loadApplications();
-                
-                // Загружаем список админов
-                await loadAdmins();
+                // Загружаем данные в зависимости от активной вкладки
+                switch(state.adminActiveTab) {
+                    case 'applications':
+                        await loadApplications();
+                        break;
+                    case 'approved':
+                        await loadApprovedUsers();
+                        break;
+                    case 'banned':
+                        await loadBannedUsers();
+                        break;
+                    case 'reports':
+                        await loadReports();
+                        break;
+                    case 'admins':
+                        await loadAdmins();
+                        break;
+                }
                 
             } catch (error) {
                 console.error("❌ Ошибка загрузки админ панели:", error);
@@ -1532,7 +2124,7 @@
                 const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
                 const onlineUsers = usersSnapshot.docs.filter(doc => {
                     const data = doc.data();
-                    return data.lastSeen && new Date(data.lastSeen) > fiveMinutesAgo;
+                    return data.lastSeen && new Date(data.lastSeen) > fiveMinutesAgo && !data.isBanned;
                 });
                 document.getElementById('onlineUsers').textContent = onlineUsers.length;
                 
@@ -1542,12 +2134,11 @@
                     .get();
                 document.getElementById('pendingApplications').textContent = pendingApps.size;
                 
-                // Активные чаты (последние 24 часа)
-                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-                const activeChats = await db.collection('messages')
-                    .where('timestamp', '>', yesterday)
+                // Жалоб на рассмотрении
+                const pendingReports = await db.collection('reports')
+                    .where('status', '==', 'pending')
                     .get();
-                document.getElementById('activeChats').textContent = activeChats.size;
+                document.getElementById('pendingReports').textContent = pendingReports.size;
                 
             } catch (error) {
                 console.error("❌ Ошибка загрузки статистики:", error);
@@ -1580,6 +2171,11 @@
                             break;
                     }
                     
+                    const deleteBtn = app.status === 'pending' ? 
+                        `<button class="action-btn btn-danger" onclick="deleteApplication('${doc.id}', '${app.userEmail}')">
+                            <i class="fas fa-trash"></i>
+                        </button>` : '';
+                    
                     row.innerHTML = `
                         <td>${app.userEmail}</td>
                         <td>${app.telegramUsername}</td>
@@ -1594,6 +2190,7 @@
                                     Отклонить
                                 </button>
                             ` : ''}
+                            ${deleteBtn}
                         </td>
                     `;
                     
@@ -1602,6 +2199,146 @@
                 
             } catch (error) {
                 console.error("❌ Ошибка загрузки заявок:", error);
+            }
+        }
+
+        async function loadApprovedUsers() {
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isVerified', '==', true)
+                    .where('isBanned', '!=', true)
+                    .get();
+                
+                const tbody = document.getElementById('approvedTable');
+                tbody.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const app = user.application;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.telegramUsername || 'Не указан'}</td>
+                        <td>${app && app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString() : 'Нет данных'}</td>
+                        <td><span style="color: var(--success);">✅ Активен</span></td>
+                        <td class="action-buttons">
+                            <button class="action-btn btn-warning" onclick="revokeApproval('${doc.id}', '${user.email}')">
+                                <i class="fas fa-ban"></i> Отозвать
+                            </button>
+                            <button class="action-btn btn-danger" onclick="banUser('${doc.id}', '${user.email}')">
+                                <i class="fas fa-ban"></i> Заблокировать
+                            </button>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки одобренных:", error);
+            }
+        }
+
+        async function loadBannedUsers() {
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isBanned', '==', true)
+                    .get();
+                
+                const tbody = document.getElementById('bannedTable');
+                tbody.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.telegramUsername || 'Не указан'}</td>
+                        <td>${user.banReason || 'Не указана'}</td>
+                        <td>${user.bannedAt ? new Date(user.bannedAt).toLocaleString() : 'Нет данных'}</td>
+                        <td>${user.bannedBy || 'Система'}</td>
+                        <td class="action-buttons">
+                            <button class="action-btn btn-success" onclick="unbanUser('${doc.id}', '${user.email}')">
+                                <i class="fas fa-check-circle"></i> Разблокировать
+                            </button>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки заблокированных:", error);
+            }
+        }
+
+        async function loadReports() {
+            try {
+                const snapshot = await db.collection('reports')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                const tbody = document.getElementById('reportsTable');
+                tbody.innerHTML = '';
+                
+                for (const doc of snapshot.docs) {
+                    const report = doc.data();
+                    
+                    // Получаем информацию о сообщении
+                    let messageText = 'Сообщение удалено';
+                    let messageSender = 'Неизвестно';
+                    
+                    if (report.messageId) {
+                        try {
+                            const messageDoc = await db.collection('messages').doc(report.messageId).get();
+                            if (messageDoc.exists) {
+                                const messageData = messageDoc.data();
+                                messageText = messageData.text.substring(0, 50) + (messageData.text.length > 50 ? '...' : '');
+                                messageSender = `Аноним #${messageData.anonymousId}`;
+                            }
+                        } catch (e) {
+                            console.error("Ошибка загрузки сообщения:", e);
+                        }
+                    }
+                    
+                    const reasonText = getReportReasonText(report.reason);
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${report.reporterEmail || 'Аноним'}</td>
+                        <td>
+                            <strong>От:</strong> ${messageSender}<br>
+                            <small>${messageText}</small>
+                        </td>
+                        <td>${reasonText}</td>
+                        <td>${new Date(report.createdAt).toLocaleString()}</td>
+                        <td>
+                            <span style="color: ${report.status === 'pending' ? 'var(--warning)' : report.status === 'resolved' ? 'var(--success)' : 'var(--danger)'}">
+                                ${report.status === 'pending' ? '⏳ На рассмотрении' : report.status === 'resolved' ? '✅ Решено' : '❌ Отклонено'}
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            ${report.status === 'pending' ? `
+                                <button class="action-btn btn-success" onclick="resolveReport('${doc.id}', 'resolved')">
+                                    Решено
+                                </button>
+                                <button class="action-btn btn-danger" onclick="resolveReport('${doc.id}', 'rejected')">
+                                    Отклонить
+                                </button>
+                                <button class="action-btn btn-warning" onclick="deleteMessageFromReport('${doc.id}', '${report.messageId}')">
+                                    Удалить сообщение
+                                </button>
+                            ` : ''}
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                }
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки жалоб:", error);
             }
         }
 
@@ -1666,11 +2403,12 @@
                 
                 if (action === 'approve') {
                     updateData.isVerified = true;
+                    updateData.verifiedAt = new Date().toISOString();
                 }
                 
                 await db.collection('users').doc(app.userId).update(updateData);
                 
-                // Перезагружаем заявки
+                // Перезагружаем данные
                 await loadApplications();
                 await loadStats();
                 
@@ -1679,6 +2417,140 @@
             } catch (error) {
                 console.error("❌ Ошибка обработки заявки:", error);
                 alert('Ошибка обработки заявки');
+            }
+        };
+
+        window.deleteApplication = async function(appId, userEmail) {
+            if (!confirm(`Удалить заявку от ${userEmail}?`)) {
+                return;
+            }
+            
+            try {
+                await db.collection('applications').doc(appId).delete();
+                await loadApplications();
+                await loadStats();
+                alert('Заявка удалена');
+            } catch (error) {
+                console.error("❌ Ошибка удаления заявки:", error);
+                alert('Ошибка удаления заявки');
+            }
+        };
+
+        window.revokeApproval = async function(userId, userEmail) {
+            if (!confirm(`Отозвать доступ у пользователя ${userEmail}?`)) {
+                return;
+            }
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isVerified: false,
+                    'application.status': 'revoked'
+                });
+                
+                await loadApprovedUsers();
+                await loadStats();
+                alert('Доступ отозван');
+            } catch (error) {
+                console.error("❌ Ошибка отзыва доступа:", error);
+                alert('Ошибка отзыва доступа');
+            }
+        };
+
+        window.banUser = async function(userId, userEmail) {
+            const reason = prompt('Причина блокировки:', 'Нарушение правил');
+            if (reason === null) return;
+            
+            if (!confirm(`Заблокировать пользователя ${userEmail}?\nПричина: ${reason}`)) {
+                return;
+            }
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isBanned: true,
+                    banReason: reason,
+                    bannedAt: new Date().toISOString(),
+                    bannedBy: state.user.email,
+                    isVerified: false
+                });
+                
+                await loadApprovedUsers();
+                await loadBannedUsers();
+                await loadStats();
+                alert('Пользователь заблокирован');
+            } catch (error) {
+                console.error("❌ Ошибка блокировки:", error);
+                alert('Ошибка блокировки пользователя');
+            }
+        };
+
+        window.unbanUser = async function(userId, userEmail) {
+            if (!confirm(`Разблокировать пользователя ${userEmail}?`)) {
+                return;
+            }
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isBanned: false,
+                    banReason: null,
+                    bannedAt: null,
+                    bannedBy: null
+                });
+                
+                await loadBannedUsers();
+                await loadStats();
+                alert('Пользователь разблокирован');
+            } catch (error) {
+                console.error("❌ Ошибка разблокировки:", error);
+                alert('Ошибка разблокировки пользователя');
+            }
+        };
+
+        window.resolveReport = async function(reportId, status) {
+            const statusText = status === 'resolved' ? 'решить' : 'отклонить';
+            if (!confirm(`Вы уверены, что хотите ${statusText} эту жалобу?`)) {
+                return;
+            }
+            
+            try {
+                await db.collection('reports').doc(reportId).update({
+                    status: status,
+                    resolvedAt: new Date().toISOString(),
+                    resolvedBy: state.user.email
+                });
+                
+                await loadReports();
+                await loadStats();
+                alert(`Жалоба ${status === 'resolved' ? 'решена' : 'отклонена'}`);
+            } catch (error) {
+                console.error("❌ Ошибка обработки жалобы:", error);
+                alert('Ошибка обработки жалобы');
+            }
+        };
+
+        window.deleteMessageFromReport = async function(reportId, messageId) {
+            if (!confirm('Удалить сообщение и пометить жалобу как решенную?')) {
+                return;
+            }
+            
+            try {
+                // Удаляем сообщение
+                if (messageId) {
+                    await db.collection('messages').doc(messageId).delete();
+                }
+                
+                // Обновляем статус жалобы
+                await db.collection('reports').doc(reportId).update({
+                    status: 'resolved',
+                    resolvedAt: new Date().toISOString(),
+                    resolvedBy: state.user.email
+                });
+                
+                await loadReports();
+                await loadStats();
+                alert('Сообщение удалено, жалоба решена');
+            } catch (error) {
+                console.error("❌ Ошибка удаления сообщения:", error);
+                alert('Ошибка удаления сообщения');
             }
         };
 
@@ -1707,7 +2579,9 @@
                 
                 // Назначаем администратором
                 await userDoc.ref.update({
-                    isAdmin: true
+                    isAdmin: true,
+                    adminAddedAt: new Date().toISOString(),
+                    adminAddedBy: state.user.email
                 });
                 
                 // Очищаем поле
@@ -1748,17 +2622,31 @@
         function loadMessages() {
             if (!db || !state.isVerified) return;
             
+            // Очищаем контейнер
+            document.getElementById('messagesContainer').innerHTML = '';
+            
             db.collection('messages')
-                .orderBy('timestamp', 'desc')
-                .limit(50)
+                .orderBy('timestamp', 'asc')
+                .limit(100)
                 .onSnapshot((snapshot) => {
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
                             const message = change.doc.data();
                             message.id = change.doc.id;
                             addMessageToUI(message);
+                        } else if (change.type === 'removed') {
+                            // Удаляем сообщение из UI
+                            const messageElement = document.querySelector(`[data-message-id="${change.doc.id}"]`);
+                            if (messageElement) {
+                                messageElement.remove();
+                            }
                         }
                     });
+                    
+                    // Прокручиваем вниз к новым сообщениям
+                    scrollToBottom();
                 });
         }
 
@@ -1777,7 +2665,8 @@
                     userEmail: state.user.email,
                     anonymousId: state.userData.anonymousId || generateAnonymousId(),
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                    deleted: false
                 };
                 
                 await db.collection('messages').add(message);
@@ -1795,13 +2684,13 @@
         }
 
         function addMessageToUI(message) {
-            if (state.messages.some(m => m.id === message.id)) return;
-            state.messages.push(message);
+            if (message.deleted) return;
             
             const messageElement = document.createElement('div');
             const isMyMessage = message.userId === state.user.uid;
             
             messageElement.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
+            messageElement.setAttribute('data-message-id', message.id);
             
             const time = message.timestamp?.toDate 
                 ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -1809,9 +2698,40 @@
             
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
+            // Действия с сообщениями
+            let messageActions = '';
+            if (isMyMessage) {
+                messageActions = `
+                    <div class="message-actions">
+                        <button class="message-action-btn" onclick="deleteMessage('${message.id}')" title="Удалить">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            } else if (state.isAdmin) {
+                messageActions = `
+                    <div class="message-actions">
+                        <button class="message-action-btn" onclick="adminDeleteMessage('${message.id}')" title="Удалить (админ)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="message-action-btn" onclick="reportMessage('${message.id}')" title="Пожаловаться">
+                            <i class="fas fa-flag"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                messageActions = `
+                    <div class="message-actions">
+                        <button class="message-action-btn" onclick="reportMessage('${message.id}')" title="Пожаловаться">
+                            <i class="fas fa-flag"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            
             // Кнопка рукопожатия для чужих сообщений
-            const handshakeButton = !isMyMessage ? `
-                <button class="handshake-btn" onclick="offerHandshake(${message.anonymousId}, '${message.userEmail}')">
+            const handshakeButton = !isMyMessage && state.userData && state.userData.telegramUsername ? `
+                <button class="handshake-btn" onclick="offerHandshakeConfirm(${message.anonymousId}, '${message.userId}', '${message.userEmail}')">
                     <i class="fas fa-handshake"></i> Предложить рукопожатие
                 </button>
             ` : '';
@@ -1822,6 +2742,7 @@
                     ${displayName}
                 </div>
                 <div class="message-bubble">
+                    ${messageActions}
                     <div class="message-text">${formatMessageText(message.text)}</div>
                     <div class="message-time">${time}</div>
                 </div>
@@ -1829,38 +2750,137 @@
             `;
             
             const container = document.getElementById('messagesContainer');
-            container.insertBefore(messageElement, container.firstChild);
-            scrollToBottom();
+            container.appendChild(messageElement);
         }
 
-        // === ФУНКЦИЯ РУКОПОЖАТИЯ ===
-        window.offerHandshake = async function(anonymousId, targetUserEmail) {
-            if (!state.user || !state.userData || !state.userData.telegramUsername) {
-                alert('У вас не указан Telegram для рукопожатия');
+        // === УДАЛЕНИЕ СООБЩЕНИЙ ===
+        window.deleteMessage = async function(messageId) {
+            if (!confirm('Удалить это сообщение?')) {
                 return;
             }
             
-            // Получаем данные целевого пользователя
             try {
-                const usersSnapshot = await db.collection('users')
-                    .where('email', '==', targetUserEmail)
-                    .limit(1)
-                    .get();
+                await db.collection('messages').doc(messageId).update({
+                    deleted: true,
+                    deletedAt: new Date().toISOString(),
+                    deletedBy: state.user.email
+                });
                 
-                if (usersSnapshot.empty) {
+                alert('Сообщение удалено');
+            } catch (error) {
+                console.error("❌ Ошибка удаления сообщения:", error);
+                alert('Ошибка удаления сообщения');
+            }
+        };
+
+        window.adminDeleteMessage = async function(messageId) {
+            if (!confirm('Удалить это сообщение как администратор?')) {
+                return;
+            }
+            
+            try {
+                await db.collection('messages').doc(messageId).delete();
+                alert('Сообщение удалено');
+            } catch (error) {
+                console.error("❌ Ошибка удаления сообщения:", error);
+                alert('Ошибка удаления сообщения');
+            }
+        };
+
+        // === ЖАЛОБЫ НА СООБЩЕНИЯ ===
+        window.reportMessage = function(messageId) {
+            state.reportTargetMessage = messageId;
+            document.getElementById('reportModal').classList.add('active');
+        };
+
+        async function submitReport() {
+            if (!state.reportTargetMessage) return;
+            
+            const reason = document.getElementById('reportReason').value;
+            const details = document.getElementById('reportDetails').value.trim();
+            
+            try {
+                const reportData = {
+                    messageId: state.reportTargetMessage,
+                    reason: reason,
+                    details: details,
+                    reporterId: state.user.uid,
+                    reporterEmail: state.user.email,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                
+                await db.collection('reports').add(reportData);
+                
+                document.getElementById('reportModal').classList.remove('active');
+                state.reportTargetMessage = null;
+                document.getElementById('reportReason').value = 'spam';
+                document.getElementById('reportDetails').value = '';
+                
+                alert('Жалоба отправлена. Администратор рассмотрит её в ближайшее время.');
+                
+            } catch (error) {
+                console.error("❌ Ошибка отправки жалобы:", error);
+                alert('Ошибка отправки жалобы');
+            }
+        }
+
+        function getReportReasonText(reason) {
+            const reasons = {
+                'spam': 'Спам или реклама',
+                'insult': 'Оскорбления или угрозы',
+                'hate': 'Разжигание ненависти',
+                'illegal': 'Незаконный контент',
+                'fraud': 'Мошенничество',
+                'other': 'Другое'
+            };
+            return reasons[reason] || reason;
+        }
+
+        // === СИСТЕМА РУКОПОЖАТИЙ ===
+        window.offerHandshakeConfirm = function(anonymousId, targetUserId, targetUserEmail) {
+            state.pendingHandshakeTarget = { anonymousId, targetUserId, targetUserEmail };
+            
+            document.getElementById('handshakeConfirmInfo').innerHTML = `
+                <div class="handshake-notification">
+                    <h4>Подтверждение рукопожатия</h4>
+                    <p>Вы собираетесь предложить рукопожатие <strong>Анониму #${anonymousId}</strong></p>
+                    <p>После подтверждения:</p>
+                    <ul>
+                        <li>Ваш Telegram (<strong>${state.userData.telegramUsername}</strong>) будет отправлен пользователю</li>
+                        <li>Вы получите Telegram пользователя в ответ</li>
+                        <li>Контакты будут доступны 24 часа</li>
+                        <li>Рукопожатие действует только при взаимном согласии</li>
+                    </ul>
+                    <p><strong>Администрация не несет ответственности за последствия обмена контактами.</strong></p>
+                </div>
+            `;
+            
+            document.getElementById('confirmHandshakeModal').classList.add('active');
+        };
+
+        async function confirmHandshake() {
+            if (!state.pendingHandshakeTarget) return;
+            
+            const { anonymousId, targetUserId, targetUserEmail } = state.pendingHandshakeTarget;
+            
+            try {
+                // Получаем данные целевого пользователя
+                const targetUserDoc = await db.collection('users').doc(targetUserId).get();
+                if (!targetUserDoc.exists) {
                     alert('Пользователь не найден');
                     return;
                 }
                 
-                const targetUser = usersSnapshot.docs[0].data();
+                const targetUser = targetUserDoc.data();
                 
                 if (!targetUser.telegramUsername) {
                     alert('У этого пользователя не указан Telegram');
                     return;
                 }
                 
-                if (targetUser.email === state.user.email) {
-                    alert('Нельзя предложить рукопожатие самому себе');
+                if (targetUser.isBanned) {
+                    alert('Этот пользователь заблокирован');
                     return;
                 }
                 
@@ -1870,23 +2890,255 @@
                     fromEmail: state.user.email,
                     fromTelegram: state.userData.telegramUsername,
                     fromAnonymousId: state.userData.anonymousId,
-                    toUserId: usersSnapshot.docs[0].id,
+                    toUserId: targetUserId,
                     toEmail: targetUserEmail,
                     toTelegram: targetUser.telegramUsername,
                     toAnonymousId: anonymousId,
                     status: 'pending',
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
                 };
                 
                 await db.collection('handshakes').add(handshakeData);
                 
-                alert(`🤝 Предложение рукопожатия отправлено!\n\nВаш Telegram: ${state.userData.telegramUsername}\nИх Telegram: ${targetUser.telegramUsername}\n\nАдминистратор уведомит их о вашем предложении.`);
+                // Создаем уведомление для целевого пользователя
+                await db.collection('notifications').add({
+                    userId: targetUserId,
+                    type: 'handshake',
+                    title: 'Предложение рукопожатия',
+                    message: `Аноним #${state.userData.anonymousId} предлагает обменяться контактами.`,
+                    handshakeData: handshakeData,
+                    read: false,
+                    createdAt: new Date().toISOString()
+                });
+                
+                document.getElementById('confirmHandshakeModal').classList.remove('active');
+                state.pendingHandshakeTarget = null;
+                
+                alert('🤝 Предложение рукопожатия отправлено! Пользователь получит уведомление.');
                 
             } catch (error) {
                 console.error('❌ Ошибка рукопожатия:', error);
                 alert('Ошибка отправки предложения рукопожатия');
             }
+        }
+
+        // === ЗАГРУЗКА УВЕДОМЛЕНИЙ ===
+        async function loadNotifications() {
+            if (!state.user || !db) return;
+            
+            const notificationsRef = db.collection('notifications')
+                .where('userId', '==', state.user.uid)
+                .orderBy('createdAt', 'desc')
+                .limit(20);
+            
+            notificationsRef.onSnapshot((snapshot) => {
+                const notificationsContainer = document.getElementById('notificationsContainer');
+                const badge = document.getElementById('notificationsBadge');
+                
+                if (!notificationsContainer) return;
+                
+                notificationsContainer.innerHTML = '';
+                let unreadCount = 0;
+                
+                snapshot.forEach(doc => {
+                    const notification = doc.data();
+                    notification.id = doc.id;
+                    
+                    const notificationElement = document.createElement('div');
+                    notificationElement.className = 'handshake-item';
+                    notificationElement.style.opacity = notification.read ? '0.7' : '1';
+                    
+                    let actionButtons = '';
+                    if (notification.type === 'handshake' && !notification.read) {
+                        actionButtons = `
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <button class="btn btn-success btn-sm" onclick="acceptHandshake('${notification.id}', '${notification.handshakeData.fromUserId}')">
+                                    <i class="fas fa-check"></i> Принять
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="rejectHandshake('${notification.id}')">
+                                    <i class="fas fa-times"></i> Отклонить
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    notificationElement.innerHTML = `
+                        <div class="handshake-info">
+                            <strong>${notification.title}</strong>
+                            <p>${notification.message}</p>
+                            <small style="color: var(--text-secondary);">
+                                ${new Date(notification.createdAt).toLocaleString()}
+                            </small>
+                        </div>
+                        ${actionButtons}
+                    `;
+                    
+                    notificationsContainer.appendChild(notificationElement);
+                    
+                    if (!notification.read) unreadCount++;
+                });
+                
+                // Обновляем бейдж
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // === ПРИНЯТИЕ/ОТКЛОНЕНИЕ РУКОПОЖАТИЯ ===
+        window.acceptHandshake = async function(notificationId, fromUserId) {
+            if (!confirm('Вы уверены, что хотите принять рукопожатие и обменяться контактами?')) {
+                return;
+            }
+            
+            try {
+                // Получаем данные уведомления
+                const notificationRef = db.collection('notifications').doc(notificationId);
+                const notificationDoc = await notificationRef.get();
+                const notification = notificationDoc.data();
+                
+                if (!notification.handshakeData) {
+                    alert('Ошибка данных рукопожатия');
+                    return;
+                }
+                
+                // Обновляем статус рукопожатия
+                const handshakesSnapshot = await db.collection('handshakes')
+                    .where('fromUserId', '==', fromUserId)
+                    .where('toUserId', '==', state.user.uid)
+                    .where('status', '==', 'pending')
+                    .orderBy('createdAt', 'desc')
+                    .limit(1)
+                    .get();
+                
+                if (!handshakesSnapshot.empty) {
+                    const handshakeDoc = handshakesSnapshot.docs[0];
+                    await handshakeDoc.ref.update({
+                        status: 'accepted',
+                        acceptedAt: new Date().toISOString()
+                    });
+                }
+                
+                // Помечаем уведомление как прочитанное
+                await notificationRef.update({ read: true });
+                
+                // Создаем уведомление отправителю
+                await db.collection('notifications').add({
+                    userId: fromUserId,
+                    type: 'handshake_accepted',
+                    title: 'Рукопожатие принято',
+                    message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
+                    read: false,
+                    createdAt: new Date().toISOString()
+                });
+                
+                // Обновляем контакты
+                await loadContacts();
+                
+                alert('🤝 Рукопожатие принято! Контакты обновлены.');
+                
+            } catch (error) {
+                console.error('❌ Ошибка принятия рукопожатия:', error);
+                alert('Ошибка принятия рукопожатия');
+            }
         };
+
+        window.rejectHandshake = async function(notificationId) {
+            if (!confirm('Отклонить предложение рукопожатия?')) {
+                return;
+            }
+            
+            try {
+                // Помечаем уведомление как прочитанное
+                await db.collection('notifications').doc(notificationId).update({ read: true });
+                alert('Предложение рукопожатия отклонено');
+            } catch (error) {
+                console.error('❌ Ошибка отклонения:', error);
+                alert('Ошибка отклонения рукопожатия');
+            }
+        };
+
+        // === ЗАГРУЗКА КОНТАКТОВ ===
+        async function loadContacts() {
+            if (!state.user || !db) return;
+            
+            const contactsRef = db.collection('handshakes')
+                .where('status', '==', 'accepted')
+                .where('expiresAt', '>', new Date().toISOString())
+                .where(function() {
+                    return firebase.firestore.FieldPath.documentId().in([
+                        ['fromUserId', '==', state.user.uid],
+                        ['toUserId', '==', state.user.uid]
+                    ]);
+                }());
+            
+            // Альтернативный подход из-за ограничений Firestore
+            const fromHandshakes = await db.collection('handshakes')
+                .where('fromUserId', '==', state.user.uid)
+                .where('status', '==', 'accepted')
+                .where('expiresAt', '>', new Date().toISOString())
+                .get();
+            
+            const toHandshakes = await db.collection('handshakes')
+                .where('toUserId', '==', state.user.uid)
+                .where('status', '==', 'accepted')
+                .where('expiresAt', '>', new Date().toISOString())
+                .get();
+            
+            const allHandshakes = [...fromHandshakes.docs, ...toHandshakes.docs];
+            
+            const contactsContainer = document.getElementById('contactsContainer');
+            if (!contactsContainer) return;
+            
+            contactsContainer.innerHTML = '';
+            
+            if (allHandshakes.length === 0) {
+                contactsContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">У вас пока нет контактов от рукопожатий</p>';
+                return;
+            }
+            
+            // Создаем карточки контактов
+            allHandshakes.forEach(doc => {
+                const handshake = doc.data();
+                const isFromMe = handshake.fromUserId === state.user.uid;
+                const contact = isFromMe ? handshake.toTelegram : handshake.fromTelegram;
+                const contactAnonymousId = isFromMe ? handshake.toAnonymousId : handshake.fromAnonymousId;
+                
+                const expiresAt = new Date(handshake.expiresAt);
+                const timeLeft = Math.max(0, expiresAt - new Date());
+                const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                
+                const contactCard = document.createElement('div');
+                contactCard.className = 'contact-card';
+                
+                contactCard.innerHTML = `
+                    <div class="contact-header">
+                        <div class="contact-avatar">${contactAnonymousId % 10}</div>
+                        <div class="contact-details">
+                            <h4>Аноним #${contactAnonymousId}</h4>
+                            <p class="contact-telegram">
+                                <i class="fab fa-telegram"></i> ${contact}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="contact-time">
+                        ${new Date(handshake.acceptedAt || handshake.createdAt).toLocaleDateString()}
+                    </div>
+                    <div class="contact-expires">
+                        <i class="fas fa-clock"></i> Истекает через: ${hoursLeft}ч ${minutesLeft}м
+                    </div>
+                `;
+                
+                contactsContainer.appendChild(contactCard);
+            });
+        }
 
         // === УПРАВЛЕНИЕ ЭКРАНАМИ ===
         function showAuthScreen() {
@@ -1894,8 +3146,7 @@
             document.getElementById('verifyEmailScreen').classList.add('hidden');
             document.getElementById('applicationScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('hidden');
-            document.getElementById('profileBtn').classList.add('hidden');
-            document.getElementById('adminBtn').classList.add('hidden');
+            hideHeaderButtons();
         }
 
         function showVerifyEmailScreen() {
@@ -1903,12 +3154,7 @@
             document.getElementById('verifyEmailScreen').classList.remove('hidden');
             document.getElementById('applicationScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('hidden');
-            document.getElementById('profileBtn').classList.add('hidden');
-            document.getElementById('adminBtn').classList.add('hidden');
-            
-            if (state.user) {
-                document.getElementById('verifyEmailAddress').textContent = state.user.email;
-            }
+            hideHeaderButtons();
         }
 
         function showApplicationScreen() {
@@ -1916,16 +3162,7 @@
             document.getElementById('verifyEmailScreen').classList.add('hidden');
             document.getElementById('applicationScreen').classList.remove('hidden');
             document.getElementById('chatScreen').classList.add('hidden');
-            document.getElementById('profileBtn').classList.remove('hidden');
-            
-            // Заполняем поле если уже есть данные
-            if (state.userData && state.userData.telegramUsername) {
-                document.getElementById('telegramUsername').value = state.userData.telegramUsername;
-            }
-            
-            if (state.userData && state.userData.application && state.userData.application.note) {
-                document.getElementById('applicationNote').value = state.userData.application.note;
-            }
+            showHeaderButtons();
         }
 
         function showChatScreen() {
@@ -1933,14 +3170,20 @@
             document.getElementById('verifyEmailScreen').classList.add('hidden');
             document.getElementById('applicationScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.remove('hidden');
+            showHeaderButtons();
+        }
+
+        function showHeaderButtons() {
+            document.getElementById('contactsBtn').classList.remove('hidden');
+            document.getElementById('notificationsBtn').classList.remove('hidden');
             document.getElementById('profileBtn').classList.remove('hidden');
-            
-            if (state.isAdmin) {
-                document.getElementById('adminBtn').classList.remove('hidden');
-            }
-            
-            updateProfileUI();
-            document.getElementById('messageInput').focus();
+        }
+
+        function hideHeaderButtons() {
+            document.getElementById('contactsBtn').classList.add('hidden');
+            document.getElementById('notificationsBtn').classList.add('hidden');
+            document.getElementById('profileBtn').classList.add('hidden');
+            document.getElementById('adminBtn').classList.add('hidden');
         }
 
         // === ВЫХОД ===
@@ -1956,16 +3199,10 @@
                     }
                     
                     await auth.signOut();
-                    state.user = null;
-                    state.userData = null;
-                    state.isAdmin = false;
-                    state.isVerified = false;
-                    state.emailVerified = false;
-                    state.messages = [];
+                    resetState();
                     
                     document.getElementById('messagesContainer').innerHTML = '';
-                    document.getElementById('profileModal').classList.remove('active');
-                    document.getElementById('adminModal').classList.remove('active');
+                    closeAllModals();
                     
                     alert('Вы вышли из аккаунта');
                     
@@ -1973,6 +3210,15 @@
                     console.error("❌ Ошибка выхода:", error);
                 }
             }
+        }
+
+        function closeAllModals() {
+            document.getElementById('profileModal').classList.remove('active');
+            document.getElementById('contactsModal').classList.remove('active');
+            document.getElementById('notificationsModal').classList.remove('active');
+            document.getElementById('adminModal').classList.remove('active');
+            document.getElementById('confirmHandshakeModal').classList.remove('active');
+            document.getElementById('reportModal').classList.remove('active');
         }
 
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
@@ -1994,7 +3240,11 @@
             
             // Обновляем статус в профиле
             const statusDiv = document.getElementById('profileStatus');
-            if (state.userData.isVerified) {
+            if (state.userData.isBanned) {
+                statusDiv.innerHTML = '<i class="fas fa-ban"></i> Заблокирован';
+                statusDiv.style.backgroundColor = 'rgba(255, 59, 48, 0.1)';
+                statusDiv.style.color = 'var(--danger)';
+            } else if (state.userData.isVerified) {
                 statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Доступ к чату активен';
                 statusDiv.className = 'status-indicator verified';
             } else if (state.userData.application) {
@@ -2039,10 +3289,6 @@
         }
 
         function generateAnonymousId() {
-            if (state.userData && state.userData.anonymousId) {
-                return state.userData.anonymousId;
-            }
-            
             const newId = Math.floor(Math.random() * 900 + 100);
             return newId;
         }
@@ -2064,6 +3310,7 @@
             }, 100);
         }
 
+        // === СООБЩЕНИЯ ОБ ОШИБКАХ/УСПЕХЕ ===
         function showAuthError(message) {
             const statusDiv = document.getElementById('authStatus');
             statusDiv.innerHTML = `<div class="error">${message}</div>`;
@@ -2167,31 +3414,100 @@
                 this.style.overflowY = this.scrollHeight > 120 ? 'auto' : 'hidden';
             });
             
-            // Профиль
+            // Кнопки в шапке
             document.getElementById('profileBtn').addEventListener('click', () => {
                 document.getElementById('profileModal').classList.add('active');
             });
             
+            document.getElementById('contactsBtn').addEventListener('click', () => {
+                loadContacts();
+                document.getElementById('contactsModal').classList.add('active');
+            });
+            
+            document.getElementById('notificationsBtn').addEventListener('click', () => {
+                document.getElementById('notificationsModal').classList.add('active');
+            });
+            
+            document.getElementById('adminBtn').addEventListener('click', () => {
+                state.adminActiveTab = 'applications';
+                document.getElementById('adminModal').classList.add('active');
+                loadAdminPanel();
+            });
+            
+            // Закрытие модальных окон
             document.getElementById('closeProfileBtn').addEventListener('click', () => {
                 document.getElementById('profileModal').classList.remove('active');
             });
             
-            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('closeContactsBtn').addEventListener('click', () => {
+                document.getElementById('contactsModal').classList.remove('active');
+            });
             
-            // Админ панель
-            document.getElementById('adminBtn').addEventListener('click', () => {
-                document.getElementById('adminModal').classList.add('active');
-                loadAdminPanel();
+            document.getElementById('closeNotificationsBtn').addEventListener('click', () => {
+                document.getElementById('notificationsModal').classList.remove('active');
             });
             
             document.getElementById('closeAdminBtn').addEventListener('click', () => {
                 document.getElementById('adminModal').classList.remove('active');
             });
             
-            document.getElementById('addAdminBtn').addEventListener('click', addAdmin);
+            document.getElementById('closeConfirmHandshakeBtn').addEventListener('click', () => {
+                document.getElementById('confirmHandshakeModal').classList.remove('active');
+                state.pendingHandshakeTarget = null;
+            });
             
+            document.getElementById('closeReportBtn').addEventListener('click', () => {
+                document.getElementById('reportModal').classList.remove('active');
+                state.reportTargetMessage = null;
+            });
+            
+            // Выход
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            
+            // Админ панель - вкладки
+            document.getElementById('adminTabApplications').addEventListener('click', () => {
+                state.adminActiveTab = 'applications';
+                switchAdminTab('applications');
+            });
+            
+            document.getElementById('adminTabApproved').addEventListener('click', () => {
+                state.adminActiveTab = 'approved';
+                switchAdminTab('approved');
+            });
+            
+            document.getElementById('adminTabBanned').addEventListener('click', () => {
+                state.adminActiveTab = 'banned';
+                switchAdminTab('banned');
+            });
+            
+            document.getElementById('adminTabReports').addEventListener('click', () => {
+                state.adminActiveTab = 'reports';
+                switchAdminTab('reports');
+            });
+            
+            document.getElementById('adminTabAdmins').addEventListener('click', () => {
+                state.adminActiveTab = 'admins';
+                switchAdminTab('admins');
+            });
+            
+            // Админ панель - добавление админа
+            document.getElementById('addAdminBtn').addEventListener('click', addAdmin);
             document.getElementById('addAdminEmail').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') addAdmin();
+            });
+            
+            // Рукопожатие
+            document.getElementById('confirmHandshakeBtn').addEventListener('click', confirmHandshake);
+            document.getElementById('cancelHandshakeBtn').addEventListener('click', () => {
+                document.getElementById('confirmHandshakeModal').classList.remove('active');
+                state.pendingHandshakeTarget = null;
+            });
+            
+            // Жалобы
+            document.getElementById('submitReportBtn').addEventListener('click', submitReport);
+            document.getElementById('cancelReportBtn').addEventListener('click', () => {
+                document.getElementById('reportModal').classList.remove('active');
+                state.reportTargetMessage = null;
             });
             
             // Тема
@@ -2213,6 +3529,22 @@
             const icon = document.getElementById('themeToggle').querySelector('i');
             icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
         });
+
+        // === ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК АДМИН ПАНЕЛИ ===
+        function switchAdminTab(tabName) {
+            // Скрываем все вкладки
+            document.getElementById('adminApplicationsTab').classList.add('hidden');
+            document.getElementById('adminApprovedTab').classList.add('hidden');
+            document.getElementById('adminBannedTab').classList.add('hidden');
+            document.getElementById('adminReportsTab').classList.add('hidden');
+            document.getElementById('adminAdminsTab').classList.add('hidden');
+            
+            // Показываем нужную вкладку
+            document.getElementById(`admin${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`).classList.remove('hidden');
+            
+            // Загружаем данные для этой вкладки
+            loadAdminPanel();
+        }
     </script>
 </body>
 </html>
