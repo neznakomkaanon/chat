@@ -2416,7 +2416,7 @@
                     <select id="banHours" class="form-control">
                         <option value="1">1 час</option>
                         <option value="3">3 часа</option>
-                        <option value="6">6 часа</option>
+                        <option value="6">6 часов</option>
                         <option value="12">12 часов</option>
                         <option value="24">24 часа</option>
                         <option value="72">3 дня</option>
@@ -2579,38 +2579,18 @@
         async function continueAfterTerms() {
             if (!state.userData) return;
             
-            // Проверка на блокировку
-            if (state.userData.isBanned) {
+            if (state.userData.isBanned && state.userData.banExpiresAt && new Date(state.userData.banExpiresAt) > new Date()) {
+                const expiresAt = new Date(state.userData.banExpiresAt);
                 const now = new Date();
-                if (state.userData.banExpiresAt) {
-                    const expiresAt = new Date(state.userData.banExpiresAt);
-                    if (expiresAt > now) {
-                        const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
-                        showAlert('Аккаунт заблокирован', 
-                            `Ваш аккаунт заблокирован до ${expiresAt.toLocaleString()}. 
-                            Причина: ${state.userData.banReason || 'Нарушение правил'}. 
-                            Осталось: ${hoursLeft} часов.`);
-                        await handleLogout();
-                        return;
-                    } else {
-                        // Срок блокировки истек - разблокируем
-                        await db.collection('users').doc(state.user.uid).update({
-                            isBanned: false,
-                            banReason: null,
-                            bannedAt: null,
-                            bannedBy: null,
-                            banExpiresAt: null
-                        });
-                        state.userData.isBanned = false;
-                    }
-                } else {
-                    // Блокировка навсегда
-                    showAlert('Аккаунт заблокирован', 
-                        `Ваш аккаунт заблокирован навсегда. 
-                        Причина: ${state.userData.banReason || 'Нарушение правил'}.`);
-                    await handleLogout();
-                    return;
-                }
+                const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
+                
+                showAlert('Аккаунт заблокирован', `Ваш аккаунт заблокирован до ${expiresAt.toLocaleString()}. Причина: ${state.userData.banReason || 'Нарушение правил'}. Осталось: ${hoursLeft} часов.`);
+                await handleLogout();
+                return;
+            } else if (state.userData.isBanned && !state.userData.banExpiresAt) {
+                showAlert('Аккаунт заблокирован', `Ваш аккаунт заблокирован навсегда. Причина: ${state.userData.banReason || 'Нарушение правил'}.`);
+                await handleLogout();
+                return;
             }
             
             if (state.userData.isVerified) {
@@ -2634,7 +2614,6 @@
                 
                 if (doc.exists) {
                     state.userData = doc.data();
-                    state.userData.id = doc.id;
                     
                     state.hasAcceptedTerms = state.userData.hasAcceptedTerms || false;
                     
@@ -2666,7 +2645,6 @@
                     };
                     
                     await userRef.set(state.userData);
-                    state.userData.id = state.user.uid;
                 }
                 
                 await userRef.update({
@@ -2939,120 +2917,7 @@
                 if (element) element.classList.add('hidden');
             });
             
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                mainContent.innerHTML = `
-                    <div class="auth-screen" id="authScreen">
-                        <div class="auth-box">
-                            <h2>Незнакомка (AnonChat)</h2>
-                            <p style="margin-bottom: 25px; color: var(--text-secondary); font-size: 14px;">
-                                Анонимный чат с рукопожатиями
-                            </p>
-                            
-                            <div class="auth-tabs">
-                                <button class="auth-tab active" id="loginTab">Вход</button>
-                                <button class="auth-tab" id="registerTab">Регистрация</button>
-                            </div>
-                            
-                            <div id="loginForm">
-                                <div class="form-group">
-                                    <label for="loginEmail"><i class="fas fa-envelope"></i> Email</label>
-                                    <input type="email" id="loginEmail" class="form-control" 
-                                           placeholder="ваш@email.com" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="loginPassword"><i class="fas fa-lock"></i> Пароль</label>
-                                    <input type="password" id="loginPassword" class="form-control" 
-                                           placeholder="Пароль" required>
-                                </div>
-                                
-                                <button class="btn btn-primary" id="loginBtn">
-                                    <i class="fas fa-sign-in-alt"></i> Войти
-                                </button>
-                                
-                                <div id="authStatus"></div>
-                            </div>
-                            
-                            <div id="registerForm" class="hidden">
-                                <div class="form-group">
-                                    <label for="registerEmail"><i class="fas fa-envelope"></i> Email</label>
-                                    <input type="email" id="registerEmail" class="form-control" 
-                                           placeholder="ваш@email.com" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="registerPassword"><i class="fas fa-lock"></i> Пароль</label>
-                                    <input type="password" id="registerPassword" class="form-control" 
-                                           placeholder="Минимум 6 символов" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="confirmPassword"><i class="fas fa-lock"></i> Подтвердите пароль</label>
-                                    <input type="password" id="confirmPassword" class="form-control" 
-                                           placeholder="Повторите пароль" required>
-                                </div>
-                                
-                                <div class="terms-container">
-                                    <h3>Пользовательское соглашение</h3>
-                                    <p><strong>Незнакомка (AnonChat)</strong> — платформа для анонимного общения.</p>
-                                    <p><strong>1. Основные положения:</strong></p>
-                                    <ul>
-                                        <li>В чате все пользователи отображаются как "Аноним #XXX"</li>
-                                        <li>Для использования чата требуется подтверждение через заявку</li>
-                                        <li>Все сообщения автоматически удаляются через 24 часа</li>
-                                        <li>Требуется минимальный возраст 18 лет</li>
-                                    </ul>
-                                    <p><strong>2. Запрещено:</strong></p>
-                                    <ul>
-                                        <li>Спам, флуд, реклама, рассылка ссылок</li>
-                                        <li>Оскорбления, угрозы, травля, буллинг</li>
-                                        <li>Разжигание ненависти, дискриминация по любым признакам</li>
-                                        <li>Незаконный контент, экстремизм, пропаганда</li>
-                                        <li>Мошенничество, фишинг, обман</li>
-                                        <li>Распространение личных данных без согласия</li>
-                                    </ul>
-                                    <p><strong>3. Система рукопожатий:</strong></p>
-                                    <ul>
-                                        <li>Вы можете предложить обменяться контактами через кнопку 🤝</li>
-                                        <li>Рукопожатие действует только при взаимном согласии</li>
-                                        <li>Контакты хранятся 24 часа, затем автоматически удаляются</li>
-                                        <li>Администрация не проверяет достоверность контактов</li>
-                                        <li>Администрация не несет ответственности за последствия обмена</li>
-                                    </ul>
-                                    <p><strong>4. Ответственность:</strong></p>
-                                    <ul>
-                                        <li>Пользователь несет полную ответственность за свои действия</li>
-                                        <li>Администрация вправе блокировать нарушителей без предупреждения</li>
-                                        <li>Все спорные ситуации решаются в пользу администрации</li>
-                                        <li>Администрация не хранит логи сообщений дольше 24 часов</li>
-                                    </ul>
-                                    <p><strong>5. Конфиденциальность:</strong></p>
-                                    <ul>
-                                        <li>Сообщения шифруются и временно хранятся на серверах</li>
-                                        <li>Telegram username используется исключительно для рукопожатий</li>
-                                        <li>Email используется только для входа и восстановления</li>
-                                        <li>IP-адреса не сохраняются и не обрабатываются</li>
-                                    </ul>
-                                </div>
-                                
-                                <div class="terms-checkbox">
-                                    <input type="checkbox" id="agreeTerms" required>
-                                    <label for="agreeTerms">Я подтверждаю, что мне исполнилось 18 лет, прочитал(а) и согласен(на) с пользовательским соглашением</label>
-                                </div>
-                                
-                                <button class="btn btn-primary" id="registerBtn">
-                                    <i class="fas fa-user-plus"></i> Зарегистрироваться
-                                </button>
-                                
-                                <div id="registerStatus"></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                initAuthEventListeners();
-            }
+            document.getElementById('authScreen').classList.remove('hidden');
             
             document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
                 if (!btn.classList.contains('theme-toggle')) {
@@ -3068,55 +2933,11 @@
                 if (element) element.classList.add('hidden');
             });
             
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                mainContent.innerHTML = `
-                    <div class="chat-screen" id="chatScreen">
-                        <div class="chat-container">
-                            <div class="chat-header">
-                                <div class="chat-info">
-                                    <h2>Анонимный чат "Незнакомка"</h2>
-                                    <p>
-                                        <i class="fas fa-users"></i>
-                                        <span id="onlineCount">0</span> онлайн • 
-                                        <i class="fas fa-clock"></i>
-                                        Сообщения удаляются через 24 часа
-                                    </p>
-                                </div>
-                                <div class="user-info">
-                                    <div class="user-avatar" id="userAvatar">А</div>
-                                    <div class="user-details">
-                                        <div class="username" id="displayUsername">Загрузка...</div>
-                                        <div class="status">
-                                            <i class="fas fa-circle"></i> <span id="userStatus">Онлайн</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="messages-container-wrapper">
-                                <div class="messages-container" id="messagesContainer">
-                                </div>
-                            </div>
-
-                            <div class="message-input-container">
-                                <div class="message-input-wrapper">
-                                    <textarea class="message-input" id="messageInput" 
-                                              placeholder="Напишите сообщение... (Enter для отправки, Shift+Enter для новой строки)"
-                                              rows="1"></textarea>
-                                </div>
-                                <button class="send-btn" id="sendBtn">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                updateProfileUI();
-                loadMessages();
-                initChatEventListeners();
-            }
+            document.getElementById('chatScreen').classList.remove('hidden');
+            
+            updateProfileUI();
+            loadMessages();
+            initChatEventListeners();
             
             if (document.getElementById('contactsBtn')) {
                 document.getElementById('contactsBtn').classList.remove('hidden');
@@ -3185,40 +3006,6 @@
             if (userAvatar) {
                 const initial = state.userData.email[0].toUpperCase();
                 userAvatar.textContent = initial;
-            }
-        }
-
-        function initAuthEventListeners() {
-            const loginTab = document.getElementById('loginTab');
-            const registerTab = document.getElementById('registerTab');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            
-            if (loginTab && registerTab && loginForm && registerForm) {
-                loginTab.addEventListener('click', () => {
-                    loginTab.classList.add('active');
-                    registerTab.classList.remove('active');
-                    loginForm.classList.remove('hidden');
-                    registerForm.classList.add('hidden');
-                });
-                
-                registerTab.addEventListener('click', () => {
-                    registerTab.classList.add('active');
-                    loginTab.classList.remove('active');
-                    registerForm.classList.remove('hidden');
-                    loginForm.classList.add('hidden');
-                });
-                
-                const loginBtn = document.getElementById('loginBtn');
-                const registerBtn = document.getElementById('registerBtn');
-                
-                if (loginBtn) {
-                    loginBtn.addEventListener('click', handleLogin);
-                }
-                
-                if (registerBtn) {
-                    registerBtn.addEventListener('click', handleRegister);
-                }
             }
         }
 
@@ -3475,7 +3262,6 @@
             document.getElementById('messagesContainer').innerHTML = '';
             
             db.collection('messages')
-                .where('deleted', '!=', true)
                 .orderBy('timestamp', 'asc')
                 .limit(100)
                 .onSnapshot((snapshot) => {
@@ -3513,7 +3299,7 @@
             
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
-            const handshakeButton = !isMyMessage && state.userData && state.userData.telegramUsername && state.isVerified ? `
+            const handshakeButton = !isMyMessage && state.userData && state.userData.telegramUsername ? `
                 <button class="handshake-btn" onclick="offerHandshakeConfirm('${message.anonymousId}', '${message.userId}', '${message.userEmail}')">
                     <i class="fas fa-handshake"></i> Предложить рукопожатие
                 </button>
@@ -3581,8 +3367,8 @@
                 messageId: message.id,
                 messageElement: messageElement,
                 isMyMessage: isMyMessage,
-                x: e.clientX || e.pageX || (e.touches && e.touches[0].clientX) || 0,
-                y: e.clientY || e.pageY || (e.touches && e.touches[0].clientY) || 0
+                x: e.clientX || e.pageX,
+                y: e.clientY || e.pageY
             };
             
             const contextMenu = document.getElementById('messageContextMenu');
@@ -3721,8 +3507,10 @@
             
             const messageElement = state.contextMenu.messageElement;
             const anonymousId = messageElement.querySelector('.message-sender').textContent.match(/#(\d+)/)?.[1] || '000';
-            const userId = state.contextMenu.messageId;
+            const userId = state.contextMenu.messageId; // Это ID сообщения, а не пользователя
             
+            // Нужно получить ID пользователя из сообщения
+            // Для этого нужно получить данные сообщения из Firestore
             db.collection('messages').doc(state.contextMenu.messageId).get().then(doc => {
                 if (doc.exists) {
                     const message = doc.data();
@@ -3876,15 +3664,6 @@
                 const snapshot = await db.collection('handshakes')
                     .where('status', '==', 'accepted')
                     .where('expiresAt', '>', new Date().toISOString())
-                    .where(function() {
-                        const fromCondition = firebase.firestore.FieldPath.documentId();
-                        // Исправленный запрос для контактов
-                        return (firebase.firestore.FieldPath.documentId() && (
-                            firebase.firestore.where('fromUserId', '==', state.user.uid) ||
-                            firebase.firestore.where('toUserId', '==', state.user.uid)
-                        ));
-                    })
-                    .orderBy('acceptedAt', 'desc')
                     .get();
                 
                 const contactsContainer = document.getElementById('contactsContainer');
@@ -3905,81 +3684,48 @@
                 
                 snapshot.forEach(doc => {
                     const handshake = doc.data();
-                    const isFromMe = handshake.fromUserId === state.user.uid;
-                    const contactTelegram = isFromMe ? handshake.toTelegram : handshake.fromTelegram;
-                    const contactAnonymousId = isFromMe ? handshake.toAnonymousId : handshake.fromAnonymousId;
-                    const expiresAt = new Date(handshake.expiresAt);
-                    const now = new Date();
-                    const timeLeft = expiresAt - now;
-                    
-                    if (timeLeft <= 0) return;
-                    
-                    const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
-                    
-                    const contactElement = document.createElement('div');
-                    contactElement.className = 'contact-card';
-                    
-                    const timeText = hoursLeft < 1 ? 'Меньше часа' : `${hoursLeft} ч`;
-                    
-                    contactElement.innerHTML = `
-                        <div class="contact-header">
-                            <div class="contact-avatar">${contactAnonymousId}</div>
-                            <div class="contact-details">
-                                <h4>Аноним #${contactAnonymousId}</h4>
-                                <div class="contact-telegram">
-                                    <i class="fab fa-telegram"></i> ${contactTelegram}
+                    // Фильтруем вручную, так как сложные запросы не работают
+                    if (handshake.fromUserId === state.user.uid || handshake.toUserId === state.user.uid) {
+                        const isFromMe = handshake.fromUserId === state.user.uid;
+                        const contactTelegram = isFromMe ? handshake.toTelegram : handshake.fromTelegram;
+                        const contactAnonymousId = isFromMe ? handshake.toAnonymousId : handshake.fromAnonymousId;
+                        const expiresAt = new Date(handshake.expiresAt);
+                        const now = new Date();
+                        const timeLeft = expiresAt - now;
+                        
+                        if (timeLeft <= 0) return;
+                        
+                        const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+                        
+                        const contactElement = document.createElement('div');
+                        contactElement.className = 'contact-card';
+                        
+                        const timeText = hoursLeft < 1 ? 'Меньше часа' : `${hoursLeft} ч`;
+                        
+                        contactElement.innerHTML = `
+                            <div class="contact-header">
+                                <div class="contact-avatar">${contactAnonymousId}</div>
+                                <div class="contact-details">
+                                    <h4>Аноним #${contactAnonymousId}</h4>
+                                    <div class="contact-telegram">
+                                        <i class="fab fa-telegram"></i> ${contactTelegram}
+                                    </div>
+                                </div>
+                                <div class="contact-time">
+                                    <i class="fas fa-clock"></i> ${timeText}
                                 </div>
                             </div>
-                            <div class="contact-time">
-                                <i class="fas fa-clock"></i> ${timeText}
+                            <div class="contact-expires">
+                                <i class="fas fa-hourglass-end"></i> Истекает через ${timeText}
                             </div>
-                        </div>
-                        <div class="contact-expires">
-                            <i class="fas fa-hourglass-end"></i> Истекает через ${timeText}
-                        </div>
-                    `;
-                    
-                    contactsContainer.appendChild(contactElement);
+                        `;
+                        
+                        contactsContainer.appendChild(contactElement);
+                    }
                 });
                 
             } catch (error) {
                 console.error("❌ Ошибка загрузки контактов:", error);
-                // Упрощенная версия запроса
-                try {
-                    const allHandshakes = await db.collection('handshakes').get();
-                    const contactsContainer = document.getElementById('contactsContainer');
-                    contactsContainer.innerHTML = '';
-                    
-                    allHandshakes.forEach(doc => {
-                        const handshake = doc.data();
-                        if (handshake.status === 'accepted' && 
-                            (handshake.fromUserId === state.user.uid || handshake.toUserId === state.user.uid)) {
-                            
-                            const isFromMe = handshake.fromUserId === state.user.uid;
-                            const contactTelegram = isFromMe ? handshake.toTelegram : handshake.fromTelegram;
-                            const contactAnonymousId = isFromMe ? handshake.toAnonymousId : handshake.fromAnonymousId;
-                            
-                            const contactElement = document.createElement('div');
-                            contactElement.className = 'contact-card';
-                            
-                            contactElement.innerHTML = `
-                                <div class="contact-header">
-                                    <div class="contact-avatar">${contactAnonymousId}</div>
-                                    <div class="contact-details">
-                                        <h4>Аноним #${contactAnonymousId}</h4>
-                                        <div class="contact-telegram">
-                                            <i class="fab fa-telegram"></i> ${contactTelegram}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                            
-                            contactsContainer.appendChild(contactElement);
-                        }
-                    });
-                } catch (err) {
-                    console.error("❌ Ошибка в упрощенной загрузке контактов:", err);
-                }
             }
         }
 
@@ -4159,7 +3905,6 @@
                     .where('isVerified', '==', true)
                     .where('isBanned', '==', false)
                     .orderBy('createdAt', 'desc')
-                    .limit(50)  // Ограничиваем количество
                     .get();
                 
                 const table = document.getElementById('approvedTable');
@@ -4206,7 +3951,6 @@
                 const snapshot = await db.collection('users')
                     .where('isBanned', '==', true)
                     .orderBy('bannedAt', 'desc')
-                    .limit(50)
                     .get();
                 
                 const table = document.getElementById('bannedTable');
@@ -4258,7 +4002,6 @@
                 const snapshot = await db.collection('reports')
                     .where('status', '==', 'pending')
                     .orderBy('createdAt', 'desc')
-                    .limit(50)
                     .get();
                 
                 const table = document.getElementById('reportsTable');
@@ -4275,8 +4018,10 @@
                     return;
                 }
                 
-                const promises = snapshot.docs.map(async doc => {
+                snapshot.forEach(async doc => {
                     const report = doc.data();
+                    const row = document.createElement('tr');
+                    
                     let messageText = 'Сообщение удалено';
                     try {
                         const messageDoc = await db.collection('messages').doc(report.messageId).get();
@@ -4287,14 +4032,6 @@
                     } catch (error) {
                         console.error("Ошибка загрузки сообщения:", error);
                     }
-                    
-                    return { report, doc, messageText };
-                });
-                
-                const results = await Promise.all(promises);
-                
-                results.forEach(({ report, doc, messageText }) => {
-                    const row = document.createElement('tr');
                     
                     row.innerHTML = `
                         <td>${report.reporterEmail}</td>
@@ -4432,6 +4169,16 @@
             
             showBanModal();
         };
+
+        async function banUser(userId, userEmail) {
+            state.banTargetUser = {
+                userId: userId,
+                email: userEmail,
+                anonymousId: '???'
+            };
+            
+            showBanModal();
+        }
 
         async function unbanUser(userId) {
             showConfirm('Подтверждение', 'Разблокировать этого пользователя?', async () => {
@@ -4573,18 +4320,16 @@
             if (!text || !state.user || !state.isVerified) return;
             
             // Проверка на блокировку
-            if (state.userData.isBanned) {
-                if (state.userData.banExpiresAt) {
-                    const expiresAt = new Date(state.userData.banExpiresAt);
-                    if (expiresAt > new Date()) {
-                        const hoursLeft = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60));
-                        showAlert('Ошибка', `Вы заблокированы до ${expiresAt.toLocaleString()}. Осталось: ${hoursLeft} часов.`);
-                        return;
-                    }
-                } else {
-                    showAlert('Ошибка', 'Вы заблокированы навсегда.');
-                    return;
-                }
+            if (state.userData.isBanned && state.userData.banExpiresAt && new Date(state.userData.banExpiresAt) > new Date()) {
+                const expiresAt = new Date(state.userData.banExpiresAt);
+                const now = new Date();
+                const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
+                
+                showAlert('Ошибка', `Вы заблокированы до ${expiresAt.toLocaleString()}. Осталось: ${hoursLeft} часов.`);
+                return;
+            } else if (state.userData.isBanned && !state.userData.banExpiresAt) {
+                showAlert('Ошибка', 'Вы заблокированы навсегда.');
+                return;
             }
             
             const sendBtn = document.getElementById('sendBtn');
@@ -4677,7 +4422,6 @@
                 
                 await db.collection('handshakes').add(handshakeData);
                 
-                // Создаем уведомление для получателя
                 await db.collection('notifications').add({
                     userId: targetUserId,
                     type: 'handshake',
@@ -4725,23 +4469,20 @@
                             status: 'accepted',
                             acceptedAt: new Date().toISOString()
                         });
-                        
-                        // Создаем контакт для обоих пользователей
-                        await loadContacts();
-                        
-                        // Отправляем уведомление отправителю
-                        const handshakeData = handshakeDoc.data();
-                        await db.collection('notifications').add({
-                            userId: fromUserId,
-                            type: 'handshake_accepted',
-                            title: 'Рукопожатие принято',
-                            message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия. Контакты обновлены.`,
-                            read: false,
-                            createdAt: new Date().toISOString()
-                        });
                     }
                     
                     await notificationRef.update({ read: true });
+                    
+                    await db.collection('notifications').add({
+                        userId: fromUserId,
+                        type: 'handshake_accepted',
+                        title: 'Рукопожатие принято',
+                        message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
+                        read: false,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    await loadContacts();
                     
                     showAlert('Успех', '🤝 Рукопожатие принято! Контакты обновлены.');
                     
@@ -5125,6 +4866,7 @@
 
         window.approveApplication = approveApplication;
         window.rejectApplication = rejectApplication;
+        window.banUser = banUser;
         window.unbanUser = unbanUser;
         window.resolveReport = resolveReport;
         window.deleteMessageFromReport = deleteMessageFromReport;
