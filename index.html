@@ -3109,6 +3109,384 @@
             });
         }
 
+        // === ДОБАВЛЕННЫЕ ФУНКЦИИ ДЛЯ ИСПРАВЛЕНИЯ ОШИБОК ===
+
+        // Функция для обновления профиля в UI
+        function updateProfileUI() {
+            if (!state.userData) return;
+            
+            // Обновляем информацию в профиле
+            if (document.getElementById('profileName')) {
+                document.getElementById('profileName').textContent = state.userData.email.split('@')[0];
+                document.getElementById('profileEmail').textContent = state.userData.email;
+                document.getElementById('profileUserId').textContent = state.user.uid.substring(0, 8);
+                document.getElementById('profileTelegram').textContent = state.userData.telegramUsername || 'Не указан';
+                
+                // Обновляем статус в профиле
+                const statusIndicator = document.getElementById('profileStatus');
+                if (statusIndicator) {
+                    if (state.userData.isVerified) {
+                        statusIndicator.innerHTML = '<i class="fas fa-check-circle"></i> Подтвержден';
+                        statusIndicator.classList.add('verified');
+                    } else if (state.userData.application) {
+                        statusIndicator.innerHTML = '<i class="fas fa-clock"></i> На рассмотрении';
+                        statusIndicator.classList.remove('verified');
+                    } else {
+                        statusIndicator.innerHTML = '<i class="fas fa-clock"></i> Не подтвержден';
+                        statusIndicator.classList.remove('verified');
+                    }
+                }
+                
+                // Обновляем аватар
+                const avatar = document.getElementById('profileAvatar');
+                if (avatar) {
+                    const initial = state.userData.email[0].toUpperCase();
+                    avatar.textContent = initial;
+                }
+            }
+            
+            // Обновляем информацию в шапке чата
+            if (document.getElementById('displayUsername')) {
+                document.getElementById('displayUsername').textContent = state.userData.email.split('@')[0];
+            }
+            
+            // Обновляем аватар в шапке
+            const userAvatar = document.getElementById('userAvatar');
+            if (userAvatar) {
+                const initial = state.userData.email[0].toUpperCase();
+                userAvatar.textContent = initial;
+            }
+        }
+
+        // Функция для обновления статуса заявки
+        function updateApplicationStatusUI() {
+            if (!state.userData || !state.userData.application) return;
+            
+            const statusElement = document.getElementById('applicationStatus');
+            if (statusElement) {
+                if (state.userData.isVerified) {
+                    statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Заявка одобрена';
+                    statusElement.classList.add('verified');
+                } else {
+                    statusElement.innerHTML = '<i class="fas fa-clock"></i> Заявка на рассмотрении';
+                    statusElement.classList.remove('verified');
+                }
+            }
+        }
+
+        // Функция для проверки статуса заявки
+        async function checkApplicationStatus() {
+            if (!state.user || !db || !state.userData) return;
+            
+            try {
+                // Проверяем есть ли одобренная заявка
+                const userRef = db.collection('users').doc(state.user.uid);
+                const doc = await userRef.get();
+                
+                if (doc.exists) {
+                    const userData = doc.data();
+                    state.userData = userData;
+                    
+                    if (userData.isVerified) {
+                        state.isVerified = true;
+                        showChatScreen();
+                        loadMessages();
+                        loadNotifications();
+                        loadContacts();
+                        updateApplicationStatusUI();
+                    } else {
+                        showApplicationScreen();
+                        updateApplicationStatusUI();
+                    }
+                }
+            } catch (error) {
+                console.error("❌ Ошибка проверки статуса:", error);
+            }
+        }
+
+        // Функция для выхода
+        async function handleLogout() {
+            try {
+                // Обновляем статус онлайн перед выходом
+                if (state.user && db) {
+                    const userRef = db.collection('users').doc(state.user.uid);
+                    await userRef.update({
+                        online: false,
+                        lastSeen: new Date().toISOString()
+                    });
+                }
+                
+                // Выходим из Firebase
+                await auth.signOut();
+                
+                // Сбрасываем состояние
+                resetState();
+                
+                // Показываем экран входа
+                showAuthScreen();
+                
+                // Закрываем все модальные окна
+                const modals = document.querySelectorAll('.modal.active');
+                modals.forEach(modal => modal.classList.remove('active'));
+                
+            } catch (error) {
+                console.error("❌ Ошибка выхода:", error);
+                alert('Ошибка при выходе. Попробуйте снова.');
+            }
+        }
+
+        // Функция для показа экрана входа
+        function showAuthScreen() {
+            // Скрываем все экраны
+            document.querySelectorAll('.auth-screen, .verify-email-screen, .application-screen, .chat-screen').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Показываем экран входа
+            document.getElementById('authScreen').classList.remove('hidden');
+            
+            // Скрываем кнопки в шапке
+            document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
+                if (!btn.classList.contains('theme-toggle')) {
+                    btn.classList.add('hidden');
+                }
+            });
+            
+            // Сбрасываем формы
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            
+            // Показываем форму входа по умолчанию
+            document.getElementById('loginTab').classList.add('active');
+            document.getElementById('registerTab').classList.remove('active');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+
+        // Функция для показа экрана подтверждения email
+        function showVerifyEmailScreen() {
+            // Скрываем все экраны
+            document.querySelectorAll('.auth-screen, .verify-email-screen, .application-screen, .chat-screen').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Показываем экран подтверждения email
+            document.getElementById('verifyEmailScreen').classList.remove('hidden');
+            
+            // Обновляем email в интерфейсе
+            if (state.user) {
+                document.getElementById('verifyEmailAddress').textContent = state.user.email;
+            }
+            
+            // Скрываем кнопки в шапке
+            document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
+                if (!btn.classList.contains('theme-toggle')) {
+                    btn.classList.add('hidden');
+                }
+            });
+        }
+
+        // Функция для показа экрана заявки
+        function showApplicationScreen() {
+            // Скрываем все экраны
+            document.querySelectorAll('.auth-screen, .verify-email-screen, .application-screen, .chat-screen').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Показываем экран заявки
+            document.getElementById('applicationScreen').classList.remove('hidden');
+            
+            // Скрываем кнопки в шапке
+            document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
+                if (!btn.classList.contains('theme-toggle')) {
+                    btn.classList.add('hidden');
+                }
+            });
+            
+            // Обновляем статус заявки
+            updateApplicationStatusUI();
+        }
+
+        // Функция для показа экрана чата
+        function showChatScreen() {
+            // Скрываем все экраны
+            document.querySelectorAll('.auth-screen, .verify-email-screen, .application-screen, .chat-screen').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Показываем экран чата
+            document.getElementById('chatScreen').classList.remove('hidden');
+            
+            // Показываем кнопки в шапке
+            document.getElementById('contactsBtn').classList.remove('hidden');
+            document.getElementById('notificationsBtn').classList.remove('hidden');
+            document.getElementById('profileBtn').classList.remove('hidden');
+            
+            // Показываем админ кнопку если админ
+            if (state.isAdmin) {
+                document.getElementById('adminBtn').classList.remove('hidden');
+            }
+            
+            // Обновляем информацию пользователя
+            updateProfileUI();
+        }
+
+        // Функция для загрузки контактов
+        async function loadContacts() {
+            if (!state.user || !db) return;
+            
+            try {
+                const contactsRef = db.collection('handshakes')
+                    .where('status', '==', 'accepted')
+                    .where(function() {
+                        return firebase.firestore.FieldValue.or(
+                            firebase.firestore.FieldValue.where('fromUserId', '==', state.user.uid),
+                            firebase.firestore.FieldValue.where('toUserId', '==', state.user.uid)
+                        );
+                    })
+                    .orderBy('acceptedAt', 'desc')
+                    .limit(20);
+                
+                const snapshot = await contactsRef.get();
+                const contactsContainer = document.getElementById('contactsContainer');
+                
+                if (!contactsContainer) return;
+                
+                contactsContainer.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    contactsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                            <i class="fas fa-handshake" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>У вас пока нет контактов через рукопожатия</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const handshake = doc.data();
+                    const isFromMe = handshake.fromUserId === state.user.uid;
+                    const contactTelegram = isFromMe ? handshake.toTelegram : handshake.fromTelegram;
+                    const contactAnonymousId = isFromMe ? handshake.toAnonymousId : handshake.fromAnonymousId;
+                    const expiresAt = new Date(handshake.expiresAt);
+                    const now = new Date();
+                    const timeLeft = expiresAt - now;
+                    
+                    // Проверяем не истек ли срок
+                    if (timeLeft <= 0) return;
+                    
+                    const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+                    
+                    const contactElement = document.createElement('div');
+                    contactElement.className = 'contact-card';
+                    
+                    const timeText = hoursLeft < 1 ? 'Меньше часа' : `${hoursLeft} ч`;
+                    
+                    contactElement.innerHTML = `
+                        <div class="contact-header">
+                            <div class="contact-avatar">${contactAnonymousId}</div>
+                            <div class="contact-details">
+                                <h4>Аноним #${contactAnonymousId}</h4>
+                                <div class="contact-telegram">
+                                    <i class="fab fa-telegram"></i> ${contactTelegram}
+                                </div>
+                            </div>
+                            <div class="contact-time">
+                                <i class="fas fa-clock"></i> ${timeText}
+                            </div>
+                        </div>
+                        <div class="contact-expires">
+                            <i class="fas fa-hourglass-end"></i> Истекает через ${timeText}
+                        </div>
+                    `;
+                    
+                    contactsContainer.appendChild(contactElement);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки контактов:", error);
+            }
+        }
+
+        // Функция для генерации анонимного ID
+        function generateAnonymousId() {
+            return Math.floor(100 + Math.random() * 900); // 100-999
+        }
+
+        // Функция для форматирования текста сообщения
+        function formatMessageText(text) {
+            if (!text) return '';
+            
+            // Экранируем HTML
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        // Функция для прокрутки вниз
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            if (container) {
+                setTimeout(() => {
+                    container.scrollTop = container.scrollHeight;
+                }, 100);
+            }
+        }
+
+        // Функции для показа сообщений об ошибках/успехе
+        function showAuthError(message) {
+            const statusElement = document.getElementById('authStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
+        }
+
+        function showRegisterError(message) {
+            const statusElement = document.getElementById('registerStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
+        }
+
+        function showRegisterSuccess(message) {
+            const statusElement = document.getElementById('registerStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="success">${message}</div>`;
+            }
+        }
+
+        function showVerifyError(message) {
+            const statusElement = document.getElementById('verifyStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
+        }
+
+        function showVerifySuccess(message) {
+            const statusElement = document.getElementById('verifyStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="success">${message}</div>`;
+            }
+        }
+
+        function showApplicationError(message) {
+            const statusElement = document.getElementById('applicationStatusMessage');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
+        }
+
+        function showApplicationSuccess(message) {
+            const statusElement = document.getElementById('applicationStatusMessage');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="success">${message}</div>`;
+            }
+        }
+
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
         function showErrorModal(title, message) {
             const html = `
@@ -3236,7 +3614,7 @@
             document.getElementById('adminBtn').addEventListener('click', () => {
                 state.adminActiveTab = 'applications';
                 document.getElementById('adminModal').classList.add('active');
-                loadAdminPanel();
+                // loadAdminPanel(); // Раскомментировать когда добавите эту функцию
             });
             
             // Закрытие модальных окон
@@ -3310,20 +3688,16 @@
                     lastTouchEnd = now;
                 }, false);
             }
+            
+            // Кнопка подтверждения рукопожатия
+            document.getElementById('confirmHandshakeBtn').addEventListener('click', confirmHandshake);
+            document.getElementById('cancelHandshakeBtn').addEventListener('click', () => {
+                document.getElementById('confirmHandshakeModal').classList.remove('active');
+                state.pendingHandshakeTarget = null;
+            });
         });
 
-        // === ОСТАЛЬНЫЕ ФУНКЦИИ (сокращены для экономии места) ===
-        // Здесь должны быть остальные функции из предыдущей версии:
-        // sendMessage, offerHandshakeConfirm, confirmHandshake, acceptHandshake, 
-        // rejectHandshake, loadContacts, loadAdminPanel, loadStats, loadApplications,
-        // loadApprovedUsers, loadBannedUsers, loadReports, loadAdmins,
-        // reviewApplication, deleteApplication, revokeApproval, banUser,
-        // unbanUser, resolveReport, deleteMessageFromReport, addAdmin, removeAdmin,
-        // showAuthScreen, showVerifyEmailScreen, showApplicationScreen, showChatScreen,
-        // handleLogout, updateProfileUI, updateApplicationStatusUI, generateAnonymousId,
-        // formatMessageText, scrollToBottom, showAuthError, showAuthSuccess, etc.
-
-        // Для экономии места оставлю только самые важные функции
+        // === ОСНОВНЫЕ ФУНКЦИИ ===
         async function sendMessage() {
             const text = document.getElementById('messageInput').value.trim();
             if (!text || !state.user || !state.isVerified) return;
@@ -3513,9 +3887,6 @@
                 alert('Ошибка отклонения рукопожатия');
             }
         };
-
-        // Добавьте остальные функции из предыдущей версии здесь...
-        // [Остальной код остается таким же как в предыдущей версии, только добавлена адаптивность и контекстное меню]
 
     </script>
 </body>
