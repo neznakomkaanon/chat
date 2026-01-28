@@ -2106,7 +2106,7 @@
         <div class="context-menu-item report" id="contextReport">
             <i class="fas fa-flag"></i> Пожаловаться
         </div>
-        <div class="context-menu-item ban hidden" id="contextBan">
+        <div class="context-menu-item ban" id="contextBan">
             <i class="fas fa-ban"></i> Заблокировать
         </div>
         <div class="context-menu-item" id="contextClose">
@@ -2416,7 +2416,7 @@
                     <select id="banHours" class="form-control">
                         <option value="1">1 час</option>
                         <option value="3">3 часа</option>
-                        <option value="6">6 часов</option>
+                        <option value="6">6 часа</option>
                         <option value="12">12 часов</option>
                         <option value="24">24 часа</option>
                         <option value="72">3 дня</option>
@@ -2474,7 +2474,8 @@
             isTouchDevice: false,
             currentAdminTab: 'applications',
             hasAcceptedTerms: false,
-            messageListenerUnsubscribe: null
+            messageListenerUnsubscribe: null,
+            messagesLoaded: false
         };
 
         // === УТИЛИТЫ ===
@@ -2581,6 +2582,7 @@
             state.reportTargetMessage = null;
             state.banTargetUser = null;
             state.hasAcceptedTerms = false;
+            state.messagesLoaded = false;
         }
 
         async function continueAfterTerms() {
@@ -3303,7 +3305,7 @@
         }
 
         function loadMessages() {
-            if (!db || !state.isVerified) return;
+            if (!db || !state.isVerified || state.messagesLoaded) return;
             
             // Очищаем контейнер сообщений
             document.getElementById('messagesContainer').innerHTML = '';
@@ -3313,20 +3315,38 @@
                 state.messageListenerUnsubscribe();
             }
             
-            // Получаем все сообщения и подписываемся на изменения
+            // Сначала загружаем существующие сообщения
+            db.collection('messages')
+                .orderBy('timestamp', 'asc')
+                .limit(100)
+                .get()
+                .then((snapshot) => {
+                    snapshot.forEach((doc) => {
+                        const message = doc.data();
+                        message.id = doc.id;
+                        if (!message.deleted) {
+                            addMessageToUI(message);
+                        }
+                    });
+                    scrollToBottom();
+                    state.messagesLoaded = true;
+                })
+                .catch((error) => {
+                    console.error("❌ Ошибка загрузки сообщений:", error);
+                });
+            
+            // Подписываемся на новые сообщения
             const unsubscribe = db.collection('messages')
                 .orderBy('timestamp', 'asc')
                 .limit(100)
                 .onSnapshot((snapshot) => {
-                    const messagesContainer = document.getElementById('messagesContainer');
-                    
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
                             const message = change.doc.data();
                             message.id = change.doc.id;
                             
                             // Проверяем, не отображается ли уже это сообщение
-                            if (!document.querySelector(`[data-message-id="${message.id}"]`)) {
+                            if (!message.deleted && !document.querySelector(`[data-message-id="${message.id}"]`)) {
                                 addMessageToUI(message);
                             }
                         } else if (change.type === 'removed') {
@@ -3340,14 +3360,16 @@
                                 messageElement.remove();
                                 const message = change.doc.data();
                                 message.id = change.doc.id;
-                                addMessageToUI(message);
+                                if (!message.deleted) {
+                                    addMessageToUI(message);
+                                }
                             }
                         }
                     });
                     
                     scrollToBottom();
                 }, (error) => {
-                    console.error("❌ Ошибка загрузки сообщений:", error);
+                    console.error("❌ Ошибка подписки на сообщения:", error);
                 });
             
             // Сохраняем функцию отписки
@@ -3470,9 +3492,7 @@
             if (isMyMessage) {
                 deleteItem.style.display = 'flex';
                 reportItem.style.display = 'none';
-                if (state.isAdmin) {
-                    banItem.style.display = 'none';
-                }
+                banItem.style.display = state.isAdmin ? 'flex' : 'none';
             } else {
                 deleteItem.style.display = state.isAdmin ? 'flex' : 'none';
                 reportItem.style.display = 'flex';
@@ -4501,7 +4521,7 @@
                     toUserId: targetUserId,
                     toEmail: targetUserEmail,
                     toTelegram: targetUser.telegramUsername,
-                    toAnonymousId: anonymousId,
+                    toAnonymousId: targetUser.anonymousId || anonymousId,
                     status: 'pending',
                     createdAt: new Date().toISOString(),
                     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
@@ -4556,22 +4576,27 @@
                             status: 'accepted',
                             acceptedAt: new Date().toISOString()
                         });
+                        
+                        // Отмечаем уведомление как прочитанное
+                        await notificationRef.update({ read: true });
+                        
+                        // Создаем уведомление для отправителя
+                        await db.collection('notifications').add({
+                            userId: fromUserId,
+                            type: 'handshake_accepted',
+                            title: 'Рукопожатие принято',
+                            message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
+                            read: false,
+                            createdAt: new Date().toISOString()
+                        });
+                        
+                        // Обновляем контакты
+                        await loadContacts();
+                        
+                        showAlert('Успех', '🤝 Рукопожатие принято! Контакты обновлены.');
+                    } else {
+                        showAlert('Ошибка', 'Предложение рукопожатия не найдено');
                     }
-                    
-                    await notificationRef.update({ read: true });
-                    
-                    await db.collection('notifications').add({
-                        userId: fromUserId,
-                        type: 'handshake_accepted',
-                        title: 'Рукопожатие принято',
-                        message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
-                        read: false,
-                        createdAt: new Date().toISOString()
-                    });
-                    
-                    await loadContacts();
-                    
-                    showAlert('Успех', '🤝 Рукопожатие принято! Контакты обновлены.');
                     
                 } catch (error) {
                     console.error('❌ Ошибка принятия рукопожатия:', error);
@@ -4595,6 +4620,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             initFirebase();
             
+            // Исправлено: убрал .hidden с кнопки блокировки в контекстном меню
+            const contextBan = document.getElementById('contextBan');
+            if (contextBan) {
+                contextBan.addEventListener('click', banUserFromContext);
+            }
+            
             document.getElementById('contextDelete').addEventListener('click', async () => {
                 if (state.contextMenu.isMyMessage) {
                     await deleteMessage();
@@ -4604,7 +4635,6 @@
             });
             
             document.getElementById('contextReport').addEventListener('click', reportMessage);
-            document.getElementById('contextBan').addEventListener('click', banUserFromContext);
             document.getElementById('contextClose').addEventListener('click', hideMessageContextMenu);
             
             document.addEventListener('click', (e) => {
