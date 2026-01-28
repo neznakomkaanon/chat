@@ -61,6 +61,8 @@
 
         html, body {
             height: 100%;
+            width: 100%;
+            overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-primary);
@@ -95,6 +97,7 @@
             max-width: var(--container-width);
             width: 100%;
             margin: 0 auto;
+            overflow: hidden;
         }
 
         /* Шапка */
@@ -106,6 +109,7 @@
             align-items: center;
             background-color: var(--bg-secondary);
             flex-shrink: 0;
+            z-index: 100;
         }
 
         @media (min-width: 768px) {
@@ -690,6 +694,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            width: 100%;
         }
 
         .chat-container {
@@ -698,6 +703,7 @@
             flex-direction: column;
             height: 100%;
             background-color: var(--bg-primary);
+            width: 100%;
         }
 
         .chat-header {
@@ -826,6 +832,7 @@
             overflow: hidden;
             position: relative;
             padding-bottom: 90px;
+            width: 100%;
         }
 
         @media (min-width: 768px) {
@@ -842,6 +849,7 @@
             flex-direction: column;
             gap: 12px;
             -webkit-overflow-scrolling: touch;
+            width: 100%;
         }
 
         @media (min-width: 768px) {
@@ -971,13 +979,13 @@
 
         /* Действия с сообщениями - адаптивные */
         .message-context-menu {
-            position: absolute;
+            position: fixed;
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             z-index: 1000;
-            min-width: 150px;
+            min-width: 180px;
             display: none;
         }
 
@@ -1011,6 +1019,10 @@
 
         .context-menu-item.report {
             color: var(--warning);
+        }
+
+        .context-menu-item.ban {
+            color: var(--danger);
         }
 
         /* Кнопка рукопожатия */
@@ -1049,8 +1061,8 @@
         .message-input-container {
             position: fixed;
             bottom: 15px;
-            left: 0;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%);
             background-color: var(--bg-secondary);
             border-top: 1px solid var(--border);
             padding: 12px 15px;
@@ -1060,8 +1072,8 @@
             z-index: 100;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             max-width: var(--container-width);
-            margin: 0 auto;
             width: 100%;
+            box-sizing: border-box;
         }
 
         @media (min-width: 768px) {
@@ -1092,6 +1104,7 @@
             line-height: 1.4;
             white-space: pre-wrap;
             -webkit-appearance: none;
+            box-sizing: border-box;
         }
 
         @media (min-width: 768px) {
@@ -1133,7 +1146,7 @@
         }
 
         /* Модальные окна */
-        .modal {
+        .modal-overlay {
             display: none;
             position: fixed;
             top: 0;
@@ -1141,36 +1154,39 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
+            z-index: 999;
             align-items: center;
             justify-content: center;
             padding: 15px;
+            box-sizing: border-box;
         }
 
         @media (min-width: 768px) {
-            .modal {
+            .modal-overlay {
                 padding: 20px;
             }
         }
 
-        .modal.active {
+        .modal-overlay.active {
             display: flex;
         }
 
-        .modal-content {
+        .modal {
             background-color: var(--bg-secondary);
             border-radius: var(--radius);
             padding: 20px;
             width: 100%;
             max-width: 800px;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
         }
 
         @media (min-width: 768px) {
-            .modal-content {
+            .modal {
                 padding: 28px;
+                max-height: 80vh;
             }
         }
 
@@ -1611,6 +1627,62 @@
             }
         }
 
+        /* Кастомные алерты */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            min-width: 300px;
+            max-width: 90%;
+            display: none;
+            border: 1px solid var(--border);
+        }
+
+        .custom-alert.active {
+            display: block;
+        }
+
+        .custom-alert h3 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .custom-alert-content {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .custom-alert-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+        }
+
+        .custom-alert-overlay.active {
+            display: block;
+        }
+
         /* Стили для сенсорных устройств */
         @media (hover: none) and (pointer: coarse) {
             .header-btn:active {
@@ -1635,7 +1707,7 @@
             }
         }
 
-        /* Улучшение скролла на мобильных */
+        /* Улучшение скролла */
         .messages-container::-webkit-scrollbar {
             width: 5px;
         }
@@ -1651,9 +1723,9 @@
 
         /* Адаптивные модальные окна */
         @media (max-width: 480px) {
-            .modal-content {
+            .modal {
                 padding: 15px;
-                max-height: 85vh;
+                max-height: 90vh;
             }
             
             .modal-header h2 {
@@ -1669,12 +1741,96 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .admin-table {
+                font-size: 12px;
+            }
+            
+            .admin-table th, .admin-table td {
+                padding: 8px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .custom-alert {
+                min-width: 280px;
+                padding: 20px;
+            }
+        }
+
+        /* Адаптация для очень маленьких экранов */
+        @media (max-width: 360px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .logo-main {
+                font-size: 14px;
+            }
+            
+            .logo-sub {
+                font-size: 9px;
+            }
+            
+            .header-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            
+            .message-bubble {
+                padding: 10px 12px;
+            }
+            
+            .message-text {
+                font-size: 13px;
+            }
+        }
+
+        /* Прокрутка таблиц в админке */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 10px 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        /* Центрирование контента на маленьких экранах */
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .message-input-container {
+                left: 0;
+                right: 0;
+                transform: none;
+                padding: 10px;
+            }
+            
+            .messages-container-wrapper {
+                padding-bottom: 80px;
+            }
         }
     </style>
 </head>
 <body class="light-theme">
     <!-- Бейдж версии -->
-    <div class="version-badge">v.3.1</div>
+    <div class="version-badge">v.3.2</div>
+    
+    <!-- Кастомные алерты -->
+    <div class="custom-alert-overlay" id="customAlertOverlay"></div>
+    <div class="custom-alert" id="customAlert">
+        <h3 id="customAlertTitle">Уведомление</h3>
+        <div class="custom-alert-content" id="customAlertContent"></div>
+        <div class="custom-alert-buttons">
+            <button class="btn btn-primary" id="customAlertConfirm">OK</button>
+        </div>
+    </div>
     
     <div class="container">
         <header>
@@ -1950,14 +2106,17 @@
         <div class="context-menu-item report" id="contextReport">
             <i class="fas fa-flag"></i> Пожаловаться
         </div>
+        <div class="context-menu-item ban hidden" id="contextBan">
+            <i class="fas fa-ban"></i> Заблокировать
+        </div>
         <div class="context-menu-item" id="contextClose">
             <i class="fas fa-times"></i> Закрыть
         </div>
     </div>
 
     <!-- Модальное окно профиля -->
-    <div class="modal" id="profileModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
             <div class="modal-header">
                 <h2>Профиль</h2>
                 <button class="modal-close" id="closeProfileBtn">&times;</button>
@@ -1993,8 +2152,8 @@
     </div>
 
     <!-- Модальное окно контактов -->
-    <div class="modal" id="contactsModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="contactsModal">
+        <div class="modal">
             <div class="modal-header">
                 <h2>Контакты (24 часа)</h2>
                 <button class="modal-close" id="closeContactsBtn">&times;</button>
@@ -2011,8 +2170,8 @@
     </div>
 
     <!-- Модальное окно уведомлений -->
-    <div class="modal" id="notificationsModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="notificationsModal">
+        <div class="modal">
             <div class="modal-header">
                 <h2>Уведомления</h2>
                 <button class="modal-close" id="closeNotificationsBtn">&times;</button>
@@ -2026,8 +2185,8 @@
     </div>
 
     <!-- Админ панель -->
-    <div class="modal" id="adminModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal">
             <div class="modal-header">
                 <h2>Админ панель</h2>
                 <button class="modal-close" id="closeAdminBtn">&times;</button>
@@ -2065,7 +2224,7 @@
                 <!-- Вкладка заявок -->
                 <div id="adminApplicationsTab">
                     <h3 style="font-size: 18px;">Заявки на доступ</h3>
-                    <div style="overflow-x: auto;">
+                    <div class="table-container">
                         <table class="admin-table">
                             <thead>
                                 <tr>
@@ -2086,7 +2245,7 @@
                 <!-- Вкладка одобренных -->
                 <div id="adminApprovedTab" class="hidden">
                     <h3 style="font-size: 18px;">Одобренные пользователи</h3>
-                    <div style="overflow-x: auto;">
+                    <div class="table-container">
                         <table class="admin-table">
                             <thead>
                                 <tr>
@@ -2106,7 +2265,7 @@
                 <!-- Вкладка заблокированных -->
                 <div id="adminBannedTab" class="hidden">
                     <h3 style="font-size: 18px;">Заблокированные пользователи</h3>
-                    <div style="overflow-x: auto;">
+                    <div class="table-container">
                         <table class="admin-table">
                             <thead>
                                 <tr>
@@ -2127,7 +2286,7 @@
                 <!-- Вкладка жалоб -->
                 <div id="adminReportsTab" class="hidden">
                     <h3 style="font-size: 18px;">Жалобы на сообщения</h3>
-                    <div style="overflow-x: auto;">
+                    <div class="table-container">
                         <table class="admin-table">
                             <thead>
                                 <tr>
@@ -2159,7 +2318,7 @@
                         </div>
                     </div>
 
-                    <div style="overflow-x: auto; margin-top: 12px;">
+                    <div class="table-container" style="margin-top: 12px;">
                         <table class="admin-table">
                             <thead>
                                 <tr>
@@ -2179,8 +2338,8 @@
     </div>
 
     <!-- Модальное окно подтверждения рукопожатия -->
-    <div class="modal" id="confirmHandshakeModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="confirmHandshakeModal">
+        <div class="modal">
             <div class="modal-header">
                 <h2>Подтверждение рукопожатия</h2>
                 <button class="modal-close" id="closeConfirmHandshakeBtn">&times;</button>
@@ -2202,8 +2361,8 @@
     </div>
 
     <!-- Модальное окно жалобы -->
-    <div class="modal" id="reportModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal">
             <div class="modal-header">
                 <h2>Пожаловаться на сообщение</h2>
                 <button class="modal-close" id="closeReportBtn">&times;</button>
@@ -2236,6 +2395,48 @@
         </div>
     </div>
 
+    <!-- Модальное окно блокировки -->
+    <div class="modal-overlay" id="banModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Блокировка пользователя</h2>
+                <button class="modal-close" id="closeBanBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="banUserInfo">
+                    <!-- Информация загружается динамически -->
+                </div>
+                <div class="form-group">
+                    <label for="banReason">Причина блокировки:</label>
+                    <input type="text" id="banReason" class="form-control" 
+                           placeholder="Нарушение правил..." required>
+                </div>
+                <div class="form-group">
+                    <label for="banHours">Время блокировки (часов):</label>
+                    <select id="banHours" class="form-control">
+                        <option value="1">1 час</option>
+                        <option value="3">3 часа</option>
+                        <option value="6">6 часов</option>
+                        <option value="12">12 часов</option>
+                        <option value="24">24 часа</option>
+                        <option value="72">3 дня</option>
+                        <option value="168">7 дней</option>
+                        <option value="720">30 дней</option>
+                        <option value="0">Навсегда</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-danger" id="submitBanBtn">
+                        <i class="fas fa-ban"></i> Заблокировать
+                    </button>
+                    <button class="btn" id="cancelBanBtn" style="background: var(--bg-tertiary);">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // === КОНФИГУРАЦИЯ FIREBASE ===
         const FIREBASE_CONFIG = {
@@ -2260,6 +2461,7 @@
             theme: 'light',
             pendingHandshakeTarget: null,
             reportTargetMessage: null,
+            banTargetUser: null,
             contextMenu: {
                 active: false,
                 messageId: null,
@@ -2273,6 +2475,50 @@
             currentAdminTab: 'applications',
             hasAcceptedTerms: false
         };
+
+        // === УТИЛИТЫ ===
+        function showAlert(title, message, callback = null) {
+            document.getElementById('customAlertTitle').textContent = title;
+            document.getElementById('customAlertContent').textContent = message;
+            document.getElementById('customAlertOverlay').classList.add('active');
+            document.getElementById('customAlert').classList.add('active');
+            
+            const confirmBtn = document.getElementById('customAlertConfirm');
+            const oldClick = confirmBtn.onclick;
+            confirmBtn.onclick = function() {
+                document.getElementById('customAlertOverlay').classList.remove('active');
+                document.getElementById('customAlert').classList.remove('active');
+                if (callback) callback();
+                confirmBtn.onclick = oldClick;
+            };
+        }
+
+        function showConfirm(title, message, confirmCallback, cancelCallback = null) {
+            document.getElementById('customAlertTitle').textContent = title;
+            document.getElementById('customAlertContent').textContent = message;
+            document.getElementById('customAlertOverlay').classList.add('active');
+            document.getElementById('customAlert').classList.add('active');
+            
+            const buttonsDiv = document.getElementById('customAlert').querySelector('.custom-alert-buttons');
+            buttonsDiv.innerHTML = `
+                <button class="btn btn-primary" id="customAlertConfirm">Да</button>
+                <button class="btn" id="customAlertCancel" style="background: var(--bg-tertiary);">Нет</button>
+            `;
+            
+            document.getElementById('customAlertConfirm').onclick = function() {
+                document.getElementById('customAlertOverlay').classList.remove('active');
+                document.getElementById('customAlert').classList.remove('active');
+                if (confirmCallback) confirmCallback();
+                buttonsDiv.innerHTML = '<button class="btn btn-primary" id="customAlertConfirm">OK</button>';
+            };
+            
+            document.getElementById('customAlertCancel').onclick = function() {
+                document.getElementById('customAlertOverlay').classList.remove('active');
+                document.getElementById('customAlert').classList.remove('active');
+                if (cancelCallback) cancelCallback();
+                buttonsDiv.innerHTML = '<button class="btn btn-primary" id="customAlertConfirm">OK</button>';
+            };
+        }
 
         // === ИНИЦИАЛИЗАЦИЯ FIREBASE ===
         let auth, db;
@@ -2312,6 +2558,7 @@
                 
             } catch (error) {
                 console.error("❌ Ошибка Firebase:", error);
+                showAlert('Ошибка', 'Не удалось подключиться к серверу. Проверьте интернет-соединение.');
             }
         }
 
@@ -2325,14 +2572,23 @@
             state.onlineUsers = [];
             state.pendingHandshakeTarget = null;
             state.reportTargetMessage = null;
+            state.banTargetUser = null;
             state.hasAcceptedTerms = false;
         }
 
         async function continueAfterTerms() {
             if (!state.userData) return;
             
-            if (state.userData.isBanned) {
-                alert('Ваш аккаунт заблокирован. Обратитесь к администратору.');
+            if (state.userData.isBanned && state.userData.banExpiresAt && new Date(state.userData.banExpiresAt) > new Date()) {
+                const expiresAt = new Date(state.userData.banExpiresAt);
+                const now = new Date();
+                const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
+                
+                showAlert('Аккаунт заблокирован', `Ваш аккаунт заблокирован до ${expiresAt.toLocaleString()}. Причина: ${state.userData.banReason || 'Нарушение правил'}. Осталось: ${hoursLeft} часов.`);
+                await handleLogout();
+                return;
+            } else if (state.userData.isBanned && !state.userData.banExpiresAt) {
+                showAlert('Аккаунт заблокирован', `Ваш аккаунт заблокирован навсегда. Причина: ${state.userData.banReason || 'Нарушение правил'}.`);
                 await handleLogout();
                 return;
             }
@@ -2398,6 +2654,7 @@
                 
             } catch (error) {
                 console.error("❌ Ошибка загрузки данных:", error);
+                showAlert('Ошибка', 'Не удалось загрузить данные пользователя');
             }
         }
 
@@ -2490,7 +2747,7 @@
         async function acceptTerms() {
             const checkbox = document.getElementById('agreeTermsModal');
             if (!checkbox.checked) {
-                alert('Для продолжения необходимо подтвердить согласие с правилами');
+                showAlert('Внимание', 'Для продолжения необходимо подтвердить согласие с правилами');
                 return;
             }
             
@@ -2513,7 +2770,7 @@
                 
             } catch (error) {
                 console.error("❌ Ошибка сохранения согласия:", error);
-                alert('Ошибка сохранения. Попробуйте еще раз.');
+                showAlert('Ошибка', 'Ошибка сохранения. Попробуйте еще раз.');
             } finally {
                 acceptBtn.disabled = false;
                 acceptBtn.innerHTML = '<i class="fas fa-check-circle"></i> Принять соглашение и продолжить';
@@ -2521,9 +2778,11 @@
         }
 
         async function rejectTerms() {
-            if (confirm('Вы уверены, что хотите отказаться от пользовательского соглашения? Это приведет к выходу из аккаунта.')) {
-                await handleLogout();
-            }
+            showConfirm('Подтверждение', 'Вы уверены, что хотите отказаться от пользовательского соглашения? Это приведет к выходу из аккаунта.',
+                async () => {
+                    await handleLogout();
+                }
+            );
         }
 
         async function handleRegister() {
@@ -3179,12 +3438,12 @@
                 resetState();
                 showAuthScreen();
                 
-                const modals = document.querySelectorAll('.modal.active');
+                const modals = document.querySelectorAll('.modal-overlay.active');
                 modals.forEach(modal => modal.classList.remove('active'));
                 
             } catch (error) {
                 console.error("❌ Ошибка выхода:", error);
-                alert('Ошибка при выходе. Попробуйте снова.');
+                showAlert('Ошибка', 'Ошибка при выходе. Попробуйте снова.');
             }
         }
 
@@ -3232,7 +3491,7 @@
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
             const handshakeButton = !isMyMessage && state.userData && state.userData.telegramUsername ? `
-                <button class="handshake-btn" onclick="offerHandshakeConfirm(${message.anonymousId}, '${message.userId}', '${message.userEmail}')">
+                <button class="handshake-btn" onclick="offerHandshakeConfirm('${message.anonymousId}', '${message.userId}', '${message.userEmail}')">
                     <i class="fas fa-handshake"></i> Предложить рукопожатие
                 </button>
             ` : '';
@@ -3306,8 +3565,8 @@
             const contextMenu = document.getElementById('messageContextMenu');
             contextMenu.classList.add('active');
             
-            const menuWidth = 150;
-            const menuHeight = 120;
+            const menuWidth = 180;
+            const menuHeight = 150;
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             
@@ -3327,13 +3586,16 @@
             
             const deleteItem = document.getElementById('contextDelete');
             const reportItem = document.getElementById('contextReport');
+            const banItem = document.getElementById('contextBan');
             
             if (isMyMessage) {
                 deleteItem.style.display = 'flex';
                 reportItem.style.display = 'none';
+                banItem.style.display = 'none';
             } else {
                 deleteItem.style.display = state.isAdmin ? 'flex' : 'none';
                 reportItem.style.display = 'flex';
+                banItem.style.display = state.isAdmin ? 'flex' : 'none';
             }
         }
 
@@ -3343,42 +3605,46 @@
         }
 
         async function deleteMessage() {
-            if (!state.contextMenu.messageId || !confirm('Удалить это сообщение?')) {
+            if (!state.contextMenu.messageId) {
                 hideMessageContextMenu();
                 return;
             }
             
-            try {
-                await db.collection('messages').doc(state.contextMenu.messageId).update({
-                    deleted: true,
-                    deletedAt: new Date().toISOString(),
-                    deletedBy: state.user.email
-                });
-                
-                hideMessageContextMenu();
-                alert('Сообщение удалено');
-            } catch (error) {
-                console.error("❌ Ошибка удаления сообщения:", error);
-                hideMessageContextMenu();
-                alert('Ошибка удаления сообщения');
-            }
+            showConfirm('Подтверждение', 'Удалить это сообщение?', async () => {
+                try {
+                    await db.collection('messages').doc(state.contextMenu.messageId).update({
+                        deleted: true,
+                        deletedAt: new Date().toISOString(),
+                        deletedBy: state.user.email
+                    });
+                    
+                    hideMessageContextMenu();
+                    showAlert('Успех', 'Сообщение удалено');
+                } catch (error) {
+                    console.error("❌ Ошибка удаления сообщения:", error);
+                    hideMessageContextMenu();
+                    showAlert('Ошибка', 'Ошибка удаления сообщения');
+                }
+            }, hideMessageContextMenu);
         }
 
         async function adminDeleteMessage() {
-            if (!state.contextMenu.messageId || !confirm('Удалить это сообщение как администратор?')) {
+            if (!state.contextMenu.messageId) {
                 hideMessageContextMenu();
                 return;
             }
             
-            try {
-                await db.collection('messages').doc(state.contextMenu.messageId).delete();
-                hideMessageContextMenu();
-                alert('Сообщение удалено');
-            } catch (error) {
-                console.error("❌ Ошибка удаления сообщения:", error);
-                hideMessageContextMenu();
-                alert('Ошибка удаления сообщения');
-            }
+            showConfirm('Подтверждение', 'Удалить это сообщение как администратор?', async () => {
+                try {
+                    await db.collection('messages').doc(state.contextMenu.messageId).delete();
+                    hideMessageContextMenu();
+                    showAlert('Успех', 'Сообщение удалено');
+                } catch (error) {
+                    console.error("❌ Ошибка удаления сообщения:", error);
+                    hideMessageContextMenu();
+                    showAlert('Ошибка', 'Ошибка удаления сообщения');
+                }
+            }, hideMessageContextMenu);
         }
 
         function reportMessage() {
@@ -3416,11 +3682,103 @@
                 document.getElementById('reportReason').value = 'spam';
                 document.getElementById('reportDetails').value = '';
                 
-                alert('Жалоба отправлена. Администратор рассмотрит её в ближайшее время.');
+                showAlert('Успех', 'Жалоба отправлена. Администратор рассмотрит её в ближайшее время.');
                 
             } catch (error) {
                 console.error("❌ Ошибка отправки жалобы:", error);
-                alert('Ошибка отправки жалобы');
+                showAlert('Ошибка', 'Ошибка отправки жалобы');
+            }
+        }
+
+        function banUserFromContext() {
+            if (!state.contextMenu.messageId) {
+                hideMessageContextMenu();
+                return;
+            }
+            
+            const messageElement = state.contextMenu.messageElement;
+            const anonymousId = messageElement.querySelector('.message-sender').textContent.match(/#(\d+)/)?.[1] || '000';
+            const userId = state.contextMenu.messageId; // Это ID сообщения, а не пользователя
+            
+            // Нужно получить ID пользователя из сообщения
+            // Для этого нужно получить данные сообщения из Firestore
+            db.collection('messages').doc(state.contextMenu.messageId).get().then(doc => {
+                if (doc.exists) {
+                    const message = doc.data();
+                    state.banTargetUser = {
+                        userId: message.userId,
+                        email: message.userEmail,
+                        anonymousId: anonymousId
+                    };
+                    
+                    showBanModal();
+                }
+            }).catch(error => {
+                console.error("❌ Ошибка получения данных сообщения:", error);
+                showAlert('Ошибка', 'Не удалось получить данные пользователя');
+            });
+            
+            hideMessageContextMenu();
+        }
+
+        function showBanModal() {
+            if (!state.banTargetUser) return;
+            
+            document.getElementById('banUserInfo').innerHTML = `
+                <div class="handshake-notification">
+                    <h4>Блокировка пользователя</h4>
+                    <p>Вы собираетесь заблокировать <strong>Аноним #${state.banTargetUser.anonymousId}</strong></p>
+                    <p>Email: <strong>${state.banTargetUser.email}</strong></p>
+                    <p>После блокировки пользователь не сможет писать в чат.</p>
+                </div>
+            `;
+            
+            document.getElementById('banModal').classList.add('active');
+            document.getElementById('banReason').value = '';
+            document.getElementById('banHours').value = '24';
+        }
+
+        async function submitBan() {
+            if (!state.banTargetUser) return;
+            
+            const reason = document.getElementById('banReason').value.trim();
+            const hours = parseInt(document.getElementById('banHours').value);
+            
+            if (!reason) {
+                showAlert('Внимание', 'Укажите причину блокировки');
+                return;
+            }
+            
+            try {
+                const banData = {
+                    isBanned: true,
+                    banReason: reason,
+                    bannedAt: new Date().toISOString(),
+                    bannedBy: state.user.email,
+                    isVerified: false
+                };
+                
+                if (hours > 0) {
+                    const expiresAt = new Date();
+                    expiresAt.setHours(expiresAt.getHours() + hours);
+                    banData.banExpiresAt = expiresAt.toISOString();
+                }
+                
+                await db.collection('users').doc(state.banTargetUser.userId).update(banData);
+                
+                document.getElementById('banModal').classList.remove('active');
+                state.banTargetUser = null;
+                
+                showAlert('Успех', 'Пользователь заблокирован');
+                
+                if (state.currentAdminTab === 'banned') {
+                    await loadBannedUsers();
+                }
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка блокировки пользователя:", error);
+                showAlert('Ошибка', 'Ошибка блокировки пользователя');
             }
         }
 
@@ -3665,6 +4023,7 @@
                 
                 const onlineSnapshot = await db.collection('users')
                     .where('online', '==', true)
+                    .where('isBanned', '==', false)
                     .get();
                 document.getElementById('onlineUsers').textContent = onlineSnapshot.size;
                 
@@ -3765,7 +4124,7 @@
                         <td>${user.isVerified ? new Date(user.verifiedAt || user.createdAt).toLocaleString() : 'Не подтвержден'}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="banUser('${doc.id}', '${user.email}')">
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="showBanUserModal('${doc.id}', '${user.email}')">
                                     Заблокировать
                                 </button>
                             </div>
@@ -3804,6 +4163,10 @@
                 snapshot.forEach(doc => {
                     const user = doc.data();
                     const row = document.createElement('tr');
+                    
+                    const expiresAt = user.banExpiresAt 
+                        ? new Date(user.banExpiresAt).toLocaleString()
+                        : 'Навсегда';
                     
                     row.innerHTML = `
                         <td>${user.email}</td>
@@ -3946,143 +4309,140 @@
         }
 
         async function approveApplication(applicationId, userId) {
-            if (!confirm('Одобрить эту заявку?')) return;
-            
-            try {
-                await db.collection('applications').doc(applicationId).update({
-                    status: 'approved',
-                    reviewedBy: state.user.email,
-                    reviewedAt: new Date().toISOString()
-                });
-                
-                await db.collection('users').doc(userId).update({
-                    isVerified: true,
-                    verifiedAt: new Date().toISOString()
-                });
-                
-                alert('Заявка одобрена!');
-                await loadApplications();
-                await loadAdminStats();
-                
-            } catch (error) {
-                console.error("❌ Ошибка одобрения заявки:", error);
-                alert('Ошибка одобрения заявки');
-            }
+            showConfirm('Подтверждение', 'Одобрить эту заявку?', async () => {
+                try {
+                    await db.collection('applications').doc(applicationId).update({
+                        status: 'approved',
+                        reviewedBy: state.user.email,
+                        reviewedAt: new Date().toISOString()
+                    });
+                    
+                    await db.collection('users').doc(userId).update({
+                        isVerified: true,
+                        verifiedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Заявка одобрена!');
+                    await loadApplications();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка одобрения заявки:", error);
+                    showAlert('Ошибка', 'Ошибка одобрения заявки');
+                }
+            });
         }
 
         async function rejectApplication(applicationId, userId) {
-            if (!confirm('Отклонить эту заявку?')) return;
-            
-            try {
-                await db.collection('applications').doc(applicationId).update({
-                    status: 'rejected',
-                    reviewedBy: state.user.email,
-                    reviewedAt: new Date().toISOString()
-                });
-                
-                alert('Заявка отклонена!');
-                await loadApplications();
-                await loadAdminStats();
-                
-            } catch (error) {
-                console.error("❌ Ошибка отклонения заявки:", error);
-                alert('Ошибка отклонения заявки');
-            }
+            showConfirm('Подтверждение', 'Отклонить эту заявку?', async () => {
+                try {
+                    await db.collection('applications').doc(applicationId).update({
+                        status: 'rejected',
+                        reviewedBy: state.user.email,
+                        reviewedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Заявка отклонена!');
+                    await loadApplications();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка отклонения заявки:", error);
+                    showAlert('Ошибка', 'Ошибка отклонения заявки');
+                }
+            });
         }
 
-        async function banUser(userId, userEmail) {
-            const reason = prompt('Укажите причину блокировки:');
-            if (!reason) return;
+        window.showBanUserModal = function(userId, userEmail) {
+            state.banTargetUser = {
+                userId: userId,
+                email: userEmail,
+                anonymousId: '???'
+            };
             
-            try {
-                await db.collection('users').doc(userId).update({
-                    isBanned: true,
-                    banReason: reason,
-                    bannedAt: new Date().toISOString(),
-                    bannedBy: state.user.email,
-                    isVerified: false
-                });
-                
-                alert('Пользователь заблокирован!');
-                await loadApprovedUsers();
-                await loadBannedUsers();
-                await loadAdminStats();
-                
-            } catch (error) {
-                console.error("❌ Ошибка блокировки пользователя:", error);
-                alert('Ошибка блокировки пользователя');
-            }
+            showBanModal();
+        };
+
+        async function banUser(userId, userEmail) {
+            state.banTargetUser = {
+                userId: userId,
+                email: userEmail,
+                anonymousId: '???'
+            };
+            
+            showBanModal();
         }
 
         async function unbanUser(userId) {
-            if (!confirm('Разблокировать этого пользователя?')) return;
-            
-            try {
-                await db.collection('users').doc(userId).update({
-                    isBanned: false,
-                    banReason: null,
-                    bannedAt: null,
-                    bannedBy: null,
-                    isVerified: true
-                });
-                
-                alert('Пользователь разблокирован!');
-                await loadApprovedUsers();
-                await loadBannedUsers();
-                await loadAdminStats();
-                
-            } catch (error) {
-                console.error("❌ Ошибка разблокировки пользователя:", error);
-                alert('Ошибка разблокировки пользователя');
-            }
+            showConfirm('Подтверждение', 'Разблокировать этого пользователя?', async () => {
+                try {
+                    await db.collection('users').doc(userId).update({
+                        isBanned: false,
+                        banReason: null,
+                        bannedAt: null,
+                        bannedBy: null,
+                        banExpiresAt: null,
+                        isVerified: true
+                    });
+                    
+                    showAlert('Успех', 'Пользователь разблокирован!');
+                    await loadApprovedUsers();
+                    await loadBannedUsers();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка разблокировки пользователя:", error);
+                    showAlert('Ошибка', 'Ошибка разблокировки пользователя');
+                }
+            });
         }
 
         async function resolveReport(reportId) {
-            if (!confirm('Пометить жалобу как рассмотренную?')) return;
-            
-            try {
-                await db.collection('reports').doc(reportId).update({
-                    status: 'resolved',
-                    resolvedBy: state.user.email,
-                    resolvedAt: new Date().toISOString()
-                });
-                
-                alert('Жалоба помечена как рассмотренная!');
-                await loadReports();
-                await loadAdminStats();
-                
-            } catch (error) {
-                console.error("❌ Ошибка обработки жалобы:", error);
-                alert('Ошибка обработки жалобы');
-            }
+            showConfirm('Подтверждение', 'Пометить жалобу как рассмотренную?', async () => {
+                try {
+                    await db.collection('reports').doc(reportId).update({
+                        status: 'resolved',
+                        resolvedBy: state.user.email,
+                        resolvedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Жалоба помечена как рассмотренная!');
+                    await loadReports();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка обработки жалобы:", error);
+                    showAlert('Ошибка', 'Ошибка обработки жалобы');
+                }
+            });
         }
 
         async function deleteMessageFromReport(reportId, messageId) {
-            if (!confirm('Удалить это сообщение?')) return;
-            
-            try {
-                await db.collection('messages').doc(messageId).delete();
-                
-                await db.collection('reports').doc(reportId).update({
-                    status: 'resolved',
-                    resolvedBy: state.user.email,
-                    resolvedAt: new Date().toISOString()
-                });
-                
-                alert('Сообщение удалено и жалоба обработана!');
-                await loadReports();
-                await loadAdminStats();
-                
-            } catch (error) {
-                console.error("❌ Ошибка удаления сообщения:", error);
-                alert('Ошибка удаления сообщения');
-            }
+            showConfirm('Подтверждение', 'Удалить это сообщение?', async () => {
+                try {
+                    await db.collection('messages').doc(messageId).delete();
+                    
+                    await db.collection('reports').doc(reportId).update({
+                        status: 'resolved',
+                        resolvedBy: state.user.email,
+                        resolvedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Сообщение удалено и жалоба обработана!');
+                    await loadReports();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка удаления сообщения:", error);
+                    showAlert('Ошибка', 'Ошибка удаления сообщения');
+                }
+            });
         }
 
         async function addAdmin() {
             const email = document.getElementById('addAdminEmail').value.trim();
             if (!email) {
-                alert('Введите email');
+                showAlert('Внимание', 'Введите email');
                 return;
             }
             
@@ -4093,7 +4453,7 @@
                     .get();
                 
                 if (usersSnapshot.empty) {
-                    alert('Пользователь с таким email не найден');
+                    showAlert('Ошибка', 'Пользователь с таким email не найден');
                     return;
                 }
                 
@@ -4104,30 +4464,30 @@
                 });
                 
                 document.getElementById('addAdminEmail').value = '';
-                alert('Администратор добавлен!');
+                showAlert('Успех', 'Администратор добавлен!');
                 await loadAdmins();
                 
             } catch (error) {
                 console.error("❌ Ошибка добавления администратора:", error);
-                alert('Ошибка добавления администратора');
+                showAlert('Ошибка', 'Ошибка добавления администратора');
             }
         }
 
         async function removeAdmin(userId) {
-            if (!confirm('Удалить этого администратора?')) return;
-            
-            try {
-                await db.collection('users').doc(userId).update({
-                    isAdmin: false
-                });
-                
-                alert('Администратор удален!');
-                await loadAdmins();
-                
-            } catch (error) {
-                console.error("❌ Ошибка удаления администратора:", error);
-                alert('Ошибка удаления администратора');
-            }
+            showConfirm('Подтверждение', 'Удалить этого администратора?', async () => {
+                try {
+                    await db.collection('users').doc(userId).update({
+                        isAdmin: false
+                    });
+                    
+                    showAlert('Успех', 'Администратор удален!');
+                    await loadAdmins();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка удаления администратора:", error);
+                    showAlert('Ошибка', 'Ошибка удаления администратора');
+                }
+            });
         }
 
         function updateAdminTabs() {
@@ -4152,6 +4512,20 @@
             const text = document.getElementById('messageInput').value.trim();
             if (!text || !state.user || !state.isVerified) return;
             
+            // Проверка на блокировку
+            if (state.userData.isBanned) {
+                if (state.userData.banExpiresAt && new Date(state.userData.banExpiresAt) > new Date()) {
+                    const expiresAt = new Date(state.userData.banExpiresAt);
+                    const now = new Date();
+                    const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
+                    showAlert('Ошибка', `Вы заблокированы до ${expiresAt.toLocaleString()}. Осталось: ${hoursLeft} часов.`);
+                    return;
+                } else if (!state.userData.banExpiresAt) {
+                    showAlert('Ошибка', 'Вы заблокированы навсегда.');
+                    return;
+                }
+            }
+            
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -4174,7 +4548,7 @@
                 
             } catch (error) {
                 console.error("❌ Ошибка отправки:", error);
-                alert('Ошибка отправки сообщения');
+                showAlert('Ошибка', 'Ошибка отправки сообщения');
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
@@ -4210,19 +4584,19 @@
             try {
                 const targetUserDoc = await db.collection('users').doc(targetUserId).get();
                 if (!targetUserDoc.exists) {
-                    alert('Пользователь не найден');
+                    showAlert('Ошибка', 'Пользователь не найден');
                     return;
                 }
                 
                 const targetUser = targetUserDoc.data();
                 
                 if (!targetUser.telegramUsername) {
-                    alert('У этого пользователя не указан Telegram');
+                    showAlert('Ошибка', 'У этого пользователя не указан Telegram');
                     return;
                 }
                 
                 if (targetUser.isBanned) {
-                    alert('Этот пользователь заблокирован');
+                    showAlert('Ошибка', 'Этот пользователь заблокирован');
                     return;
                 }
                 
@@ -4255,78 +4629,74 @@
                 document.getElementById('confirmHandshakeModal').classList.remove('active');
                 state.pendingHandshakeTarget = null;
                 
-                alert('🤝 Предложение рукопожатия отправлено! Пользователь получит уведомление.');
+                showAlert('Успех', '🤝 Предложение рукопожатия отправлено! Пользователь получит уведомление.');
                 
             } catch (error) {
                 console.error('❌ Ошибка рукопожатия:', error);
-                alert('Ошибка отправки предложения рукопожатия');
+                showAlert('Ошибка', 'Ошибка отправки предложения рукопожатия');
             }
         }
 
         window.acceptHandshake = async function(notificationId, fromUserId) {
-            if (!confirm('Вы уверены, что хотите принять рукопожатие и обменяться контактами?')) {
-                return;
-            }
-            
-            try {
-                const notificationRef = db.collection('notifications').doc(notificationId);
-                const notificationDoc = await notificationRef.get();
-                const notification = notificationDoc.data();
-                
-                if (!notification.handshakeData) {
-                    alert('Ошибка данных рукопожатия');
-                    return;
-                }
-                
-                const handshakesSnapshot = await db.collection('handshakes')
-                    .where('fromUserId', '==', fromUserId)
-                    .where('toUserId', '==', state.user.uid)
-                    .where('status', '==', 'pending')
-                    .orderBy('createdAt', 'desc')
-                    .limit(1)
-                    .get();
-                
-                if (!handshakesSnapshot.empty) {
-                    const handshakeDoc = handshakesSnapshot.docs[0];
-                    await handshakeDoc.ref.update({
-                        status: 'accepted',
-                        acceptedAt: new Date().toISOString()
+            showConfirm('Подтверждение', 'Вы уверены, что хотите принять рукопожатие и обменяться контактами?', async () => {
+                try {
+                    const notificationRef = db.collection('notifications').doc(notificationId);
+                    const notificationDoc = await notificationRef.get();
+                    const notification = notificationDoc.data();
+                    
+                    if (!notification.handshakeData) {
+                        showAlert('Ошибка', 'Ошибка данных рукопожатия');
+                        return;
+                    }
+                    
+                    const handshakesSnapshot = await db.collection('handshakes')
+                        .where('fromUserId', '==', fromUserId)
+                        .where('toUserId', '==', state.user.uid)
+                        .where('status', '==', 'pending')
+                        .orderBy('createdAt', 'desc')
+                        .limit(1)
+                        .get();
+                    
+                    if (!handshakesSnapshot.empty) {
+                        const handshakeDoc = handshakesSnapshot.docs[0];
+                        await handshakeDoc.ref.update({
+                            status: 'accepted',
+                            acceptedAt: new Date().toISOString()
+                        });
+                    }
+                    
+                    await notificationRef.update({ read: true });
+                    
+                    await db.collection('notifications').add({
+                        userId: fromUserId,
+                        type: 'handshake_accepted',
+                        title: 'Рукопожатие принято',
+                        message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
+                        read: false,
+                        createdAt: new Date().toISOString()
                     });
+                    
+                    await loadContacts();
+                    
+                    showAlert('Успех', '🤝 Рукопожатие принято! Контакты обновлены.');
+                    
+                } catch (error) {
+                    console.error('❌ Ошибка принятия рукопожатия:', error);
+                    showAlert('Ошибка', 'Ошибка принятия рукопожатия');
                 }
-                
-                await notificationRef.update({ read: true });
-                
-                await db.collection('notifications').add({
-                    userId: fromUserId,
-                    type: 'handshake_accepted',
-                    title: 'Рукопожатие принято',
-                    message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
-                    read: false,
-                    createdAt: new Date().toISOString()
-                });
-                
-                await loadContacts();
-                
-                alert('🤝 Рукопожатие принято! Контакты обновлены.');
-                
-            } catch (error) {
-                console.error('❌ Ошибка принятия рукопожатия:', error);
-                alert('Ошибка принятия рукопожатия');
-            }
+            });
         };
 
         window.rejectHandshake = async function(notificationId) {
-            if (!confirm('Отклонить предложение рукопожатия?')) {
-                return;
-            }
-            
-            try {
-                await db.collection('notifications').doc(notificationId).update({ read: true });
-                alert('Предложение рукопожатия отклонено');
-            } catch (error) {
-                console.error('❌ Ошибка отклонения:', error);
-                alert('Ошибка отклонения рукопожатия');
-            }
+            showConfirm('Подтверждение', 'Отклонить предложение рукопожатия?', async () => {
+                try {
+                    await db.collection('notifications').doc(notificationId).update({ read: true });
+                    showAlert('Успех', 'Предложение рукопожатия отклонено');
+                } catch (error) {
+                    console.error('❌ Ошибка отклонения:', error);
+                    showAlert('Ошибка', 'Ошибка отклонения рукопожатия');
+                }
+            });
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -4341,6 +4711,7 @@
             });
             
             document.getElementById('contextReport').addEventListener('click', reportMessage);
+            document.getElementById('contextBan').addEventListener('click', banUserFromContext);
             document.getElementById('contextClose').addEventListener('click', hideMessageContextMenu);
             
             document.addEventListener('click', (e) => {
@@ -4490,6 +4861,7 @@
             const closeAdminBtn = document.getElementById('closeAdminBtn');
             const closeConfirmHandshakeBtn = document.getElementById('closeConfirmHandshakeBtn');
             const closeReportBtn = document.getElementById('closeReportBtn');
+            const closeBanBtn = document.getElementById('closeBanBtn');
             
             if (closeProfileBtn) {
                 closeProfileBtn.addEventListener('click', () => {
@@ -4529,6 +4901,13 @@
                 });
             }
             
+            if (closeBanBtn) {
+                closeBanBtn.addEventListener('click', () => {
+                    document.getElementById('banModal').classList.remove('active');
+                    state.banTargetUser = null;
+                });
+            }
+            
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', handleLogout);
@@ -4545,6 +4924,20 @@
                 cancelReportBtn.addEventListener('click', () => {
                     document.getElementById('reportModal').classList.remove('active');
                     state.reportTargetMessage = null;
+                });
+            }
+            
+            const submitBanBtn = document.getElementById('submitBanBtn');
+            const cancelBanBtn = document.getElementById('cancelBanBtn');
+            
+            if (submitBanBtn) {
+                submitBanBtn.addEventListener('click', submitBan);
+            }
+            
+            if (cancelBanBtn) {
+                cancelBanBtn.addEventListener('click', () => {
+                    document.getElementById('banModal').classList.remove('active');
+                    state.banTargetUser = null;
                 });
             }
             
@@ -4653,6 +5046,14 @@
                 cancelHandshakeBtn.addEventListener('click', () => {
                     document.getElementById('confirmHandshakeModal').classList.remove('active');
                     state.pendingHandshakeTarget = null;
+                });
+            }
+            
+            const customAlertConfirm = document.getElementById('customAlertConfirm');
+            if (customAlertConfirm) {
+                customAlertConfirm.addEventListener('click', () => {
+                    document.getElementById('customAlertOverlay').classList.remove('active');
+                    document.getElementById('customAlert').classList.remove('active');
                 });
             }
         });
