@@ -293,7 +293,45 @@
             color: white;
         }
 
-        /* Экран заявки */
+        /* Экран подтверждения email */
+        .verify-email-screen {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .verify-box {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .verify-box h2 {
+            margin-bottom: 24px;
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        .verify-box p {
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .verify-icon {
+            font-size: 60px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        /* Экран заявки на доступ */
         .application-screen {
             flex: 1;
             display: flex;
@@ -502,6 +540,30 @@
             white-space: pre-wrap;
             word-wrap: break-word;
             line-height: 1.4;
+        }
+
+        /* Кнопка рукопожатия */
+        .handshake-btn {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .handshake-btn:hover {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: scale(1.05);
         }
 
         /* Поле ввода */
@@ -728,11 +790,20 @@
             margin: 10px 0;
             font-size: 14px;
         }
+
+        /* Уведомление о рукопожатии */
+        .handshake-notification {
+            background-color: var(--bg-tertiary);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: var(--radius-sm);
+        }
     </style>
 </head>
 <body class="light-theme">
     <!-- Бейдж версии -->
-    <div class="version-badge">v.2.0</div>
+    <div class="version-badge">v.2.1</div>
     
     <div class="container">
         <header>
@@ -820,6 +891,42 @@
                 </div>
             </div>
 
+            <!-- Экран подтверждения email -->
+            <div class="verify-email-screen hidden" id="verifyEmailScreen">
+                <div class="verify-box">
+                    <div class="verify-icon">
+                        <i class="fas fa-envelope-circle-check"></i>
+                    </div>
+                    <h2>Подтвердите ваш Email</h2>
+                    <p>
+                        Мы отправили письмо с подтверждением на адрес<br>
+                        <strong id="verifyEmailAddress">email@example.com</strong>
+                    </p>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 30px;">
+                        Пожалуйста, проверьте вашу почту и перейдите по ссылке в письме для подтверждения.
+                    </p>
+                    
+                    <div class="handshake-notification">
+                        <i class="fas fa-info-circle" style="color: var(--accent); margin-right: 8px;"></i>
+                        После подтверждения email вы сможете заполнить заявку на доступ к чату
+                    </div>
+                    
+                    <button class="btn btn-primary" id="resendVerifyBtn" style="margin-top: 20px;">
+                        <i class="fas fa-redo"></i> Отправить письмо повторно
+                    </button>
+                    
+                    <button class="btn" id="checkVerifyBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-check-circle"></i> Я подтвердил email
+                    </button>
+                    
+                    <button class="btn" id="logoutFromVerifyBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                    
+                    <div id="verifyStatus"></div>
+                </div>
+            </div>
+
             <!-- Экран заявки на доступ -->
             <div class="application-screen hidden" id="applicationScreen">
                 <div class="application-box">
@@ -841,7 +948,7 @@
                         <input type="text" id="telegramUsername" class="form-control" 
                                placeholder="@username (обязательно с @)" required>
                         <small style="color: var(--text-secondary); display: block; margin-top: 6px;">
-                            Этот username будет использоваться администраторами для связи
+                            Этот username будет использоваться для связи при рукопожатии
                         </small>
                     </div>
                     
@@ -850,6 +957,11 @@
                         <textarea id="applicationNote" class="form-control" 
                                   placeholder="Расскажите немного о себе..." 
                                   rows="3"></textarea>
+                    </div>
+                    
+                    <div class="handshake-notification">
+                        <i class="fas fa-handshake" style="color: var(--accent); margin-right: 8px;"></i>
+                        После одобрения заявки вы сможете общаться в чате и предлагать рукопожатие другим участникам
                     </div>
                     
                     <button class="btn btn-primary" id="submitApplicationBtn">
@@ -930,6 +1042,10 @@
                     </div>
                     <p style="color: var(--text-secondary); font-size: 12px; margin-top: 5px;">
                         ID: <span id="profileUserId">000</span>
+                    </p>
+                    <p style="color: var(--telegram-color); font-size: 14px; margin-top: 10px;">
+                        <i class="fab fa-telegram"></i> 
+                        <span id="profileTelegram">Не указан</span>
                     </p>
                 </div>
                 
@@ -1038,6 +1154,7 @@
             userData: null,
             isAdmin: false,
             isVerified: false,
+            emailVerified: false,
             messages: [],
             onlineUsers: [],
             theme: 'light'
@@ -1057,22 +1174,29 @@
                 auth.onAuthStateChanged(async (user) => {
                     if (user) {
                         state.user = user;
-                        await loadUserData();
+                        state.emailVerified = user.emailVerified;
                         
-                        // Проверяем статус пользователя
-                        if (state.userData) {
-                            if (state.userData.isAdmin) {
-                                state.isAdmin = true;
-                                document.getElementById('adminBtn').classList.remove('hidden');
-                            }
+                        if (!user.emailVerified) {
+                            // Email не подтвержден
+                            showVerifyEmailScreen();
+                        } else {
+                            await loadUserData();
                             
-                            if (state.userData.isVerified) {
-                                state.isVerified = true;
-                                showChatScreen();
-                                loadMessages();
-                            } else {
-                                showApplicationScreen();
-                                checkApplicationStatus();
+                            // Проверяем статус пользователя
+                            if (state.userData) {
+                                if (state.userData.isAdmin) {
+                                    state.isAdmin = true;
+                                    document.getElementById('adminBtn').classList.remove('hidden');
+                                }
+                                
+                                if (state.userData.isVerified) {
+                                    state.isVerified = true;
+                                    showChatScreen();
+                                    loadMessages();
+                                } else {
+                                    showApplicationScreen();
+                                    checkApplicationStatus();
+                                }
                             }
                         }
                     } else {
@@ -1081,6 +1205,7 @@
                         state.userData = null;
                         state.isAdmin = false;
                         state.isVerified = false;
+                        state.emailVerified = false;
                         showAuthScreen();
                     }
                 });
@@ -1107,10 +1232,13 @@
                         email: state.user.email,
                         isAdmin: state.user.email === 'sad.spotty@gmail.com', // Первый админ
                         isVerified: false,
+                        emailVerified: true,
                         application: null,
+                        telegramUsername: null,
                         createdAt: new Date().toISOString(),
                         lastSeen: new Date().toISOString(),
-                        online: true
+                        online: true,
+                        anonymousId: generateAnonymousId()
                     };
                     
                     await userRef.set(state.userData);
@@ -1154,14 +1282,15 @@
             
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                console.log("✅ Пользователь зарегистрирован:", userCredential.user.email);
+                const user = userCredential.user;
                 
-                showRegisterSuccess('Регистрация успешна! Выполняется вход...');
+                // Отправляем письмо подтверждения
+                await user.sendEmailVerification();
                 
-                // Автоматически логинимся
-                setTimeout(() => {
-                    handleLogin();
-                }, 1500);
+                showRegisterSuccess('Регистрация успешна! Проверьте email для подтверждения.');
+                
+                // Обновляем UI
+                document.getElementById('verifyEmailAddress').textContent = email;
                 
             } catch (error) {
                 console.error("❌ Ошибка регистрации:", error);
@@ -1220,6 +1349,9 @@
                     case 'auth/invalid-email':
                         errorMessage = 'Неверный формат email';
                         break;
+                    case 'auth/user-disabled':
+                        errorMessage = 'Аккаунт заблокирован';
+                        break;
                     default:
                         errorMessage += error.message;
                 }
@@ -1228,6 +1360,59 @@
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти';
+            }
+        }
+
+        // === ПОВТОРНАЯ ОТПРАВКА ПОДТВЕРЖДЕНИЯ EMAIL ===
+        async function resendVerificationEmail() {
+            if (!state.user) return;
+            
+            const resendBtn = document.getElementById('resendVerifyBtn');
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+            
+            try {
+                await state.user.sendEmailVerification();
+                showVerifySuccess('Письмо с подтверждением отправлено! Проверьте вашу почту.');
+            } catch (error) {
+                console.error("❌ Ошибка отправки подтверждения:", error);
+                showVerifyError('Ошибка отправки письма. Попробуйте позже.');
+            } finally {
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-redo"></i> Отправить письмо повторно';
+            }
+        }
+
+        // === ПРОВЕРКА ПОДТВЕРЖДЕНИЯ EMAIL ===
+        async function checkEmailVerification() {
+            if (!state.user) return;
+            
+            const checkBtn = document.getElementById('checkVerifyBtn');
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
+            
+            try {
+                // Перезагружаем пользователя для обновления статуса emailVerified
+                await state.user.reload();
+                
+                if (state.user.emailVerified) {
+                    state.emailVerified = true;
+                    showVerifySuccess('Email подтвержден! Загрузка профиля...');
+                    
+                    // Даем время для отображения сообщения
+                    setTimeout(async () => {
+                        await loadUserData();
+                        showApplicationScreen();
+                    }, 1500);
+                } else {
+                    showVerifyError('Email еще не подтвержден. Проверьте вашу почту.');
+                }
+            } catch (error) {
+                console.error("❌ Ошибка проверки email:", error);
+                showVerifyError('Ошибка проверки. Попробуйте позже.');
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = '<i class="fas fa-check-circle"></i> Я подтвердил email';
             }
         }
 
@@ -1259,8 +1444,13 @@
                 // Обновляем данные пользователя
                 await db.collection('users').doc(state.user.uid).update({
                     application: applicationData,
+                    telegramUsername: telegramUsername,
                     isVerified: false
                 });
+                
+                // Обновляем локальные данные
+                state.userData.application = applicationData;
+                state.userData.telegramUsername = telegramUsername;
                 
                 // Создаем запись заявки
                 await db.collection('applications').add({
@@ -1269,11 +1459,9 @@
                     reviewedAt: null
                 });
                 
-                // Обновляем локальные данные
-                state.userData.application = applicationData;
-                
                 showApplicationSuccess('Заявка отправлена на рассмотрение!');
                 updateApplicationStatusUI();
+                updateProfileUI();
                 
             } catch (error) {
                 console.error("❌ Ошибка отправки заявки:", error);
@@ -1472,10 +1660,15 @@
                 });
                 
                 // Обновляем пользователя
-                await db.collection('users').doc(app.userId).update({
-                    'application.status': newStatus,
-                    isVerified: action === 'approve'
-                });
+                const updateData = {
+                    'application.status': newStatus
+                };
+                
+                if (action === 'approve') {
+                    updateData.isVerified = true;
+                }
+                
+                await db.collection('users').doc(app.userId).update(updateData);
                 
                 // Перезагружаем заявки
                 await loadApplications();
@@ -1616,6 +1809,13 @@
             
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
+            // Кнопка рукопожатия для чужих сообщений
+            const handshakeButton = !isMyMessage ? `
+                <button class="handshake-btn" onclick="offerHandshake(${message.anonymousId}, '${message.userEmail}')">
+                    <i class="fas fa-handshake"></i> Предложить рукопожатие
+                </button>
+            ` : '';
+            
             messageElement.innerHTML = `
                 <div class="message-sender">
                     <i class="fas ${isMyMessage ? 'fa-user' : 'fa-user-secret'}"></i> 
@@ -1625,6 +1825,7 @@
                     <div class="message-text">${formatMessageText(message.text)}</div>
                     <div class="message-time">${time}</div>
                 </div>
+                ${handshakeButton}
             `;
             
             const container = document.getElementById('messagesContainer');
@@ -1632,24 +1833,104 @@
             scrollToBottom();
         }
 
+        // === ФУНКЦИЯ РУКОПОЖАТИЯ ===
+        window.offerHandshake = async function(anonymousId, targetUserEmail) {
+            if (!state.user || !state.userData || !state.userData.telegramUsername) {
+                alert('У вас не указан Telegram для рукопожатия');
+                return;
+            }
+            
+            // Получаем данные целевого пользователя
+            try {
+                const usersSnapshot = await db.collection('users')
+                    .where('email', '==', targetUserEmail)
+                    .limit(1)
+                    .get();
+                
+                if (usersSnapshot.empty) {
+                    alert('Пользователь не найден');
+                    return;
+                }
+                
+                const targetUser = usersSnapshot.docs[0].data();
+                
+                if (!targetUser.telegramUsername) {
+                    alert('У этого пользователя не указан Telegram');
+                    return;
+                }
+                
+                if (targetUser.email === state.user.email) {
+                    alert('Нельзя предложить рукопожатие самому себе');
+                    return;
+                }
+                
+                // Создаем запись о рукопожатии
+                const handshakeData = {
+                    fromUserId: state.user.uid,
+                    fromEmail: state.user.email,
+                    fromTelegram: state.userData.telegramUsername,
+                    fromAnonymousId: state.userData.anonymousId,
+                    toUserId: usersSnapshot.docs[0].id,
+                    toEmail: targetUserEmail,
+                    toTelegram: targetUser.telegramUsername,
+                    toAnonymousId: anonymousId,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                
+                await db.collection('handshakes').add(handshakeData);
+                
+                alert(`🤝 Предложение рукопожатия отправлено!\n\nВаш Telegram: ${state.userData.telegramUsername}\nИх Telegram: ${targetUser.telegramUsername}\n\nАдминистратор уведомит их о вашем предложении.`);
+                
+            } catch (error) {
+                console.error('❌ Ошибка рукопожатия:', error);
+                alert('Ошибка отправки предложения рукопожатия');
+            }
+        };
+
         // === УПРАВЛЕНИЕ ЭКРАНАМИ ===
         function showAuthScreen() {
             document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('verifyEmailScreen').classList.add('hidden');
             document.getElementById('applicationScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('hidden');
             document.getElementById('profileBtn').classList.add('hidden');
             document.getElementById('adminBtn').classList.add('hidden');
         }
 
+        function showVerifyEmailScreen() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('verifyEmailScreen').classList.remove('hidden');
+            document.getElementById('applicationScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.add('hidden');
+            document.getElementById('profileBtn').classList.add('hidden');
+            document.getElementById('adminBtn').classList.add('hidden');
+            
+            if (state.user) {
+                document.getElementById('verifyEmailAddress').textContent = state.user.email;
+            }
+        }
+
         function showApplicationScreen() {
             document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('verifyEmailScreen').classList.add('hidden');
             document.getElementById('applicationScreen').classList.remove('hidden');
             document.getElementById('chatScreen').classList.add('hidden');
             document.getElementById('profileBtn').classList.remove('hidden');
+            
+            // Заполняем поле если уже есть данные
+            if (state.userData && state.userData.telegramUsername) {
+                document.getElementById('telegramUsername').value = state.userData.telegramUsername;
+            }
+            
+            if (state.userData && state.userData.application && state.userData.application.note) {
+                document.getElementById('applicationNote').value = state.userData.application.note;
+            }
         }
 
         function showChatScreen() {
             document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('verifyEmailScreen').classList.add('hidden');
             document.getElementById('applicationScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.remove('hidden');
             document.getElementById('profileBtn').classList.remove('hidden');
@@ -1679,6 +1960,7 @@
                     state.userData = null;
                     state.isAdmin = false;
                     state.isVerified = false;
+                    state.emailVerified = false;
                     state.messages = [];
                     
                     document.getElementById('messagesContainer').innerHTML = '';
@@ -1707,6 +1989,8 @@
             document.getElementById('profileName').textContent = state.user.email.split('@')[0];
             document.getElementById('profileEmail').textContent = state.user.email;
             document.getElementById('profileUserId').textContent = state.user.uid.substring(0, 8);
+            document.getElementById('profileTelegram').textContent = 
+                state.userData.telegramUsername || 'Не указан';
             
             // Обновляем статус в профиле
             const statusDiv = document.getElementById('profileStatus');
@@ -1760,14 +2044,6 @@
             }
             
             const newId = Math.floor(Math.random() * 900 + 100);
-            
-            // Сохраняем в Firestore
-            if (state.user && db) {
-                db.collection('users').doc(state.user.uid).update({
-                    anonymousId: newId
-                });
-            }
-            
             return newId;
         }
 
@@ -1808,6 +2084,18 @@
 
         function showRegisterSuccess(message) {
             const statusDiv = document.getElementById('registerStatus');
+            statusDiv.innerHTML = `<div class="success">${message}</div>`;
+            setTimeout(() => statusDiv.innerHTML = '', 5000);
+        }
+
+        function showVerifyError(message) {
+            const statusDiv = document.getElementById('verifyStatus');
+            statusDiv.innerHTML = `<div class="error">${message}</div>`;
+            setTimeout(() => statusDiv.innerHTML = '', 5000);
+        }
+
+        function showVerifySuccess(message) {
+            const statusDiv = document.getElementById('verifyStatus');
             statusDiv.innerHTML = `<div class="success">${message}</div>`;
             setTimeout(() => statusDiv.innerHTML = '', 5000);
         }
@@ -1854,6 +2142,11 @@
             document.getElementById('loginPassword').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') handleLogin();
             });
+            
+            // Подтверждение email
+            document.getElementById('resendVerifyBtn').addEventListener('click', resendVerificationEmail);
+            document.getElementById('checkVerifyBtn').addEventListener('click', checkEmailVerification);
+            document.getElementById('logoutFromVerifyBtn').addEventListener('click', handleLogout);
             
             // Заявка
             document.getElementById('submitApplicationBtn').addEventListener('click', submitApplication);
