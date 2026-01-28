@@ -1820,7 +1820,7 @@
 </head>
 <body class="light-theme">
     <!-- Бейдж версии -->
-    <div class="version-badge">v.0.1</div>
+    <div class="version-badge">v.0.2</div>
     
     <!-- Кастомные алерты -->
     <div class="custom-alert-overlay" id="customAlertOverlay"></div>
@@ -2579,6 +2579,9 @@
         async function continueAfterTerms() {
             if (!state.userData) return;
             
+            // Проверка на автоматическую разблокировку
+            await checkAndUnbanIfExpired();
+            
             if (state.userData.isBanned && state.userData.banExpiresAt && new Date(state.userData.banExpiresAt) > new Date()) {
                 const expiresAt = new Date(state.userData.banExpiresAt);
                 const now = new Date();
@@ -2602,6 +2605,36 @@
             } else {
                 showApplicationScreen();
                 checkApplicationStatus();
+            }
+        }
+
+        async function checkAndUnbanIfExpired() {
+            if (!state.userData || !state.userData.isBanned) return;
+            
+            const now = new Date();
+            const expiresAt = state.userData.banExpiresAt ? new Date(state.userData.banExpiresAt) : null;
+            
+            // Если бан временный и время истекло
+            if (expiresAt && expiresAt <= now) {
+                try {
+                    await db.collection('users').doc(state.user.uid).update({
+                        isBanned: false,
+                        banReason: null,
+                        bannedAt: null,
+                        bannedBy: null,
+                        banExpiresAt: null
+                    });
+                    
+                    state.userData.isBanned = false;
+                    state.userData.banReason = null;
+                    state.userData.bannedAt = null;
+                    state.userData.bannedBy = null;
+                    state.userData.banExpiresAt = null;
+                    
+                    console.log("✅ Пользователь автоматически разблокирован");
+                } catch (error) {
+                    console.error("❌ Ошибка автоматической разблокировки:", error);
+                }
             }
         }
 
@@ -3505,26 +3538,30 @@
                 return;
             }
             
-            const messageElement = state.contextMenu.messageElement;
-            const anonymousId = messageElement.querySelector('.message-sender').textContent.match(/#(\d+)/)?.[1] || '000';
-            const userId = state.contextMenu.messageId; // Это ID сообщения, а не пользователя
-            
-            // Нужно получить ID пользователя из сообщения
-            // Для этого нужно получить данные сообщения из Firestore
             db.collection('messages').doc(state.contextMenu.messageId).get().then(doc => {
                 if (doc.exists) {
                     const message = doc.data();
-                    state.banTargetUser = {
-                        userId: message.userId,
-                        email: message.userEmail,
-                        anonymousId: anonymousId
-                    };
                     
-                    showBanModal();
+                    db.collection('users').doc(message.userId).get().then(userDoc => {
+                        if (userDoc.exists) {
+                            const user = userDoc.data();
+                            state.banTargetUser = {
+                                userId: message.userId,
+                                email: message.userEmail,
+                                anonymousId: message.anonymousId || '000',
+                                telegramUsername: user.telegramUsername
+                            };
+                            
+                            showBanModal();
+                        }
+                    }).catch(error => {
+                        console.error("❌ Ошибка получения данных пользователя:", error);
+                        showAlert('Ошибка', 'Не удалось получить данные пользователя');
+                    });
                 }
             }).catch(error => {
                 console.error("❌ Ошибка получения данных сообщения:", error);
-                showAlert('Ошибка', 'Не удалось получить данные пользователя');
+                showAlert('Ошибка', 'Не удалось получить данные сообщения');
             });
             
             hideMessageContextMenu();
@@ -3538,6 +3575,7 @@
                     <h4>Блокировка пользователя</h4>
                     <p>Вы собираетесь заблокировать <strong>Аноним #${state.banTargetUser.anonymousId}</strong></p>
                     <p>Email: <strong>${state.banTargetUser.email}</strong></p>
+                    <p>Telegram: <strong>${state.banTargetUser.telegramUsername || 'Не указан'}</strong></p>
                     <p>После блокировки пользователь не сможет писать в чат.</p>
                 </div>
             `;
@@ -3663,7 +3701,6 @@
             try {
                 const snapshot = await db.collection('handshakes')
                     .where('status', '==', 'accepted')
-                    .where('expiresAt', '>', new Date().toISOString())
                     .get();
                 
                 const contactsContainer = document.getElementById('contactsContainer');
@@ -3671,16 +3708,8 @@
                 if (!contactsContainer) return;
                 
                 contactsContainer.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    contactsContainer.innerHTML = `
-                        <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
-                            <i class="fas fa-handshake" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
-                            <p>У вас пока нет контактов через рукопожатия</p>
-                        </div>
-                    `;
-                    return;
-                }
+                const now = new Date();
+                let hasContacts = false;
                 
                 snapshot.forEach(doc => {
                     const handshake = doc.data();
@@ -3690,11 +3719,11 @@
                         const contactTelegram = isFromMe ? handshake.toTelegram : handshake.fromTelegram;
                         const contactAnonymousId = isFromMe ? handshake.toAnonymousId : handshake.fromAnonymousId;
                         const expiresAt = new Date(handshake.expiresAt);
-                        const now = new Date();
                         const timeLeft = expiresAt - now;
                         
-                        if (timeLeft <= 0) return;
+                        if (timeLeft <= 0) return; // Пропускаем истекшие контакты
                         
+                        hasContacts = true;
                         const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
                         
                         const contactElement = document.createElement('div');
@@ -3723,6 +3752,15 @@
                         contactsContainer.appendChild(contactElement);
                     }
                 });
+                
+                if (!hasContacts) {
+                    contactsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                            <i class="fas fa-handshake" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>У вас пока нет контактов через рукопожатия</p>
+                        </div>
+                    `;
+                }
                 
             } catch (error) {
                 console.error("❌ Ошибка загрузки контактов:", error);
@@ -3830,7 +3868,6 @@
                 
                 const onlineSnapshot = await db.collection('users')
                     .where('online', '==', true)
-                    .where('isBanned', '==', false)
                     .get();
                 document.getElementById('onlineUsers').textContent = onlineSnapshot.size;
                 
@@ -3904,7 +3941,6 @@
                 const snapshot = await db.collection('users')
                     .where('isVerified', '==', true)
                     .where('isBanned', '==', false)
-                    .orderBy('createdAt', 'desc')
                     .get();
                 
                 const table = document.getElementById('approvedTable');
@@ -3928,7 +3964,7 @@
                     row.innerHTML = `
                         <td>${user.email}</td>
                         <td>${user.telegramUsername || 'Не указан'}</td>
-                        <td>${user.isVerified ? new Date(user.verifiedAt || user.createdAt).toLocaleString() : 'Не подтвержден'}</td>
+                        <td>${user.verifiedAt ? new Date(user.verifiedAt).toLocaleString() : 'Не подтвержден'}</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="action-btn" style="background: var(--danger); color: white;" onclick="showBanUserModal('${doc.id}', '${user.email}')">
@@ -3950,7 +3986,6 @@
             try {
                 const snapshot = await db.collection('users')
                     .where('isBanned', '==', true)
-                    .orderBy('bannedAt', 'desc')
                     .get();
                 
                 const table = document.getElementById('bannedTable');
@@ -3967,7 +4002,7 @@
                     return;
                 }
                 
-                snapshot.forEach(doc => {
+                snapshot.forEach(async doc => {
                     const user = doc.data();
                     const row = document.createElement('tr');
                     
@@ -4074,7 +4109,6 @@
             try {
                 const snapshot = await db.collection('users')
                     .where('isAdmin', '==', true)
-                    .orderBy('createdAt', 'desc')
                     .get();
                 
                 const table = document.getElementById('adminsTable');
@@ -4161,13 +4195,22 @@
         }
 
         window.showBanUserModal = function(userId, userEmail) {
-            state.banTargetUser = {
-                userId: userId,
-                email: userEmail,
-                anonymousId: '???'
-            };
-            
-            showBanModal();
+            db.collection('users').doc(userId).get().then(doc => {
+                if (doc.exists) {
+                    const user = doc.data();
+                    state.banTargetUser = {
+                        userId: userId,
+                        email: userEmail,
+                        anonymousId: user.anonymousId || '???',
+                        telegramUsername: user.telegramUsername
+                    };
+                    
+                    showBanModal();
+                }
+            }).catch(error => {
+                console.error("❌ Ошибка получения данных пользователя:", error);
+                showAlert('Ошибка', 'Не удалось получить данные пользователя');
+            });
         };
 
         async function banUser(userId, userEmail) {
@@ -4320,16 +4363,22 @@
             if (!text || !state.user || !state.isVerified) return;
             
             // Проверка на блокировку
-            if (state.userData.isBanned && state.userData.banExpiresAt && new Date(state.userData.banExpiresAt) > new Date()) {
-                const expiresAt = new Date(state.userData.banExpiresAt);
-                const now = new Date();
-                const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
-                
-                showAlert('Ошибка', `Вы заблокированы до ${expiresAt.toLocaleString()}. Осталось: ${hoursLeft} часов.`);
-                return;
-            } else if (state.userData.isBanned && !state.userData.banExpiresAt) {
-                showAlert('Ошибка', 'Вы заблокированы навсегда.');
-                return;
+            if (state.userData.isBanned) {
+                if (state.userData.banExpiresAt) {
+                    const expiresAt = new Date(state.userData.banExpiresAt);
+                    const now = new Date();
+                    if (expiresAt > now) {
+                        const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
+                        showAlert('Ошибка', `Вы заблокированы до ${expiresAt.toLocaleString()}. Причина: ${state.userData.banReason || 'Нарушение правил'}. Осталось: ${hoursLeft} часов.`);
+                        return;
+                    } else {
+                        // Автоматическая разблокировка
+                        await checkAndUnbanIfExpired();
+                    }
+                } else {
+                    showAlert('Ошибка', `Вы заблокированы навсегда. Причина: ${state.userData.banReason || 'Нарушение правил'}.`);
+                    return;
+                }
             }
             
             const sendBtn = document.getElementById('sendBtn');
