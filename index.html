@@ -1820,7 +1820,7 @@
 </head>
 <body class="light-theme">
     <!-- Бейдж версии -->
-    <div class="version-badge">v.0.2</div>
+    <div class="version-badge">v.0.3</div>
     
     <!-- Кастомные алерты -->
     <div class="custom-alert-overlay" id="customAlertOverlay"></div>
@@ -2473,7 +2473,8 @@
             touchTimer: null,
             isTouchDevice: false,
             currentAdminTab: 'applications',
-            hasAcceptedTerms: false
+            hasAcceptedTerms: false,
+            messageListenerUnsubscribe: null
         };
 
         // === УТИЛИТЫ ===
@@ -2563,6 +2564,12 @@
         }
 
         function resetState() {
+            // Отписываемся от слушателя сообщений
+            if (state.messageListenerUnsubscribe) {
+                state.messageListenerUnsubscribe();
+                state.messageListenerUnsubscribe = null;
+            }
+            
             state.user = null;
             state.userData = null;
             state.isAdmin = false;
@@ -3275,6 +3282,12 @@
                     });
                 }
                 
+                // Отписываемся от слушателя сообщений
+                if (state.messageListenerUnsubscribe) {
+                    state.messageListenerUnsubscribe();
+                    state.messageListenerUnsubscribe = null;
+                }
+                
                 await auth.signOut();
                 
                 resetState();
@@ -3292,9 +3305,16 @@
         function loadMessages() {
             if (!db || !state.isVerified) return;
             
+            // Очищаем контейнер сообщений
             document.getElementById('messagesContainer').innerHTML = '';
             
-            db.collection('messages')
+            // Если уже есть слушатель, отписываемся
+            if (state.messageListenerUnsubscribe) {
+                state.messageListenerUnsubscribe();
+            }
+            
+            // Получаем все сообщения и подписываемся на изменения
+            const unsubscribe = db.collection('messages')
                 .orderBy('timestamp', 'asc')
                 .limit(100)
                 .onSnapshot((snapshot) => {
@@ -3304,17 +3324,34 @@
                         if (change.type === 'added') {
                             const message = change.doc.data();
                             message.id = change.doc.id;
-                            addMessageToUI(message);
+                            
+                            // Проверяем, не отображается ли уже это сообщение
+                            if (!document.querySelector(`[data-message-id="${message.id}"]`)) {
+                                addMessageToUI(message);
+                            }
                         } else if (change.type === 'removed') {
                             const messageElement = document.querySelector(`[data-message-id="${change.doc.id}"]`);
                             if (messageElement) {
                                 messageElement.remove();
                             }
+                        } else if (change.type === 'modified') {
+                            const messageElement = document.querySelector(`[data-message-id="${change.doc.id}"]`);
+                            if (messageElement) {
+                                messageElement.remove();
+                                const message = change.doc.data();
+                                message.id = change.doc.id;
+                                addMessageToUI(message);
+                            }
                         }
                     });
                     
                     scrollToBottom();
+                }, (error) => {
+                    console.error("❌ Ошибка загрузки сообщений:", error);
                 });
+            
+            // Сохраняем функцию отписки
+            state.messageListenerUnsubscribe = unsubscribe;
         }
 
         function addMessageToUI(message) {
@@ -3433,7 +3470,9 @@
             if (isMyMessage) {
                 deleteItem.style.display = 'flex';
                 reportItem.style.display = 'none';
-                banItem.style.display = 'none';
+                if (state.isAdmin) {
+                    banItem.style.display = 'none';
+                }
             } else {
                 deleteItem.style.display = state.isAdmin ? 'flex' : 'none';
                 reportItem.style.display = 'flex';
@@ -3890,7 +3929,6 @@
             try {
                 const snapshot = await db.collection('applications')
                     .where('status', '==', 'pending')
-                    .orderBy('submittedAt', 'desc')
                     .get();
                 
                 const table = document.getElementById('applicationsTable');
@@ -4036,7 +4074,6 @@
             try {
                 const snapshot = await db.collection('reports')
                     .where('status', '==', 'pending')
-                    .orderBy('createdAt', 'desc')
                     .get();
                 
                 const table = document.getElementById('reportsTable');
@@ -4165,6 +4202,7 @@
                     
                     showAlert('Успех', 'Заявка одобрена!');
                     await loadApplications();
+                    await loadApprovedUsers();
                     await loadAdminStats();
                     
                 } catch (error) {
