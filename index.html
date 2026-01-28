@@ -2055,14 +2055,14 @@
 
                 <!-- Навигация по админ панели -->
                 <div style="display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap;">
-                    <button class="btn btn-sm" id="adminTabApplications">Заявки</button>
-                    <button class="btn btn-sm" id="adminTabApproved">Одобренные</button>
-                    <button class="btn btn-sm" id="adminTabBanned">Заблокированные</button>
-                    <button class="btn btn-sm" id="adminTabReports">Жалобы</button>
-                    <button class="btn btn-sm" id="adminTabAdmins">Администраторы</button>
+                    <button class="btn btn-sm" id="adminTabApplications" style="background-color: var(--accent); color: white;">Заявки</button>
+                    <button class="btn btn-sm" id="adminTabApproved" style="background: var(--bg-tertiary);">Одобренные</button>
+                    <button class="btn btn-sm" id="adminTabBanned" style="background: var(--bg-tertiary);">Заблокированные</button>
+                    <button class="btn btn-sm" id="adminTabReports" style="background: var(--bg-tertiary);">Жалобы</button>
+                    <button class="btn btn-sm" id="adminTabAdmins" style="background: var(--bg-tertiary);">Администраторы</button>
                 </div>
 
-                <!-- Таблица заявок -->
+                <!-- Вкладка заявок -->
                 <div id="adminApplicationsTab">
                     <h3 style="font-size: 18px;">Заявки на доступ</h3>
                     <div style="overflow-x: auto;">
@@ -2071,8 +2071,8 @@
                                 <tr>
                                     <th>Email</th>
                                     <th>Telegram</th>
+                                    <th>Заметка</th>
                                     <th>Дата</th>
-                                    <th>Статус</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -2083,9 +2083,9 @@
                     </div>
                 </div>
 
-                <!-- Таблица одобренных -->
+                <!-- Вкладка одобренных -->
                 <div id="adminApprovedTab" class="hidden">
-                    <h3 style="font-size: 18px;">Одобренные заявки</h3>
+                    <h3 style="font-size: 18px;">Одобренные пользователи</h3>
                     <div style="overflow-x: auto;">
                         <table class="admin-table">
                             <thead>
@@ -2093,7 +2093,6 @@
                                     <th>Email</th>
                                     <th>Telegram</th>
                                     <th>Дата одобрения</th>
-                                    <th>Статус</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -2104,7 +2103,7 @@
                     </div>
                 </div>
 
-                <!-- Таблица заблокированных -->
+                <!-- Вкладка заблокированных -->
                 <div id="adminBannedTab" class="hidden">
                     <h3 style="font-size: 18px;">Заблокированные пользователи</h3>
                     <div style="overflow-x: auto;">
@@ -2115,7 +2114,6 @@
                                     <th>Telegram</th>
                                     <th>Причина</th>
                                     <th>Дата блокировки</th>
-                                    <th>Заблокировал</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -2126,7 +2124,7 @@
                     </div>
                 </div>
 
-                <!-- Таблица жалоб -->
+                <!-- Вкладка жалоб -->
                 <div id="adminReportsTab" class="hidden">
                     <h3 style="font-size: 18px;">Жалобы на сообщения</h3>
                     <div style="overflow-x: auto;">
@@ -2134,10 +2132,9 @@
                             <thead>
                                 <tr>
                                     <th>Жалоба от</th>
-                                    <th>На сообщение</th>
+                                    <th>Сообщение</th>
                                     <th>Причина</th>
                                     <th>Дата</th>
-                                    <th>Статус</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -2148,7 +2145,7 @@
                     </div>
                 </div>
 
-                <!-- Управление администраторами -->
+                <!-- Вкладка администраторов -->
                 <div id="adminAdminsTab" class="hidden">
                     <h3 style="font-size: 18px;">Администраторы</h3>
                     <div class="form-group" style="margin-top: 12px;">
@@ -2167,7 +2164,7 @@
                             <thead>
                                 <tr>
                                     <th>Email</th>
-                                    <th>Роль</th>
+                                    <th>Дата добавления</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -2258,13 +2255,11 @@
             isAdmin: false,
             isVerified: false,
             emailVerified: false,
-            acceptedTerms: false,
             messages: [],
             onlineUsers: [],
             theme: 'light',
             pendingHandshakeTarget: null,
             reportTargetMessage: null,
-            adminActiveTab: 'applications',
             contextMenu: {
                 active: false,
                 messageId: null,
@@ -2274,7 +2269,8 @@
                 y: 0
             },
             touchTimer: null,
-            isTouchDevice: false
+            isTouchDevice: false,
+            currentAdminTab: 'applications'
         };
 
         // === ИНИЦИАЛИЗАЦИЯ FIREBASE ===
@@ -2302,27 +2298,8 @@
                             await loadUserData();
                             
                             if (state.userData) {
-                                // Проверяем принятие пользовательского соглашения
-                                if (!state.userData.acceptedTerms) {
-                                    showTermsAgreement();
-                                    return;
-                                }
-                                
-                                if (state.userData.isAdmin) {
-                                    state.isAdmin = true;
-                                    document.getElementById('adminBtn').classList.remove('hidden');
-                                }
-                                
-                                if (state.userData.isVerified) {
-                                    state.isVerified = true;
-                                    showChatScreen();
-                                    loadMessages();
-                                    loadNotifications();
-                                    loadContacts();
-                                } else {
-                                    showApplicationScreen();
-                                    checkApplicationStatus();
-                                }
+                                // Показываем соглашение при каждом входе
+                                showTermsAgreement();
                             }
                         }
                     } else {
@@ -2343,7 +2320,6 @@
             state.isAdmin = false;
             state.isVerified = false;
             state.emailVerified = false;
-            state.acceptedTerms = false;
             state.messages = [];
             state.onlineUsers = [];
             state.pendingHandshakeTarget = null;
@@ -2360,8 +2336,15 @@
                 
                 if (doc.exists) {
                     state.userData = doc.data();
-                    state.acceptedTerms = state.userData.acceptedTerms || false;
+                    
+                    // Проверяем админ ли пользователь
+                    if (state.userData.isAdmin) {
+                        state.isAdmin = true;
+                        document.getElementById('adminBtn').classList.remove('hidden');
+                    }
+                    
                     updateProfileUI();
+                    
                 } else {
                     // Создаем нового пользователя
                     state.userData = {
@@ -2369,8 +2352,6 @@
                         isAdmin: state.user.email === 'sad.spotty@gmail.com', // Первый админ
                         isVerified: false,
                         emailVerified: true,
-                        acceptedTerms: false,
-                        application: null,
                         telegramUsername: null,
                         createdAt: new Date().toISOString(),
                         lastSeen: new Date().toISOString(),
@@ -2393,7 +2374,6 @@
                 
             } catch (error) {
                 console.error("❌ Ошибка загрузки данных:", error);
-                showErrorModal('Ошибка загрузки данных пользователя', error.message);
             }
         }
 
@@ -2454,7 +2434,7 @@
                     </div>
                     
                     <button class="btn btn-primary" id="acceptTermsBtn">
-                        <i class="fas fa-check-circle"></i> Принять соглашение
+                        <i class="fas fa-check-circle"></i> Принять соглашение и продолжить
                     </button>
                     
                     <button class="btn" id="rejectTermsBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
@@ -2473,13 +2453,33 @@
                 
                 const acceptBtn = document.getElementById('acceptTermsBtn');
                 acceptBtn.disabled = true;
-                acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+                acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Продолжение...';
                 
                 try {
-                    await acceptTerms();
+                    // Проверяем статус пользователя
+                    if (state.userData.isBanned) {
+                        alert('Ваш аккаунт заблокирован. Обратитесь к администратору.');
+                        await handleLogout();
+                        return;
+                    }
+                    
+                    if (state.userData.isVerified) {
+                        state.isVerified = true;
+                        showChatScreen();
+                        loadMessages();
+                        loadNotifications();
+                        loadContacts();
+                    } else {
+                        showApplicationScreen();
+                        checkApplicationStatus();
+                    }
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка:", error);
+                    alert('Ошибка. Попробуйте еще раз.');
                 } finally {
                     acceptBtn.disabled = false;
-                    acceptBtn.innerHTML = '<i class="fas fa-check-circle"></i> Принять соглашение';
+                    acceptBtn.innerHTML = '<i class="fas fa-check-circle"></i> Принять соглашение и продолжить';
                 }
             });
             
@@ -2488,43 +2488,6 @@
                     await handleLogout();
                 }
             });
-        }
-
-        // === ПРИНЯТИЕ ПОЛЬЗОВАТЕЛЬСКОГО СОГЛАШЕНИЯ ===
-        async function acceptTerms() {
-            if (!state.user || !db) return;
-            
-            try {
-                await db.collection('users').doc(state.user.uid).update({
-                    acceptedTerms: true,
-                    acceptedTermsAt: new Date().toISOString()
-                });
-                
-                state.userData.acceptedTerms = true;
-                state.acceptedTerms = true;
-                
-                // Проверяем статус пользователя
-                if (state.userData.isBanned) {
-                    alert('Ваш аккаунт заблокирован. Обратитесь к администратору.');
-                    await handleLogout();
-                    return;
-                }
-                
-                if (state.userData.isVerified) {
-                    state.isVerified = true;
-                    showChatScreen();
-                    loadMessages();
-                    loadNotifications();
-                    loadContacts();
-                } else {
-                    showApplicationScreen();
-                    checkApplicationStatus();
-                }
-                
-            } catch (error) {
-                console.error("❌ Ошибка сохранения соглашения:", error);
-                showErrorModal('Ошибка сохранения соглашения', 'Пожалуйста, попробуйте еще раз или обратитесь к администратору.');
-            }
         }
 
         // === РЕГИСТРАЦИЯ ===
@@ -2571,9 +2534,6 @@
                     isAdmin: user.email === 'sad.spotty@gmail.com',
                     isVerified: false,
                     emailVerified: false,
-                    acceptedTerms: true,
-                    acceptedTermsAt: new Date().toISOString(),
-                    application: null,
                     telegramUsername: null,
                     createdAt: new Date().toISOString(),
                     lastSeen: new Date().toISOString(),
@@ -3109,7 +3069,519 @@
             });
         }
 
-        // === ДОБАВЛЕННЫЕ ФУНКЦИИ ДЛЯ ИСПРАВЛЕНИЯ ОШИБОК ===
+        // === АДМИН ПАНЕЛЬ ===
+        async function loadAdminPanel() {
+            if (!state.isAdmin || !db) return;
+            
+            await loadAdminStats();
+            
+            // Загружаем данные для текущей вкладки
+            switch(state.currentAdminTab) {
+                case 'applications':
+                    await loadApplications();
+                    break;
+                case 'approved':
+                    await loadApprovedUsers();
+                    break;
+                case 'banned':
+                    await loadBannedUsers();
+                    break;
+                case 'reports':
+                    await loadReports();
+                    break;
+                case 'admins':
+                    await loadAdmins();
+                    break;
+            }
+        }
+
+        async function loadAdminStats() {
+            try {
+                // Все пользователи
+                const usersSnapshot = await db.collection('users').get();
+                document.getElementById('totalUsers').textContent = usersSnapshot.size;
+                
+                // Онлайн пользователи
+                const onlineSnapshot = await db.collection('users')
+                    .where('online', '==', true)
+                    .get();
+                document.getElementById('onlineUsers').textContent = onlineSnapshot.size;
+                
+                // Заявки на рассмотрении
+                const pendingAppsSnapshot = await db.collection('applications')
+                    .where('status', '==', 'pending')
+                    .get();
+                document.getElementById('pendingApplications').textContent = pendingAppsSnapshot.size;
+                
+                // Жалобы на рассмотрении
+                const pendingReportsSnapshot = await db.collection('reports')
+                    .where('status', '==', 'pending')
+                    .get();
+                document.getElementById('pendingReports').textContent = pendingReportsSnapshot.size;
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки статистики:", error);
+            }
+        }
+
+        async function loadApplications() {
+            try {
+                const snapshot = await db.collection('applications')
+                    .where('status', '==', 'pending')
+                    .orderBy('submittedAt', 'desc')
+                    .get();
+                
+                const table = document.getElementById('applicationsTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет заявок на рассмотрении
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const app = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${app.userEmail}</td>
+                        <td>${app.telegramUsername || 'Не указан'}</td>
+                        <td>${app.note || '—'}</td>
+                        <td>${new Date(app.submittedAt).toLocaleString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--success); color: white;" onclick="approveApplication('${doc.id}', '${app.userId}')">
+                                    Одобрить
+                                </button>
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="rejectApplication('${doc.id}', '${app.userId}')">
+                                    Отклонить
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки заявок:", error);
+            }
+        }
+
+        async function loadApprovedUsers() {
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isVerified', '==', true)
+                    .where('isBanned', '==', false)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                const table = document.getElementById('approvedTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет одобренных пользователей
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.telegramUsername || 'Не указан'}</td>
+                        <td>${user.isVerified ? new Date(user.verifiedAt || user.createdAt).toLocaleString() : 'Не подтвержден'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="banUser('${doc.id}', '${user.email}')">
+                                    Заблокировать
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки одобренных:", error);
+            }
+        }
+
+        async function loadBannedUsers() {
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isBanned', '==', true)
+                    .orderBy('bannedAt', 'desc')
+                    .get();
+                
+                const table = document.getElementById('bannedTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет заблокированных пользователей
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.telegramUsername || 'Не указан'}</td>
+                        <td>${user.banReason || 'Нарушение правил'}</td>
+                        <td>${user.bannedAt ? new Date(user.bannedAt).toLocaleString() : '—'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--success); color: white;" onclick="unbanUser('${doc.id}')">
+                                    Разблокировать
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки заблокированных:", error);
+            }
+        }
+
+        async function loadReports() {
+            try {
+                const snapshot = await db.collection('reports')
+                    .where('status', '==', 'pending')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                const table = document.getElementById('reportsTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет жалоб на рассмотрении
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(async doc => {
+                    const report = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    // Получаем текст сообщения
+                    let messageText = 'Сообщение удалено';
+                    try {
+                        const messageDoc = await db.collection('messages').doc(report.messageId).get();
+                        if (messageDoc.exists) {
+                            const message = messageDoc.data();
+                            messageText = message.text.substring(0, 50) + (message.text.length > 50 ? '...' : '');
+                        }
+                    } catch (error) {
+                        console.error("Ошибка загрузки сообщения:", error);
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${report.reporterEmail}</td>
+                        <td>${messageText}</td>
+                        <td>${getReasonText(report.reason)}</td>
+                        <td>${new Date(report.createdAt).toLocaleString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--success); color: white;" onclick="resolveReport('${doc.id}')">
+                                    Рассмотрено
+                                </button>
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="deleteMessageFromReport('${doc.id}', '${report.messageId}')">
+                                    Удалить сообщение
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки жалоб:", error);
+            }
+        }
+
+        async function loadAdmins() {
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isAdmin', '==', true)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                const table = document.getElementById('adminsTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет администраторов
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${new Date(user.createdAt).toLocaleString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="removeAdmin('${doc.id}')" ${state.user.uid === doc.id ? 'disabled' : ''}>
+                                    Удалить
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки администраторов:", error);
+            }
+        }
+
+        // Вспомогательная функция для получения текста причины жалобы
+        function getReasonText(reason) {
+            const reasons = {
+                'spam': 'Спам или реклама',
+                'insult': 'Оскорбления или угрозы',
+                'hate': 'Разжигание ненависти',
+                'illegal': 'Незаконный контент',
+                'fraud': 'Мошенничество',
+                'other': 'Другое'
+            };
+            return reasons[reason] || reason;
+        }
+
+        // Функции для админ действий
+        async function approveApplication(applicationId, userId) {
+            if (!confirm('Одобрить эту заявку?')) return;
+            
+            try {
+                // Обновляем статус заявки
+                await db.collection('applications').doc(applicationId).update({
+                    status: 'approved',
+                    reviewedBy: state.user.email,
+                    reviewedAt: new Date().toISOString()
+                });
+                
+                // Обновляем пользователя
+                await db.collection('users').doc(userId).update({
+                    isVerified: true,
+                    verifiedAt: new Date().toISOString()
+                });
+                
+                alert('Заявка одобрена!');
+                await loadApplications();
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка одобрения заявки:", error);
+                alert('Ошибка одобрения заявки');
+            }
+        }
+
+        async function rejectApplication(applicationId, userId) {
+            if (!confirm('Отклонить эту заявку?')) return;
+            
+            try {
+                // Обновляем статус заявки
+                await db.collection('applications').doc(applicationId).update({
+                    status: 'rejected',
+                    reviewedBy: state.user.email,
+                    reviewedAt: new Date().toISOString()
+                });
+                
+                alert('Заявка отклонена!');
+                await loadApplications();
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка отклонения заявки:", error);
+                alert('Ошибка отклонения заявки');
+            }
+        }
+
+        async function banUser(userId, userEmail) {
+            const reason = prompt('Укажите причину блокировки:');
+            if (!reason) return;
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isBanned: true,
+                    banReason: reason,
+                    bannedAt: new Date().toISOString(),
+                    bannedBy: state.user.email,
+                    isVerified: false
+                });
+                
+                alert('Пользователь заблокирован!');
+                await loadApprovedUsers();
+                await loadBannedUsers();
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка блокировки пользователя:", error);
+                alert('Ошибка блокировки пользователя');
+            }
+        }
+
+        async function unbanUser(userId) {
+            if (!confirm('Разблокировать этого пользователя?')) return;
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isBanned: false,
+                    banReason: null,
+                    bannedAt: null,
+                    bannedBy: null,
+                    isVerified: true
+                });
+                
+                alert('Пользователь разблокирован!');
+                await loadApprovedUsers();
+                await loadBannedUsers();
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка разблокировки пользователя:", error);
+                alert('Ошибка разблокировки пользователя');
+            }
+        }
+
+        async function resolveReport(reportId) {
+            if (!confirm('Пометить жалобу как рассмотренную?')) return;
+            
+            try {
+                await db.collection('reports').doc(reportId).update({
+                    status: 'resolved',
+                    resolvedBy: state.user.email,
+                    resolvedAt: new Date().toISOString()
+                });
+                
+                alert('Жалоба помечена как рассмотренная!');
+                await loadReports();
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка обработки жалобы:", error);
+                alert('Ошибка обработки жалобы');
+            }
+        }
+
+        async function deleteMessageFromReport(reportId, messageId) {
+            if (!confirm('Удалить это сообщение?')) return;
+            
+            try {
+                // Удаляем сообщение
+                await db.collection('messages').doc(messageId).delete();
+                
+                // Помечаем жалобу как рассмотренную
+                await db.collection('reports').doc(reportId).update({
+                    status: 'resolved',
+                    resolvedBy: state.user.email,
+                    resolvedAt: new Date().toISOString()
+                });
+                
+                alert('Сообщение удалено и жалоба обработана!');
+                await loadReports();
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка удаления сообщения:", error);
+                alert('Ошибка удаления сообщения');
+            }
+        }
+
+        async function addAdmin() {
+            const email = document.getElementById('addAdminEmail').value.trim();
+            if (!email) {
+                alert('Введите email');
+                return;
+            }
+            
+            try {
+                // Ищем пользователя
+                const usersSnapshot = await db.collection('users')
+                    .where('email', '==', email)
+                    .limit(1)
+                    .get();
+                
+                if (usersSnapshot.empty) {
+                    alert('Пользователь с таким email не найден');
+                    return;
+                }
+                
+                const userDoc = usersSnapshot.docs[0];
+                
+                // Делаем админом
+                await userDoc.ref.update({
+                    isAdmin: true
+                });
+                
+                document.getElementById('addAdminEmail').value = '';
+                alert('Администратор добавлен!');
+                await loadAdmins();
+                
+            } catch (error) {
+                console.error("❌ Ошибка добавления администратора:", error);
+                alert('Ошибка добавления администратора');
+            }
+        }
+
+        async function removeAdmin(userId) {
+            if (!confirm('Удалить этого администратора?')) return;
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isAdmin: false
+                });
+                
+                alert('Администратор удален!');
+                await loadAdmins();
+                
+            } catch (error) {
+                console.error("❌ Ошибка удаления администратора:", error);
+                alert('Ошибка удаления администратора');
+            }
+        }
+
+        // === ДОБАВЛЕННЫЕ ФУНКЦИИ ===
 
         // Функция для обновления профиля в UI
         function updateProfileUI() {
@@ -3339,18 +3811,17 @@
             if (!state.user || !db) return;
             
             try {
-                const contactsRef = db.collection('handshakes')
+                const snapshot = await db.collection('handshakes')
                     .where('status', '==', 'accepted')
+                    .where('expiresAt', '>', new Date().toISOString())
                     .where(function() {
-                        return firebase.firestore.FieldValue.or(
-                            firebase.firestore.FieldValue.where('fromUserId', '==', state.user.uid),
-                            firebase.firestore.FieldValue.where('toUserId', '==', state.user.uid)
-                        );
+                        // Неправильный синтаксис для OR запроса, нужно делать два отдельных запроса
+                        return firebase.firestore.FieldValue.where('fromUserId', '==', state.user.uid) ||
+                               firebase.firestore.FieldValue.where('toUserId', '==', state.user.uid);
                     })
                     .orderBy('acceptedAt', 'desc')
-                    .limit(20);
+                    .get();
                 
-                const snapshot = await contactsRef.get();
                 const contactsContainer = document.getElementById('contactsContainer');
                 
                 if (!contactsContainer) return;
@@ -3487,35 +3958,6 @@
             }
         }
 
-        // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
-        function showErrorModal(title, message) {
-            const html = `
-                <div class="verify-box">
-                    <div class="verify-icon" style="color: var(--danger);">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h2>${title}</h2>
-                    <p style="color: var(--text-secondary);">
-                        ${message}
-                    </p>
-                    <button class="btn btn-primary" id="retryBtn" style="margin-top: 15px;">
-                        <i class="fas fa-redo"></i> Попробовать снова
-                    </button>
-                    <button class="btn" id="logoutErrorBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
-                        <i class="fas fa-sign-out-alt"></i> Выйти
-                    </button>
-                </div>
-            `;
-            
-            document.querySelector('.main-content').innerHTML = html;
-            
-            document.getElementById('retryBtn').addEventListener('click', async () => {
-                await loadUserData();
-            });
-            
-            document.getElementById('logoutErrorBtn').addEventListener('click', handleLogout);
-        }
-
         // === ИНИЦИАЛИЗАЦИЯ ===
         document.addEventListener('DOMContentLoaded', () => {
             initFirebase();
@@ -3612,9 +4054,10 @@
             });
             
             document.getElementById('adminBtn').addEventListener('click', () => {
-                state.adminActiveTab = 'applications';
+                state.currentAdminTab = 'applications';
+                updateAdminTabs();
                 document.getElementById('adminModal').classList.add('active');
-                // loadAdminPanel(); // Раскомментировать когда добавите эту функцию
+                loadAdminPanel();
             });
             
             // Закрытие модальных окон
@@ -3652,6 +4095,43 @@
             document.getElementById('cancelReportBtn').addEventListener('click', () => {
                 document.getElementById('reportModal').classList.remove('active');
                 state.reportTargetMessage = null;
+            });
+            
+            // Админ панель - переключение вкладок
+            document.getElementById('adminTabApplications').addEventListener('click', () => {
+                state.currentAdminTab = 'applications';
+                updateAdminTabs();
+                loadApplications();
+            });
+            
+            document.getElementById('adminTabApproved').addEventListener('click', () => {
+                state.currentAdminTab = 'approved';
+                updateAdminTabs();
+                loadApprovedUsers();
+            });
+            
+            document.getElementById('adminTabBanned').addEventListener('click', () => {
+                state.currentAdminTab = 'banned';
+                updateAdminTabs();
+                loadBannedUsers();
+            });
+            
+            document.getElementById('adminTabReports').addEventListener('click', () => {
+                state.currentAdminTab = 'reports';
+                updateAdminTabs();
+                loadReports();
+            });
+            
+            document.getElementById('adminTabAdmins').addEventListener('click', () => {
+                state.currentAdminTab = 'admins';
+                updateAdminTabs();
+                loadAdmins();
+            });
+            
+            // Добавление администратора
+            document.getElementById('addAdminBtn').addEventListener('click', addAdmin);
+            document.getElementById('addAdminEmail').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') addAdmin();
             });
             
             // Тема
@@ -3696,6 +4176,25 @@
                 state.pendingHandshakeTarget = null;
             });
         });
+
+        // Функция для обновления стилей вкладок админки
+        function updateAdminTabs() {
+            const tabs = ['applications', 'approved', 'banned', 'reports', 'admins'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`adminTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+                const content = document.getElementById(`admin${tab.charAt(0).toUpperCase() + tab.slice(1)}Tab`);
+                
+                if (tab === state.currentAdminTab) {
+                    btn.style.backgroundColor = 'var(--accent)';
+                    btn.style.color = 'white';
+                    content.classList.remove('hidden');
+                } else {
+                    btn.style.backgroundColor = 'var(--bg-tertiary)';
+                    btn.style.color = 'var(--text-primary)';
+                    content.classList.add('hidden');
+                }
+            });
+        }
 
         // === ОСНОВНЫЕ ФУНКЦИИ ===
         async function sendMessage() {
@@ -3887,6 +4386,15 @@
                 alert('Ошибка отклонения рукопожатия');
             }
         };
+
+        // Экспортируем функции для использования в HTML
+        window.approveApplication = approveApplication;
+        window.rejectApplication = rejectApplication;
+        window.banUser = banUser;
+        window.unbanUser = unbanUser;
+        window.resolveReport = resolveReport;
+        window.deleteMessageFromReport = deleteMessageFromReport;
+        window.removeAdmin = removeAdmin;
 
     </script>
 </body>
