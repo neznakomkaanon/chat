@@ -1795,7 +1795,7 @@
     </style>
 </head>
 <body class="light-theme">
-    <div class="version-badge">v.0.5</div>
+    <div class="version-badge">v.0.6</div>
     
     <div class="custom-alert-overlay" id="customAlertOverlay"></div>
     <div class="custom-alert" id="customAlert">
@@ -3666,10 +3666,10 @@
             
             console.log("🔄 Загрузка уведомлений для пользователя:", state.user.uid);
             
+            // УПРОЩЕННЫЙ ЗАПРОС БЕЗ СОРТИРОВКИ ПО ВРЕМЕНИ (чтобы избежать необходимости в индексе)
             const notificationsRef = db.collection('notifications')
                 .where('userId', '==', state.user.uid)
-                .orderBy('createdAt', 'desc')
-                .limit(20);
+                .limit(20); // Убрали .orderBy('createdAt', 'desc')
             
             const unsubscribe = notificationsRef.onSnapshot((snapshot) => {
                 const notificationsContainer = document.getElementById('notificationsContainer');
@@ -3691,10 +3691,22 @@
                         </div>
                     `;
                 } else {
+                    // Сортируем вручную на клиенте
+                    const notifications = [];
                     snapshot.forEach(doc => {
                         const notification = doc.data();
                         notification.id = doc.id;
-                        
+                        notifications.push(notification);
+                    });
+                    
+                    // Сортировка по дате создания (новые сверху)
+                    notifications.sort((a, b) => {
+                        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                        return dateB - dateA;
+                    });
+                    
+                    notifications.forEach(notification => {
                         console.log("📨 Уведомление:", notification);
                         
                         const notificationElement = document.createElement('div');
@@ -3749,6 +3761,8 @@
                 }
             }, (error) => {
                 console.error("❌ Ошибка загрузки уведомлений:", error);
+                // Убираем показ ошибки об индексе пользователю
+                // showAlert('Ошибка', 'Ошибка загрузки уведомлений');
             });
             
             state.notificationListenerUnsubscribe = unsubscribe;
