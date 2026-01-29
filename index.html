@@ -951,6 +951,7 @@
             margin-top: 4px;
             opacity: 0.7;
             text-align: right;
+            display: block;
         }
 
         @media (min-width: 768px) {
@@ -2475,7 +2476,8 @@
             currentAdminTab: 'applications',
             hasAcceptedTerms: false,
             messageListenerUnsubscribe: null,
-            messagesLoaded: false
+            messagesLoaded: false,
+            notificationListenerUnsubscribe: null
         };
 
         // === УТИЛИТЫ ===
@@ -2569,6 +2571,12 @@
             if (state.messageListenerUnsubscribe) {
                 state.messageListenerUnsubscribe();
                 state.messageListenerUnsubscribe = null;
+            }
+            
+            // Отписываемся от слушателя уведомлений
+            if (state.notificationListenerUnsubscribe) {
+                state.notificationListenerUnsubscribe();
+                state.notificationListenerUnsubscribe = null;
             }
             
             state.user = null;
@@ -3284,10 +3292,15 @@
                     });
                 }
                 
-                // Отписываемся от слушателя сообщений
+                // Отписываемся от слушателей
                 if (state.messageListenerUnsubscribe) {
                     state.messageListenerUnsubscribe();
                     state.messageListenerUnsubscribe = null;
+                }
+                
+                if (state.notificationListenerUnsubscribe) {
+                    state.notificationListenerUnsubscribe();
+                    state.notificationListenerUnsubscribe = null;
                 }
                 
                 await auth.signOut();
@@ -3391,7 +3404,7 @@
             
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
-            const handshakeButton = !isMyMessage && state.userData && state.userData.telegramUsername ? `
+            const handshakeButton = !isMyMessage && state.userData && state.userData.telegramUsername && state.userData.isVerified ? `
                 <button class="handshake-btn" onclick="offerHandshakeConfirm('${message.anonymousId}', '${message.userId}', '${message.userEmail}')">
                     <i class="fas fa-handshake"></i> Предложить рукопожатие
                 </button>
@@ -3688,15 +3701,20 @@
             }
         }
 
-        async function loadNotifications() {
+        function loadNotifications() {
             if (!state.user || !db) return;
+            
+            // Если уже есть слушатель, отписываемся
+            if (state.notificationListenerUnsubscribe) {
+                state.notificationListenerUnsubscribe();
+            }
             
             const notificationsRef = db.collection('notifications')
                 .where('userId', '==', state.user.uid)
                 .orderBy('createdAt', 'desc')
                 .limit(20);
             
-            notificationsRef.onSnapshot((snapshot) => {
+            const unsubscribe = notificationsRef.onSnapshot((snapshot) => {
                 const notificationsContainer = document.getElementById('notificationsContainer');
                 const badge = document.getElementById('notificationsBadge');
                 
@@ -3705,43 +3723,52 @@
                 notificationsContainer.innerHTML = '';
                 let unreadCount = 0;
                 
-                snapshot.forEach(doc => {
-                    const notification = doc.data();
-                    notification.id = doc.id;
-                    
-                    const notificationElement = document.createElement('div');
-                    notificationElement.className = 'handshake-item';
-                    notificationElement.style.opacity = notification.read ? '0.7' : '1';
-                    
-                    let actionButtons = '';
-                    if (notification.type === 'handshake' && !notification.read) {
-                        actionButtons = `
-                            <div style="display: flex; gap: 8px; margin-top: 10px;">
-                                <button class="btn btn-success btn-sm" onclick="acceptHandshake('${notification.id}', '${notification.handshakeData.fromUserId}')">
-                                    <i class="fas fa-check"></i> Принять
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="rejectHandshake('${notification.id}')">
-                                    <i class="fas fa-times"></i> Отклонить
-                                </button>
-                            </div>
-                        `;
-                    }
-                    
-                    notificationElement.innerHTML = `
-                        <div class="handshake-info">
-                            <strong>${notification.title}</strong>
-                            <p>${notification.message}</p>
-                            <small style="color: var(--text-secondary);">
-                                ${new Date(notification.createdAt).toLocaleString()}
-                            </small>
+                if (snapshot.empty) {
+                    notificationsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                            <i class="fas fa-bell-slash" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>У вас пока нет уведомлений</p>
                         </div>
-                        ${actionButtons}
                     `;
-                    
-                    notificationsContainer.appendChild(notificationElement);
-                    
-                    if (!notification.read) unreadCount++;
-                });
+                } else {
+                    snapshot.forEach(doc => {
+                        const notification = doc.data();
+                        notification.id = doc.id;
+                        
+                        const notificationElement = document.createElement('div');
+                        notificationElement.className = 'handshake-item';
+                        notificationElement.style.opacity = notification.read ? '0.7' : '1';
+                        
+                        let actionButtons = '';
+                        if (notification.type === 'handshake' && !notification.read) {
+                            actionButtons = `
+                                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                    <button class="btn btn-success btn-sm" onclick="acceptHandshake('${notification.id}', '${notification.handshakeData.fromUserId}')">
+                                        <i class="fas fa-check"></i> Принять
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="rejectHandshake('${notification.id}')">
+                                        <i class="fas fa-times"></i> Отклонить
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        
+                        notificationElement.innerHTML = `
+                            <div class="handshake-info">
+                                <strong>${notification.title || 'Уведомление'}</strong>
+                                <p>${notification.message || ''}</p>
+                                <small style="color: var(--text-secondary);">
+                                    ${notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'Только что'}
+                                </small>
+                            </div>
+                            ${actionButtons}
+                        `;
+                        
+                        notificationsContainer.appendChild(notificationElement);
+                        
+                        if (!notification.read) unreadCount++;
+                    });
+                }
                 
                 if (badge) {
                     if (unreadCount > 0) {
@@ -3751,7 +3778,11 @@
                         badge.classList.add('hidden');
                     }
                 }
+            }, (error) => {
+                console.error("❌ Ошибка загрузки уведомлений:", error);
             });
+            
+            state.notificationListenerUnsubscribe = unsubscribe;
         }
 
         async function loadContacts() {
@@ -4513,6 +4544,26 @@
                     return;
                 }
                 
+                if (!targetUser.isVerified) {
+                    showAlert('Ошибка', 'Этот пользователь не подтвержден');
+                    return;
+                }
+                
+                // Проверяем, не отправляли ли уже рукопожатие этому пользователю
+                const existingHandshake = await db.collection('handshakes')
+                    .where('fromUserId', '==', state.user.uid)
+                    .where('toUserId', '==', targetUserId)
+                    .where('status', 'in', ['pending', 'accepted'])
+                    .limit(1)
+                    .get();
+                
+                if (!existingHandshake.empty) {
+                    showAlert('Внимание', 'Вы уже отправили предложение рукопожатия этому пользователю');
+                    document.getElementById('confirmHandshakeModal').classList.remove('active');
+                    state.pendingHandshakeTarget = null;
+                    return;
+                }
+                
                 const handshakeData = {
                     fromUserId: state.user.uid,
                     fromEmail: state.user.email,
@@ -4527,17 +4578,22 @@
                     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
                 };
                 
-                await db.collection('handshakes').add(handshakeData);
+                // Сохраняем рукопожатие
+                const handshakeRef = await db.collection('handshakes').add(handshakeData);
                 
-                await db.collection('notifications').add({
+                // Создаем уведомление для получателя
+                const notificationData = {
                     userId: targetUserId,
                     type: 'handshake',
                     title: 'Предложение рукопожатия',
                     message: `Аноним #${state.userData.anonymousId} предлагает обменяться контактами.`,
                     handshakeData: handshakeData,
+                    handshakeId: handshakeRef.id,
                     read: false,
                     createdAt: new Date().toISOString()
-                });
+                };
+                
+                await db.collection('notifications').add(notificationData);
                 
                 document.getElementById('confirmHandshakeModal').classList.remove('active');
                 state.pendingHandshakeTarget = null;
@@ -4557,46 +4613,34 @@
                     const notificationDoc = await notificationRef.get();
                     const notification = notificationDoc.data();
                     
-                    if (!notification.handshakeData) {
+                    if (!notification.handshakeData || !notification.handshakeId) {
                         showAlert('Ошибка', 'Ошибка данных рукопожатия');
                         return;
                     }
                     
-                    const handshakesSnapshot = await db.collection('handshakes')
-                        .where('fromUserId', '==', fromUserId)
-                        .where('toUserId', '==', state.user.uid)
-                        .where('status', '==', 'pending')
-                        .orderBy('createdAt', 'desc')
-                        .limit(1)
-                        .get();
+                    // Обновляем статус рукопожатия
+                    await db.collection('handshakes').doc(notification.handshakeId).update({
+                        status: 'accepted',
+                        acceptedAt: new Date().toISOString()
+                    });
                     
-                    if (!handshakesSnapshot.empty) {
-                        const handshakeDoc = handshakesSnapshot.docs[0];
-                        await handshakeDoc.ref.update({
-                            status: 'accepted',
-                            acceptedAt: new Date().toISOString()
-                        });
-                        
-                        // Отмечаем уведомление как прочитанное
-                        await notificationRef.update({ read: true });
-                        
-                        // Создаем уведомление для отправителя
-                        await db.collection('notifications').add({
-                            userId: fromUserId,
-                            type: 'handshake_accepted',
-                            title: 'Рукопожатие принято',
-                            message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
-                            read: false,
-                            createdAt: new Date().toISOString()
-                        });
-                        
-                        // Обновляем контакты
-                        await loadContacts();
-                        
-                        showAlert('Успех', '🤝 Рукопожатие принято! Контакты обновлены.');
-                    } else {
-                        showAlert('Ошибка', 'Предложение рукопожатия не найдено');
-                    }
+                    // Отмечаем уведомление как прочитанное
+                    await notificationRef.update({ read: true });
+                    
+                    // Создаем уведомление для отправителя
+                    await db.collection('notifications').add({
+                        userId: fromUserId,
+                        type: 'handshake_accepted',
+                        title: 'Рукопожатие принято',
+                        message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
+                        read: false,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    // Обновляем контакты
+                    await loadContacts();
+                    
+                    showAlert('Успех', '🤝 Рукопожатие принято! Контакты обновлены.');
                     
                 } catch (error) {
                     console.error('❌ Ошибка принятия рукопожатия:', error);
@@ -4608,7 +4652,11 @@
         window.rejectHandshake = async function(notificationId) {
             showConfirm('Подтверждение', 'Отклонить предложение рукопожатия?', async () => {
                 try {
-                    await db.collection('notifications').doc(notificationId).update({ read: true });
+                    await db.collection('notifications').doc(notificationId).update({ 
+                        read: true,
+                        status: 'rejected',
+                        rejectedAt: new Date().toISOString()
+                    });
                     showAlert('Успех', 'Предложение рукопожатия отклонено');
                 } catch (error) {
                     console.error('❌ Ошибка отклонения:', error);
