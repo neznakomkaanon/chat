@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Незнакомка (Анонимный чат)</title>
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <!-- Для браузеров, не поддерживающих .ico -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -132,13 +140,16 @@
         }
 
         .logo-icon {
-            color: var(--accent);
-            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 8px;
         }
 
         @media (min-width: 768px) {
             .logo-icon {
-                font-size: 24px;
+                width: 44px;
+                height: 44px;
             }
         }
 
@@ -1944,7 +1955,7 @@
     <div class="container">
         <header>
             <div class="logo">
-                <i class="fas fa-user-secret logo-icon"></i>
+                <img src="logo.png" alt="Незнакомка" class="logo-icon">
                 <div class="logo-text">
                     <div class="logo-main">Незнакомка</div>
                     <div class="logo-sub">AnonChat</div>
@@ -2047,7 +2058,7 @@
                                 <li>Обмен контактами (рукопожатие) действует только при взаимном согласии</li>
                                 <li>Контакты хранятся 24 часа, затем автоматически удаляются</li>
                                 <li>Администрация не проверяет достоверность контактов</li>
-                                <li>Администрация не несет ответственности за последствия обмена</li>
+                                <li>Администрация не несет ответственность за последствия обмена</li>
                             </ul>
                             <p><strong>4. Ответственность:</strong></p>
                             <ul>
