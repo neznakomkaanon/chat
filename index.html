@@ -10,8 +10,1813 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
-        /* [Все стили остаются без изменений] */
-        /* ... */
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f2f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #65676b;
+            --accent: #e91e63;
+            --accent-hover: #c2185b;
+            --border: #e4e6eb;
+            --my-message: #e91e63;
+            --other-message: #e4e6eb;
+            --my-text: white;
+            --other-text: #1a1a1a;
+            --success: #34c759;
+            --warning: #ff9500;
+            --danger: #ff3b30;
+            --telegram-color: #0088cc;
+            --radius: 20px;
+            --radius-sm: 12px;
+            --shadow: 0 4px 20px rgba(233, 30, 99, 0.15);
+            --container-width: 900px;
+        }
+
+        .dark-theme {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2a;
+            --bg-tertiary: #2a2a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --accent: #ff4081;
+            --accent-hover: #ff79b0;
+            --border: #3a3a4a;
+            --my-message: #ff4081;
+            --other-message: #2a2a3a;
+            --my-text: white;
+            --other-text: #ffffff;
+            --success: #30d158;
+            --warning: #ff9f0a;
+            --danger: #ff453a;
+            --telegram-color: #00aced;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Версия в углу */
+        .version-badge {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.5;
+            z-index: 9999;
+            background: var(--bg-secondary);
+            padding: 4px 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: var(--container-width);
+            width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        /* Шапка */
+        header {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        @media (min-width: 768px) {
+            header {
+                padding: 16px 20px;
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        @media (min-width: 768px) {
+            .logo {
+                font-size: 22px;
+                gap: 12px;
+            }
+        }
+
+        .logo-icon {
+            color: var(--accent);
+            font-size: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .logo-icon {
+                font-size: 24px;
+            }
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .logo-main {
+            font-size: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .logo-main {
+                font-size: 18px;
+            }
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
+
+        @media (min-width: 768px) {
+            .logo-sub {
+                font-size: 12px;
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .header-actions {
+                gap: 12px;
+            }
+        }
+
+        .header-btn {
+            background: var(--bg-tertiary);
+            border: none;
+            font-size: 18px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .header-btn {
+                font-size: 20px;
+                width: 44px;
+                height: 44px;
+                padding: 10px;
+            }
+        }
+
+        .header-btn:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .notifications-btn {
+            position: relative;
+        }
+
+        .notifications-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--danger);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Экран входа/регистрации */
+        .auth-screen {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 768px) {
+            .auth-screen {
+                padding: 20px;
+            }
+        }
+
+        .auth-box {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 25px 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .auth-box {
+                padding: 40px 32px;
+            }
+        }
+
+        .auth-box h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        @media (min-width: 768px) {
+            .auth-box h2 {
+                font-size: 28px;
+                margin-bottom: 24px;
+            }
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        @media (min-width: 768px) {
+            .auth-tabs {
+                margin-bottom: 30px;
+            }
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        @media (min-width: 768px) {
+            .auth-tab {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
+
+        .auth-tab.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            margin-bottom: -2px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        @media (min-width: 768px) {
+            .form-group {
+                margin-bottom: 20px;
+            }
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .form-group label {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        @media (min-width: 768px) {
+            .form-control {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .btn {
+                padding: 14px 24px;
+                font-size: 16px;
+            }
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            opacity: 0.9;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        /* Соглашение с правилами */
+        .terms-container {
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        @media (min-width: 768px) {
+            .terms-container {
+                padding: 20px;
+                margin: 20px 0;
+                max-height: 400px;
+            }
+        }
+
+        .terms-container h3 {
+            color: var(--accent);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .terms-container h3 {
+                font-size: 18px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .terms-container p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .terms-container p {
+                font-size: 14px;
+                margin-bottom: 10px;
+                line-height: 1.6;
+            }
+        }
+
+        .terms-container ul, .terms-container ol {
+            margin-left: 18px;
+            margin-bottom: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .terms-container ul, .terms-container ol {
+                margin-left: 20px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .terms-container li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .terms-container li {
+                font-size: 14px;
+                margin-bottom: 8px;
+                line-height: 1.5;
+            }
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 12px 0;
+            text-align: left;
+        }
+
+        @media (min-width: 768px) {
+            .terms-checkbox {
+                margin: 15px 0;
+                gap: 10px;
+            }
+        }
+
+        .terms-checkbox input {
+            margin-top: 3px;
+        }
+
+        .terms-checkbox label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        @media (min-width: 768px) {
+            .terms-checkbox label {
+                font-size: 14px;
+            }
+        }
+
+        /* Экран подтверждения email */
+        .verify-email-screen {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .verify-email-screen {
+                padding: 20px;
+            }
+        }
+
+        .verify-box {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 25px 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .verify-box {
+                padding: 40px 32px;
+            }
+        }
+
+        .verify-box h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        @media (min-width: 768px) {
+            .verify-box h2 {
+                font-size: 28px;
+                margin-bottom: 24px;
+            }
+        }
+
+        .verify-box p {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .verify-box p {
+                font-size: 16px;
+                line-height: 1.6;
+                margin-bottom: 20px;
+            }
+        }
+
+        .verify-icon {
+            font-size: 50px;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .verify-icon {
+                font-size: 60px;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Экран заявки на доступ */
+        .application-screen {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .application-screen {
+                padding: 20px;
+            }
+        }
+
+        .application-box {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 25px 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .application-box {
+                padding: 40px 32px;
+            }
+        }
+
+        .application-box h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        @media (min-width: 768px) {
+            .application-box h2 {
+                font-size: 28px;
+                margin-bottom: 24px;
+            }
+        }
+
+        .application-box p {
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .application-box p {
+                font-size: 16px;
+                line-height: 1.6;
+                margin-bottom: 30px;
+            }
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background-color: rgba(255, 149, 0, 0.1);
+            color: var(--warning);
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .status-indicator {
+                font-size: 14px;
+                padding: 8px 16px;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .status-indicator.verified {
+            background-color: rgba(52, 199, 89, 0.1);
+            color: var(--success);
+        }
+
+        /* Экран чата */
+        .chat-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-color: var(--bg-primary);
+            width: 100%;
+        }
+
+        .chat-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            background-color: var(--bg-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .chat-header {
+                padding: 16px 20px;
+            }
+        }
+
+        .chat-info h2 {
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+
+        @media (min-width: 768px) {
+            .chat-info h2 {
+                font-size: 18px;
+                margin-bottom: 4px;
+            }
+        }
+
+        .chat-info p {
+            color: var(--text-secondary);
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 768px) {
+            .chat-info p {
+                font-size: 13px;
+                gap: 8px;
+            }
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .user-info {
+                gap: 12px;
+            }
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            max-width: 150px;
+        }
+
+        @media (min-width: 768px) {
+            .user-details {
+                max-width: 200px;
+            }
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (min-width: 768px) {
+            .username {
+                font-size: 15px;
+            }
+        }
+
+        .status {
+            font-size: 10px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+        }
+
+        @media (min-width: 768px) {
+            .status {
+                font-size: 12px;
+                gap: 4px;
+            }
+        }
+
+        /* Сообщения */
+        .messages-container-wrapper {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 90px;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .messages-container-wrapper {
+                padding-bottom: 100px;
+            }
+        }
+
+        .messages-container {
+            height: 100%;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .messages-container {
+                padding: 20px;
+                gap: 16px;
+            }
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @media (min-width: 768px) {
+            .message {
+                max-width: 75%;
+            }
+        }
+
+        @keyframes messageAppear {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.my-message {
+            align-self: flex-end;
+            align-items: flex-end;
+            margin-right: 5px;
+        }
+
+        @media (min-width: 768px) {
+            .message.my-message {
+                margin-right: 10px;
+            }
+        }
+
+        .message.other-message {
+            align-self: flex-start;
+            align-items: flex-start;
+            margin-left: 5px;
+        }
+
+        @media (min-width: 768px) {
+            .message.other-message {
+                margin-left: 10px;
+            }
+        }
+
+        .message-bubble {
+            padding: 12px 15px;
+            border-radius: var(--radius);
+            position: relative;
+            word-wrap: break-word;
+            min-width: 50px;
+            max-width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .message-bubble {
+                padding: 14px 18px;
+                min-width: 60px;
+            }
+        }
+
+        .my-message .message-bubble {
+            background-color: var(--my-message);
+            color: var(--my-text);
+            border-bottom-right-radius: 8px;
+        }
+
+        .other-message .message-bubble {
+            background-color: var(--other-message);
+            color: var(--other-text);
+            border-bottom-left-radius: 8px;
+        }
+
+        .message-sender {
+            font-size: 11px;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        @media (min-width: 768px) {
+            .message-sender {
+                font-size: 12px;
+                margin-bottom: 6px;
+                gap: 6px;
+            }
+        }
+
+        .message-time {
+            font-size: 10px;
+            margin-top: 4px;
+            opacity: 0.7;
+            text-align: right;
+            display: block;
+        }
+
+        @media (min-width: 768px) {
+            .message-time {
+                font-size: 11px;
+                margin-top: 6px;
+            }
+        }
+
+        .other-message .message-time {
+            text-align: left;
+        }
+
+        .message-text {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .message-text {
+                font-size: 15px;
+            }
+        }
+
+        /* Действия с сообщениями - адаптивные */
+        .message-context-menu {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 180px;
+            display: none;
+        }
+
+        .message-context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s;
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-menu-item:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .context-menu-item.delete {
+            color: var(--danger);
+        }
+
+        .context-menu-item.report {
+            color: var(--warning);
+        }
+
+        .context-menu-item.ban {
+            color: var(--danger);
+        }
+
+        /* Кнопка рукопожатия */
+        .handshake-btn {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .handshake-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+                margin-top: 10px;
+            }
+        }
+
+        .handshake-btn:hover {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        /* Поле ввода */
+        .message-input-container {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 12px 15px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            z-index: 100;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            max-width: var(--container-width);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .message-input-container {
+                bottom: 30px;
+                padding: 16px 20px;
+                gap: 12px;
+            }
+        }
+
+        .message-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+            min-height: 48px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            -webkit-appearance: none;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .message-input {
+                padding: 14px 50px 14px 18px;
+                font-size: 16px;
+                max-height: 120px;
+                min-height: 52px;
+            }
+        }
+
+        .send-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .send-btn {
+                width: 52px;
+                height: 52px;
+                font-size: 20px;
+            }
+        }
+
+        .send-btn:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        /* Модальные окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .modal-overlay {
+                padding: 20px;
+            }
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .modal {
+                padding: 28px;
+                max-height: 80vh;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .modal-header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--accent);
+            font-size: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .modal-header h2 {
+                font-size: 24px;
+            }
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .modal-close {
+                font-size: 28px;
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        .modal-close:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        /* Таблицы */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .admin-table {
+                margin: 20px 0;
+                font-size: 14px;
+            }
+        }
+
+        .admin-table th {
+            background-color: var(--bg-tertiary);
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        @media (min-width: 768px) {
+            .admin-table th {
+                padding: 12px;
+            }
+        }
+
+        .admin-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            word-break: break-word;
+        }
+
+        @media (min-width: 768px) {
+            .admin-table td {
+                padding: 12px;
+            }
+        }
+
+        .admin-table tr:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 768px) {
+            .action-buttons {
+                gap: 8px;
+            }
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        @media (min-width: 768px) {
+            .action-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .btn-sm {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+        }
+
+        .stat-card {
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius);
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        @media (min-width: 768px) {
+            .stat-card {
+                padding: 20px;
+            }
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 8px 0;
+        }
+
+        @media (min-width: 768px) {
+            .stat-value {
+                font-size: 36px;
+                margin: 10px 0;
+            }
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .stat-label {
+                font-size: 14px;
+            }
+        }
+
+        /* Уведомление о рукопожатии */
+        .handshake-notification {
+            background-color: var(--bg-tertiary);
+            border-left: 4px solid var(--accent);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .handshake-notification {
+                padding: 15px;
+                margin: 10px 0;
+                font-size: 14px;
+            }
+        }
+
+        .handshake-item {
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid var(--border);
+        }
+
+        @media (min-width: 768px) {
+            .handshake-item {
+                padding: 15px;
+                margin: 10px 0;
+            }
+        }
+
+        .handshake-info {
+            margin-bottom: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .handshake-info {
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Контакты */
+        .contacts-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        @media (min-width: 480px) {
+            .contacts-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .contacts-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+                margin: 20px 0;
+            }
+        }
+
+        .contact-card {
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .contact-card {
+                padding: 15px;
+            }
+        }
+
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .contact-header {
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+        }
+
+        .contact-avatar {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, var(--telegram-color), #00aced);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .contact-avatar {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        .contact-details h4 {
+            margin: 0 0 3px 0;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .contact-details h4 {
+                font-size: 14px;
+                margin-bottom: 5px;
+            }
+        }
+
+        .contact-telegram {
+            color: var(--telegram-color);
+            font-size: 11px;
+        }
+
+        @media (min-width: 768px) {
+            .contact-telegram {
+                font-size: 12px;
+            }
+        }
+
+        .contact-time {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        @media (min-width: 768px) {
+            .contact-time {
+                font-size: 11px;
+            }
+        }
+
+        .contact-expires {
+            font-size: 11px;
+            color: var(--warning);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (min-width: 768px) {
+            .contact-expires {
+                font-size: 12px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+        }
+
+        /* Жалобы */
+        .report-reason {
+            font-size: 11px;
+            color: var(--danger);
+            background-color: rgba(255, 59, 48, 0.1);
+            padding: 3px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .report-reason {
+                font-size: 12px;
+                padding: 4px 8px;
+                margin-left: 10px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .error {
+            color: var(--danger);
+            background-color: rgba(255, 59, 48, 0.1);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            margin: 8px 0;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .error {
+                padding: 10px;
+                margin: 10px 0;
+                font-size: 14px;
+            }
+        }
+
+        .success {
+            color: var(--success);
+            background-color: rgba(52, 199, 89, 0.1);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            margin: 8px 0;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .success {
+                padding: 10px;
+                margin: 10px 0;
+                font-size: 14px;
+            }
+        }
+
+        .info {
+            color: var(--warning);
+            background-color: rgba(255, 149, 0, 0.1);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            margin: 8px 0;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .info {
+                padding: 10px;
+                margin: 10px 0;
+                font-size: 14px;
+            }
+        }
+
+        /* Кастомные алерты */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            min-width: 300px;
+            max-width: 90%;
+            display: none;
+            border: 1px solid var(--border);
+        }
+
+        .custom-alert.active {
+            display: block;
+        }
+
+        .custom-alert h3 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .custom-alert-content {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .custom-alert-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+        }
+
+        .custom-alert-overlay.active {
+            display: block;
+        }
+
+        /* Стили для сенсорных устройств */
+        @media (hover: none) and (pointer: coarse) {
+            .header-btn:active {
+                background-color: var(--accent);
+                color: white;
+            }
+            
+            .handshake-btn:active {
+                background-color: var(--accent);
+                color: white;
+                border-color: var(--accent);
+                transform: scale(0.98);
+            }
+            
+            .send-btn:active {
+                background-color: var(--accent-hover);
+                transform: scale(0.98);
+            }
+            
+            .action-btn:active {
+                opacity: 0.8;
+            }
+        }
+
+        /* Улучшение скролла */
+        .messages-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        /* Адаптивные модальные окна */
+        @media (max-width: 480px) {
+            .modal {
+                padding: 15px;
+                max-height: 90vh;
+            }
+            
+            .modal-header h2 {
+                font-size: 18px;
+            }
+            
+            .modal-close {
+                width: 32px;
+                height: 32px;
+                font-size: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-table {
+                font-size: 12px;
+            }
+            
+            .admin-table th, .admin-table td {
+                padding: 8px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .custom-alert {
+                min-width: 280px;
+                padding: 20px;
+            }
+        }
+
+        /* Адаптация для очень маленьких экранов */
+        @media (max-width: 360px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .logo-main {
+                font-size: 14px;
+            }
+            
+            .logo-sub {
+                font-size: 9px;
+            }
+            
+            .header-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            
+            .message-bubble {
+                padding: 10px 12px;
+            }
+            
+            .message-text {
+                font-size: 13px;
+            }
+        }
+
+        /* Прокрутка таблиц в админке */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 10px 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        /* Центрирование контента на маленьких экранах */
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .message-input-container {
+                left: 0;
+                right: 0;
+                transform: none;
+                padding: 10px;
+            }
+            
+            .messages-container-wrapper {
+                padding-bottom: 80px;
+            }
+        }
     </style>
 </head>
 <body class="light-theme">
@@ -28,9 +1833,611 @@
         </div>
     </div>
     
-    <!-- [Все остальные HTML элементы остаются без изменений] -->
-    <!-- ... -->
-    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-user-secret logo-icon"></i>
+                <div class="logo-text">
+                    <div class="logo-main">Незнакомка</div>
+                    <div class="logo-sub">AnonChat</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn hidden" id="contactsBtn" title="Контакты">
+                    <i class="fas fa-address-book"></i>
+                </button>
+                <button class="header-btn hidden notifications-btn" id="notificationsBtn" title="Уведомления">
+                    <i class="fas fa-bell"></i>
+                    <span class="notifications-badge hidden" id="notificationsBadge">0</span>
+                </button>
+                <button class="header-btn hidden" id="profileBtn" title="Профиль">
+                    <i class="fas fa-user"></i>
+                </button>
+                <button class="header-btn hidden" id="adminBtn" title="Админ панель">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="header-btn theme-toggle" id="themeToggle" title="Переключить тему">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Экран входа/регистрации -->
+            <div class="auth-screen" id="authScreen">
+                <div class="auth-box">
+                    <h2>Незнакомка (AnonChat)</h2>
+                    <p style="margin-bottom: 25px; color: var(--text-secondary); font-size: 14px;">
+                        Анонимный чат с рукопожатиями
+                    </p>
+                    
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" id="loginTab">Вход</button>
+                        <button class="auth-tab" id="registerTab">Регистрация</button>
+                    </div>
+                    
+                    <!-- Форма входа -->
+                    <div id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="loginEmail" class="form-control" 
+                                   placeholder="ваш@email.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="loginPassword"><i class="fas fa-lock"></i> Пароль</label>
+                            <input type="password" id="loginPassword" class="form-control" 
+                                   placeholder="Пароль" required>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="loginBtn">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </button>
+                        
+                        <div id="authStatus"></div>
+                    </div>
+                    
+                    <!-- Форма регистрации -->
+                    <div id="registerForm" class="hidden">
+                        <div class="form-group">
+                            <label for="registerEmail"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="registerEmail" class="form-control" 
+                                   placeholder="ваш@email.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="registerPassword"><i class="fas fa-lock"></i> Пароль</label>
+                            <input type="password" id="registerPassword" class="form-control" 
+                                   placeholder="Минимум 6 символов" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword"><i class="fas fa-lock"></i> Подтвердите пароль</label>
+                            <input type="password" id="confirmPassword" class="form-control" 
+                                   placeholder="Повторите пароль" required>
+                        </div>
+                        
+                        <div class="terms-container">
+                            <h3>Пользовательское соглашение</h3>
+                            <p><strong>Незнакомка (AnonChat)</strong> — платформа для анонимного общения.</p>
+                            <p><strong>1. Основные положения:</strong></p>
+                            <ul>
+                                <li>В чате все пользователи отображаются как "Аноним #XXX"</li>
+                                <li>Для использования чата требуется подтверждение через заявку</li>
+                                <li>Все сообщения автоматически удаляются через 24 часа</li>
+                                <li>Требуется минимальный возраст 18 лет</li>
+                            </ul>
+                            <p><strong>2. Запрещено:</strong></p>
+                            <ul>
+                                <li>Спам, флуд, реклама, рассылка ссылок</li>
+                                <li>Оскорбления, угрозы, травля, буллинг</li>
+                                <li>Разжигание ненависти, дискриминация по любым признакам</li>
+                                <li>Незаконный контент, экстремизм, пропаганда</li>
+                                <li>Мошенничество, фишинг, обман</li>
+                                <li>Распространение личных данных без согласия</li>
+                            </ul>
+                            <p><strong>3. Система рукопожатий:</strong></p>
+                            <ul>
+                                <li>Вы можете предложить обменяться контактами через кнопку 🤝</li>
+                                <li>Рукопожатие действует только при взаимном согласии</li>
+                                <li>Контакты хранятся 24 часа, затем автоматически удаляются</li>
+                                <li>Администрация не проверяет достоверность контактов</li>
+                                <li>Администрация не несет ответственности за последствия обмена</li>
+                            </ul>
+                            <p><strong>4. Ответственность:</strong></p>
+                            <ul>
+                                <li>Пользователь несет полную ответственность за свои действия</li>
+                                <li>Администрация вправе блокировать нарушителей без предупреждения</li>
+                                <li>Все спорные ситуации решаются в пользу администрации</li>
+                                <li>Администрация не хранит логи сообщений дольше 24 часов</li>
+                            </ul>
+                            <p><strong>5. Конфиденциальность:</strong></p>
+                            <ul>
+                                <li>Сообщения шифруются и временно хранятся на серверах</li>
+                                <li>Telegram username используется исключительно для рукопожатий</li>
+                                <li>Email используется только для входа и восстановления</li>
+                                <li>IP-адреса не сохраняются и не обрабатываются</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="terms-checkbox">
+                            <input type="checkbox" id="agreeTerms" required>
+                            <label for="agreeTerms">Я подтверждаю, что мне исполнилось 18 лет, прочитал(а) и согласен(на) с пользовательским соглашением</label>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="registerBtn">
+                            <i class="fas fa-user-plus"></i> Зарегистрироваться
+                        </button>
+                        
+                        <div id="registerStatus"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран подтверждения email -->
+            <div class="verify-email-screen hidden" id="verifyEmailScreen">
+                <div class="verify-box">
+                    <div class="verify-icon">
+                        <i class="fas fa-envelope-circle-check"></i>
+                    </div>
+                    <h2>Подтвердите ваш Email</h2>
+                    <p>
+                        Мы отправили письмо с подтверждением на адрес<br>
+                        <strong id="verifyEmailAddress">email@example.com</strong>
+                    </p>
+                    <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 25px;">
+                        Пожалуйста, проверьте вашу почту и перейдите по ссылке в письме для подтверждения.
+                    </p>
+                    
+                    <button class="btn btn-primary" id="resendVerifyBtn" style="margin-top: 15px;">
+                        <i class="fas fa-redo"></i> Отправить письмо повторно
+                    </button>
+                    
+                    <button class="btn" id="checkVerifyBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-check-circle"></i> Я подтвердил email
+                    </button>
+                    
+                    <button class="btn" id="logoutFromVerifyBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                    
+                    <div id="verifyStatus"></div>
+                </div>
+            </div>
+
+            <!-- Экран заявки на доступ -->
+            <div class="application-screen hidden" id="applicationScreen">
+                <div class="application-box">
+                    <h2>Заявка на доступ к чату</h2>
+                    <p>
+                        Для доступа к анонимному чату необходимо заполнить заявку.<br>
+                        Администратор проверит её в ручном режиме.
+                    </p>
+                    
+                    <div class="status-indicator" id="applicationStatus">
+                        <i class="fas fa-clock"></i> Заявка на рассмотрении
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="telegramUsername">
+                            <i class="fab fa-telegram" style="color: var(--telegram-color);"></i> 
+                            Ваш Telegram username
+                        </label>
+                        <input type="text" id="telegramUsername" class="form-control" 
+                               placeholder="@username (обязательно с @)" required>
+                        <small style="color: var(--text-secondary); display: block; margin-top: 6px; font-size: 12px;">
+                            Этот username будет использоваться для связи при рукопожатии. Каждый Telegram можно использовать только в одной заявке.
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="applicationNote">Дополнительная информация (необязательно)</label>
+                        <textarea id="applicationNote" class="form-control" 
+                                  placeholder="Расскажите немного о себе..." 
+                                  rows="3"></textarea>
+                    </div>
+                    
+                    <div class="handshake-notification">
+                        <i class="fas fa-handshake" style="color: var(--accent); margin-right: 6px;"></i>
+                        После одобрения заявки вы сможете общаться в чате и предлагать рукопожатие другим участникам. Рукопожатие действует только при взаимном согласии.
+                    </div>
+                    
+                    <button class="btn btn-primary" id="submitApplicationBtn">
+                        <i class="fas fa-paper-plane"></i> Отправить заявку
+                    </button>
+                    
+                    <button class="btn" id="logoutFromAppBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                    
+                    <div id="applicationStatusMessage"></div>
+                </div>
+            </div>
+
+            <!-- Экран чата -->
+            <div class="chat-screen hidden" id="chatScreen">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div class="chat-info">
+                            <h2>Анонимный чат "Незнакомка"</h2>
+                            <p>
+                                <i class="fas fa-users"></i>
+                                <span id="onlineCount">0</span> онлайн • 
+                                <i class="fas fa-clock"></i>
+                                Сообщения удаляются через 24 часа
+                            </p>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-avatar" id="userAvatar">А</div>
+                            <div class="user-details">
+                                <div class="username" id="displayUsername">Загрузка...</div>
+                                <div class="status">
+                                    <i class="fas fa-circle"></i> <span id="userStatus">Онлайн</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="messages-container-wrapper">
+                        <div class="messages-container" id="messagesContainer">
+                            <!-- Сообщения загружаются здесь -->
+                        </div>
+                    </div>
+
+                    <div class="message-input-container">
+                        <div class="message-input-wrapper">
+                            <textarea class="message-input" id="messageInput" 
+                                      placeholder="Напишите сообщение... (Enter для отправки, Shift+Enter для новой строки)"
+                                      rows="1"></textarea>
+                        </div>
+                        <button class="send-btn" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контекстное меню сообщений -->
+    <div class="message-context-menu" id="messageContextMenu">
+        <div class="context-menu-item delete" id="contextDelete">
+            <i class="fas fa-trash"></i> Удалить
+        </div>
+        <div class="context-menu-item report" id="contextReport">
+            <i class="fas fa-flag"></i> Пожаловаться
+        </div>
+        <div class="context-menu-item ban" id="contextBan">
+            <i class="fas fa-ban"></i> Заблокировать
+        </div>
+        <div class="context-menu-item" id="contextClose">
+            <i class="fas fa-times"></i> Закрыть
+        </div>
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Профиль</h2>
+                <button class="modal-close" id="closeProfileBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="user-avatar" style="width: 70px; height: 70px; margin: 0 auto 12px; font-size: 28px;" id="profileAvatar">
+                        А
+                    </div>
+                    <h3 id="profileName" style="font-size: 18px;">Пользователь</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px;" id="profileEmail">
+                        email@example.com
+                    </p>
+                    <div id="profileStatus" class="status-indicator" style="margin-top: 10px;">
+                        <i class="fas fa-clock"></i> На рассмотрении
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 11px; margin-top: 5px;">
+                        ID: <span id="profileUserId">000</span>
+                    </p>
+                    <p style="color: var(--telegram-color); font-size: 13px; margin-top: 8px;">
+                        <i class="fab fa-telegram"></i> 
+                        <span id="profileTelegram">Не указан</span>
+                    </p>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn" id="logoutBtn" style="background: var(--danger); color: white; padding: 10px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 14px;">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно контактов -->
+    <div class="modal-overlay" id="contactsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Контакты (24 часа)</h2>
+                <button class="modal-close" id="closeContactsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="contactsContainer">
+                    <!-- Контакты загружаются динамически -->
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-top: 15px;">
+                    Контакты хранятся 24 часа с момента рукопожатия, после чего автоматически удаляются.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно уведомлений -->
+    <div class="modal-overlay" id="notificationsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Уведомления</h2>
+                <button class="modal-close" id="closeNotificationsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="notificationsContainer">
+                    <!-- Уведомления загружаются динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Админ панель -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Админ панель</h2>
+                <button class="modal-close" id="closeAdminBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Статистика -->
+                <div class="stats-grid" id="adminStats">
+                    <div class="stat-card">
+                        <div class="stat-label">Всего пользователей</div>
+                        <div class="stat-value" id="totalUsers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Онлайн сейчас</div>
+                        <div class="stat-value" id="onlineUsers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Заявок на рассмотрении</div>
+                        <div class="stat-value" id="pendingApplications">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Жалоб на рассмотрении</div>
+                        <div class="stat-value" id="pendingReports">0</div>
+                    </div>
+                </div>
+
+                <!-- Навигация по админ панели -->
+                <div style="display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap;">
+                    <button class="btn btn-sm" id="adminTabApplications" style="background-color: var(--accent); color: white;">Заявки</button>
+                    <button class="btn btn-sm" id="adminTabApproved" style="background: var(--bg-tertiary);">Одобренные</button>
+                    <button class="btn btn-sm" id="adminTabBanned" style="background: var(--bg-tertiary);">Заблокированные</button>
+                    <button class="btn btn-sm" id="adminTabReports" style="background: var(--bg-tertiary);">Жалобы</button>
+                    <button class="btn btn-sm" id="adminTabAdmins" style="background: var(--bg-tertiary);">Администраторы</button>
+                </div>
+
+                <!-- Вкладка заявок -->
+                <div id="adminApplicationsTab">
+                    <h3 style="font-size: 18px;">Заявки на доступ</h3>
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Telegram</th>
+                                    <th>Заметка</th>
+                                    <th>Дата</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicationsTable">
+                                <!-- Заявки загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Вкладка одобренных -->
+                <div id="adminApprovedTab" class="hidden">
+                    <h3 style="font-size: 18px;">Одобренные пользователи</h3>
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Telegram</th>
+                                    <th>Дата одобрения</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvedTable">
+                                <!-- Одобренные загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Вкладка заблокированных -->
+                <div id="adminBannedTab" class="hidden">
+                    <h3 style="font-size: 18px;">Заблокированные пользователи</h3>
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Telegram</th>
+                                    <th>Причина</th>
+                                    <th>Дата блокировки</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bannedTable">
+                                <!-- Заблокированные загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Вкладка жалоб -->
+                <div id="adminReportsTab" class="hidden">
+                    <h3 style="font-size: 18px;">Жалобы на сообщения</h3>
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Жалоба от</th>
+                                    <th>Сообщение</th>
+                                    <th>Причина</th>
+                                    <th>Дата</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTable">
+                                <!-- Жалобы загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Вкладка администраторов -->
+                <div id="adminAdminsTab" class="hidden">
+                    <h3 style="font-size: 18px;">Администраторы</h3>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label for="addAdminEmail" style="font-size: 13px;">Добавить администратора</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="email" id="addAdminEmail" class="form-control" 
+                                   placeholder="email@example.com" style="flex: 1;">
+                            <button class="btn btn-success btn-sm" id="addAdminBtn">
+                                <i class="fas fa-plus"></i> Добавить
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container" style="margin-top: 12px;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Дата добавления</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminsTable">
+                                <!-- Админы загружаются динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения рукопожатия -->
+    <div class="modal-overlay" id="confirmHandshakeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Подтверждение рукопожатия</h2>
+                <button class="modal-close" id="closeConfirmHandshakeBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="handshakeConfirmInfo">
+                    <!-- Информация загружается динамически -->
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-success" id="confirmHandshakeBtn">
+                        <i class="fas fa-handshake"></i> Подтвердить рукопожатие
+                    </button>
+                    <button class="btn" id="cancelHandshakeBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                        <i class="fas fa-times"></i> Отменить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно жалобы -->
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Пожаловаться на сообщение</h2>
+                <button class="modal-close" id="closeReportBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label style="font-size: 14px;">Выберите причину:</label>
+                    <select id="reportReason" class="form-control">
+                        <option value="spam">Спам или реклама</option>
+                        <option value="insult">Оскорбления или угрозы</option>
+                        <option value="hate">Разжигание ненависти</option>
+                        <option value="illegal">Незаконный контент</option>
+                        <option value="fraud">Мошенничество</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportDetails" style="font-size: 14px;">Дополнительная информация (необязательно):</label>
+                    <textarea id="reportDetails" class="form-control" rows="3" placeholder="Опишите подробнее..."></textarea>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-danger" id="submitReportBtn">
+                        <i class="fas fa-flag"></i> Отправить жалобу
+                    </button>
+                    <button class="btn" id="cancelReportBtn" style="background: var(--bg-tertiary);">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно блокировки -->
+    <div class="modal-overlay" id="banModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Блокировка пользователя</h2>
+                <button class="modal-close" id="closeBanBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="banUserInfo">
+                    <!-- Информация загружается динамически -->
+                </div>
+                <div class="form-group">
+                    <label for="banReason">Причина блокировки:</label>
+                    <input type="text" id="banReason" class="form-control" 
+                           placeholder="Нарушение правил..." required>
+                </div>
+                <div class="form-group">
+                    <label for="banHours">Время блокировки (часов):</label>
+                    <select id="banHours" class="form-control">
+                        <option value="1">1 час</option>
+                        <option value="3">3 часа</option>
+                        <option value="6">6 часа</option>
+                        <option value="12">12 часов</option>
+                        <option value="24">24 часа</option>
+                        <option value="72">3 дня</option>
+                        <option value="168">7 дней</option>
+                        <option value="720">30 дней</option>
+                        <option value="0">Навсегда</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-danger" id="submitBanBtn">
+                        <i class="fas fa-ban"></i> Заблокировать
+                    </button>
+                    <button class="btn" id="cancelBanBtn" style="background: var(--bg-tertiary);">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // === КОНФИГУРАЦИЯ FIREBASE ===
         const FIREBASE_CONFIG = {
@@ -69,8 +2476,9 @@
             currentAdminTab: 'applications',
             hasAcceptedTerms: false,
             messageListenerUnsubscribe: null,
+            messagesLoaded: false,
             notificationListenerUnsubscribe: null,
-            messagesLoaded: false
+            notifications: []
         };
 
         // === УТИЛИТЫ ===
@@ -184,6 +2592,7 @@
             state.banTargetUser = null;
             state.hasAcceptedTerms = false;
             state.messagesLoaded = false;
+            state.notifications = [];
         }
 
         async function continueAfterTerms() {
@@ -302,13 +2711,122 @@
         }
 
         function showTermsAgreement() {
-            // [Код без изменений]
-            // ...
+            document.querySelectorAll('.auth-screen, .verify-email-screen, .application-screen, .chat-screen').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
+                if (!btn.classList.contains('theme-toggle')) {
+                    btn.classList.add('hidden');
+                }
+            });
+            
+            const html = `
+                <div class="auth-screen">
+                    <div class="auth-box">
+                        <div class="verify-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <h2>Пользовательское соглашение</h2>
+                        
+                        <div class="terms-container" style="max-height: 50vh;">
+                            <h3>Незнакомка (AnonChat) — Правила использования</h3>
+                            <p><strong>1. Основные положения:</strong></p>
+                            <ul>
+                                <li>В чате все пользователи отображаются как "Аноним #XXX"</li>
+                                <li>Для использования чата требуется подтверждение через заявку</li>
+                                <li>Все сообщения автоматически удаляются через 24 часа</li>
+                                <li>Требуется минимальный возраст 18 лет</li>
+                            </ul>
+                            <p><strong>2. Запрещено:</strong></p>
+                            <ul>
+                                <li>Спам, флуд, реклама, рассылка ссылок</li>
+                                <li>Оскорбления, угрозы, травля, буллинг</li>
+                                <li>Разжигание ненависти, дискриминация по любым признакам</li>
+                                <li>Незаконный контент, экстремизм, пропаганда</li>
+                                <li>Мошенничество, фишинг, обман</li>
+                                <li>Распространение личных данных без согласия</li>
+                            </ul>
+                            <p><strong>3. Система рукопожатий:</strong></p>
+                            <ul>
+                                <li>Вы можете предложить обменяться контактами через кнопку 🤝</li>
+                                <li>Рукопожатие действует только при взаимном согласии</li>
+                                <li>Контакты хранятся 24 часа, затем автоматически удаляются</li>
+                                <li>Администрация не проверяет достоверность контактов</li>
+                                <li>Администрация не несет ответственности за последствия обмена</li>
+                            </ul>
+                            <p><strong>4. Ответственность:</strong></p>
+                            <ul>
+                                <li>Пользователь несет полную ответственность за свои действия</li>
+                                <li>Администрация вправе блокировать нарушителей без предупреждения</li>
+                                <li>Все спорные ситуации решаются в пользу администрации</li>
+                                <li>Администрация не хранит логи сообщений дольше 24 часов</li>
+                            </ul>
+                            <p><strong>5. Конфиденциальность:</strong></p>
+                            <ul>
+                                <li>Сообщения шифруются и временно хранятся на серверах</li>
+                                <li>Telegram username используется исключительно для рукопожатий</li>
+                                <li>Email используется только для входа и восстановления</li>
+                                <li>IP-адреса не сохраняются и не обрабатываются</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="terms-checkbox">
+                            <input type="checkbox" id="agreeTermsModal" required>
+                            <label for="agreeTermsModal">Мне исполнилось 18 лет, я прочитал(а) и полностью согласен(на) с пользовательским соглашением</label>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="acceptTermsBtn">
+                            <i class="fas fa-check-circle"></i> Принять соглашение и продолжить
+                        </button>
+                        
+                        <button class="btn" id="rejectTermsBtn" style="margin-top: 10px; background: var(--bg-tertiary);">
+                            <i class="fas fa-times"></i> Отказаться и выйти
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.innerHTML = html;
+                
+                document.getElementById('acceptTermsBtn').addEventListener('click', acceptTerms);
+                document.getElementById('rejectTermsBtn').addEventListener('click', rejectTerms);
+            }
         }
 
         async function acceptTerms() {
-            // [Код без изменений]
-            // ...
+            const checkbox = document.getElementById('agreeTermsModal');
+            if (!checkbox.checked) {
+                showAlert('Внимание', 'Для продолжения необходимо подтвердить согласие с правилами');
+                return;
+            }
+            
+            const acceptBtn = document.getElementById('acceptTermsBtn');
+            acceptBtn.disabled = true;
+            acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Продолжение...';
+            
+            try {
+                if (state.user && state.user.uid && db) {
+                    await db.collection('users').doc(state.user.uid).update({
+                        hasAcceptedTerms: true,
+                        termsAcceptedAt: new Date().toISOString()
+                    });
+                    
+                    state.hasAcceptedTerms = true;
+                    state.userData.hasAcceptedTerms = true;
+                }
+                
+                await continueAfterTerms();
+                
+            } catch (error) {
+                console.error("❌ Ошибка сохранения согласия:", error);
+                showAlert('Ошибка', 'Ошибка сохранения. Попробуйте еще раз.');
+            } finally {
+                acceptBtn.disabled = false;
+                acceptBtn.innerHTML = '<i class="fas fa-check-circle"></i> Принять соглашение и продолжить';
+            }
         }
 
         async function rejectTerms() {
@@ -320,18 +2838,144 @@
         }
 
         async function handleRegister() {
-            // [Код без изменений]
-            // ...
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const agreeTerms = document.getElementById('agreeTerms');
+            
+            if (!email || !password || !confirmPassword) {
+                showRegisterError('Заполните все поля');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showRegisterError('Пароли не совпадают');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showRegisterError('Пароль должен быть минимум 6 символов');
+                return;
+            }
+            
+            if (!agreeTerms || !agreeTerms.checked) {
+                showRegisterError('Необходимо принять пользовательское соглашение');
+                return;
+            }
+            
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Регистрация...';
+            
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                await user.sendEmailVerification();
+                
+                await db.collection('users').doc(user.uid).set({
+                    email: user.email,
+                    isAdmin: user.email === 'sad.spotty@gmail.com',
+                    isVerified: false,
+                    emailVerified: false,
+                    telegramUsername: null,
+                    createdAt: new Date().toISOString(),
+                    lastSeen: new Date().toISOString(),
+                    online: true,
+                    anonymousId: generateAnonymousId(),
+                    isBanned: false,
+                    hasAcceptedTerms: true,
+                    termsAcceptedAt: new Date().toISOString()
+                });
+                
+                showRegisterSuccess('Регистрация успешна! Проверьте email для подтверждения.');
+                
+                document.getElementById('verifyEmailAddress').textContent = email;
+                
+            } catch (error) {
+                console.error("❌ Ошибка регистрации:", error);
+                
+                let errorMessage = 'Ошибка регистрации. ';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'Email уже используется';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Неверный формат email';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Пароль слишком слабый';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                showRegisterError(errorMessage);
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Зарегистрироваться';
+            }
         }
 
         async function handleLogin() {
-            // [Код без изменений]
-            // ...
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!email || !password) {
+                showAuthError('Заполните все поля');
+                return;
+            }
+            
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Вход...';
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                console.log("✅ Успешный вход:", email);
+                
+            } catch (error) {
+                console.error("❌ Ошибка входа:", error);
+                
+                let errorMessage = 'Ошибка входа. ';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'Пользователь не найден';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Неверный пароль';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Неверный формат email';
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage = 'Аккаунт заблокирован';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                showAuthError(errorMessage);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти';
+            }
         }
 
         function showAuthScreen() {
-            // [Код без изменений]
-            // ...
+            const screens = ['authScreen', 'verifyEmailScreen', 'applicationScreen', 'chatScreen'];
+            screens.forEach(screenId => {
+                const element = document.getElementById(screenId);
+                if (element) element.classList.add('hidden');
+            });
+            
+            document.getElementById('authScreen').classList.remove('hidden');
+            
+            document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
+                if (!btn.classList.contains('theme-toggle')) {
+                    btn.classList.add('hidden');
+                }
+            });
         }
 
         function showChatScreen() {
@@ -363,23 +3007,130 @@
         }
 
         function updateProfileUI() {
-            // [Код без изменений]
-            // ...
+            if (!state.userData) return;
+            
+            const profileName = document.getElementById('profileName');
+            if (profileName) {
+                profileName.textContent = state.userData.email.split('@')[0];
+            }
+            
+            const profileEmail = document.getElementById('profileEmail');
+            if (profileEmail) {
+                profileEmail.textContent = state.userData.email;
+            }
+            
+            const profileUserId = document.getElementById('profileUserId');
+            if (profileUserId) {
+                profileUserId.textContent = state.user.uid.substring(0, 8);
+            }
+            
+            const profileTelegram = document.getElementById('profileTelegram');
+            if (profileTelegram) {
+                profileTelegram.textContent = state.userData.telegramUsername || 'Не указан';
+            }
+            
+            const statusIndicator = document.getElementById('profileStatus');
+            if (statusIndicator) {
+                if (state.userData.isVerified) {
+                    statusIndicator.innerHTML = '<i class="fas fa-check-circle"></i> Подтвержден';
+                    statusIndicator.classList.add('verified');
+                } else if (state.userData.application) {
+                    statusIndicator.innerHTML = '<i class="fas fa-clock"></i> На рассмотрении';
+                    statusIndicator.classList.remove('verified');
+                } else {
+                    statusIndicator.innerHTML = '<i class="fas fa-clock"></i> Не подтвержден';
+                    statusIndicator.classList.remove('verified');
+                }
+            }
+            
+            const avatar = document.getElementById('profileAvatar');
+            if (avatar) {
+                const initial = state.userData.email[0].toUpperCase();
+                avatar.textContent = initial;
+            }
+            
+            const displayUsername = document.getElementById('displayUsername');
+            if (displayUsername) {
+                displayUsername.textContent = state.userData.email.split('@')[0];
+            }
+            
+            const userAvatar = document.getElementById('userAvatar');
+            if (userAvatar) {
+                const initial = state.userData.email[0].toUpperCase();
+                userAvatar.textContent = initial;
+            }
         }
 
         function initChatEventListeners() {
-            // [Код без изменений]
-            // ...
+            const sendBtn = document.getElementById('sendBtn');
+            const messageInput = document.getElementById('messageInput');
+            
+            if (sendBtn) {
+                sendBtn.addEventListener('click', sendMessage);
+            }
+            
+            if (messageInput) {
+                messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+                
+                messageInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, state.isTouchDevice ? 100 : 120) + 'px';
+                    this.style.overflowY = this.scrollHeight > (state.isTouchDevice ? 100 : 120) ? 'auto' : 'hidden';
+                });
+            }
         }
 
         async function resendVerificationEmail() {
-            // [Код без изменений]
-            // ...
+            if (!state.user) return;
+            
+            const resendBtn = document.getElementById('resendVerifyBtn');
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+            
+            try {
+                await state.user.sendEmailVerification();
+                showVerifySuccess('Письмо с подтверждением отправлено! Проверьте вашу почту.');
+            } catch (error) {
+                console.error("❌ Ошибка отправки подтверждения:", error);
+                showVerifyError('Ошибка отправки письма. Попробуйте позже.');
+            } finally {
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-redo"></i> Отправить письмо повторно';
+            }
         }
 
         async function checkEmailVerification() {
-            // [Код без изменений]
-            // ...
+            if (!state.user) return;
+            
+            const checkBtn = document.getElementById('checkVerifyBtn');
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
+            
+            try {
+                await state.user.reload();
+                
+                if (state.user.emailVerified) {
+                    state.emailVerified = true;
+                    showVerifySuccess('Email подтвержден! Загрузка профиля...');
+                    
+                    setTimeout(async () => {
+                        await loadUserData();
+                    }, 1500);
+                } else {
+                    showVerifyError('Email еще не подтвержден. Проверьте вашу почту.');
+                }
+            } catch (error) {
+                console.error("❌ Ошибка проверки email:", error);
+                showVerifyError('Ошибка проверки. Попробуйте позже.');
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = '<i class="fas fa-check-circle"></i> Я подтвердил email';
+            }
         }
 
         async function checkTelegramUsernameUnique(username) {
@@ -400,28 +3151,137 @@
         }
 
         async function submitApplication() {
-            // [Код без изменений]
-            // ...
+            const telegramUsername = document.getElementById('telegramUsername').value.trim();
+            const note = document.getElementById('applicationNote').value.trim();
+            
+            if (!telegramUsername || !telegramUsername.startsWith('@')) {
+                showApplicationError('Введите Telegram username в формате @username');
+                return;
+            }
+            
+            const isUnique = await checkTelegramUsernameUnique(telegramUsername);
+            if (!isUnique) {
+                showApplicationError('Этот Telegram username уже привязан к другому аккаунту. Пожалуйста, используйте другой.');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitApplicationBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+            
+            try {
+                const applicationData = {
+                    telegramUsername,
+                    note,
+                    status: 'pending',
+                    submittedAt: new Date().toISOString(),
+                    userId: state.user.uid,
+                    userEmail: state.user.email
+                };
+                
+                await db.collection('users').doc(state.user.uid).update({
+                    application: applicationData,
+                    telegramUsername: telegramUsername,
+                    isVerified: false
+                });
+                
+                state.userData.application = applicationData;
+                state.userData.telegramUsername = telegramUsername;
+                
+                await db.collection('applications').add({
+                    ...applicationData,
+                    reviewedBy: null,
+                    reviewedAt: null
+                });
+                
+                showApplicationSuccess('Заявка отправлена на рассмотрение!');
+                updateApplicationStatusUI();
+                updateProfileUI();
+                
+            } catch (error) {
+                console.error("❌ Ошибка отправки заявки:", error);
+                showApplicationError('Ошибка отправки заявки');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить заявку';
+            }
         }
 
         function updateApplicationStatusUI() {
-            // [Код без изменений]
-            // ...
+            if (!state.userData || !state.userData.application) return;
+            
+            const statusElement = document.getElementById('applicationStatus');
+            if (statusElement) {
+                if (state.userData.isVerified) {
+                    statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Заявка одобрена';
+                    statusElement.classList.add('verified');
+                } else {
+                    statusElement.innerHTML = '<i class="fas fa-clock"></i> Заявка на рассмотрении';
+                    statusElement.classList.remove('verified');
+                }
+            }
         }
 
         async function checkApplicationStatus() {
-            // [Код без изменений]
-            // ...
+            if (!state.user || !db || !state.userData) return;
+            
+            try {
+                const userRef = db.collection('users').doc(state.user.uid);
+                const doc = await userRef.get();
+                
+                if (doc.exists) {
+                    const userData = doc.data();
+                    state.userData = userData;
+                    
+                    if (userData.isVerified) {
+                        state.isVerified = true;
+                        showChatScreen();
+                        loadMessages();
+                        loadNotifications();
+                        loadContacts();
+                        updateApplicationStatusUI();
+                    } else {
+                        showApplicationScreen();
+                        updateApplicationStatusUI();
+                    }
+                }
+            } catch (error) {
+                console.error("❌ Ошибка проверки статуса:", error);
+            }
         }
 
         function showVerifyEmailScreen() {
-            // [Код без изменений]
-            // ...
+            document.querySelectorAll('.auth-screen, .verify-email-screen, .application-screen, .chat-screen').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            document.getElementById('verifyEmailScreen').classList.remove('hidden');
+            
+            if (state.user) {
+                document.getElementById('verifyEmailAddress').textContent = state.user.email;
+            }
+            
+            document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
+                if (!btn.classList.contains('theme-toggle')) {
+                    btn.classList.add('hidden');
+                }
+            });
         }
 
         function showApplicationScreen() {
-            // [Код без изменений]
-            // ...
+            document.querySelectorAll('.auth-screen, .verify-email-screen, .application-screen, .chat-screen').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            document.getElementById('applicationScreen').classList.remove('hidden');
+            
+            document.querySelectorAll('.header-actions .header-btn').forEach(btn => {
+                if (!btn.classList.contains('theme-toggle')) {
+                    btn.classList.add('hidden');
+                }
+            });
+            
+            updateApplicationStatusUI();
         }
 
         async function handleLogout() {
@@ -546,13 +3406,15 @@
             
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
-            // Показываем кнопку рукопожатия только если:
-            // 1. Сообщение не мое
-            // 2. У меня есть telegram username
-            // 3. Я подтвержден
-            // 4. У получателя есть telegram username (проверим позже в модалке)
-            const handshakeButton = !isMyMessage && state.userData && state.userData.telegramUsername && state.userData.isVerified ? `
-                <button class="handshake-btn" onclick="offerHandshakeConfirm('${message.anonymousId}', '${message.userId}', '${message.userEmail}')">
+            // Проверяем, что у пользователя есть Telegram username и он подтвержден
+            const showHandshakeButton = !isMyMessage && 
+                state.userData && 
+                state.userData.telegramUsername && 
+                state.userData.isVerified &&
+                state.userData.telegramUsername !== '';
+            
+            const handshakeButton = showHandshakeButton ? `
+                <button class="handshake-btn" onclick="offerHandshakeConfirm('${message.anonymousId || '000'}', '${message.userId}', '${message.userEmail}')">
                     <i class="fas fa-handshake"></i> Предложить рукопожатие
                 </button>
             ` : '';
@@ -576,13 +3438,88 @@
         }
 
         function setupMessageContextMenu(messageElement, message, isMyMessage) {
-            // [Код без изменений]
-            // ...
+            const messageBubble = messageElement.querySelector('.message-bubble');
+            
+            messageBubble.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showMessageContextMenu(e, message, isMyMessage, messageElement);
+            });
+            
+            messageBubble.addEventListener('touchstart', (e) => {
+                if (state.touchTimer) clearTimeout(state.touchTimer);
+                
+                state.touchTimer = setTimeout(() => {
+                    e.preventDefault();
+                    const touch = e.touches[0] || e.changedTouches[0];
+                    showMessageContextMenu(touch, message, isMyMessage, messageElement);
+                }, 2500);
+            }, { passive: true });
+            
+            messageBubble.addEventListener('touchend', () => {
+                if (state.touchTimer) {
+                    clearTimeout(state.touchTimer);
+                    state.touchTimer = null;
+                }
+            });
+            
+            messageBubble.addEventListener('touchmove', () => {
+                if (state.touchTimer) {
+                    clearTimeout(state.touchTimer);
+                    state.touchTimer = null;
+                }
+            });
         }
 
         function showMessageContextMenu(e, message, isMyMessage, messageElement) {
-            // [Код без изменений]
-            // ...
+            if (state.contextMenu.active) {
+                hideMessageContextMenu();
+                return;
+            }
+            
+            state.contextMenu = {
+                active: true,
+                messageId: message.id,
+                messageElement: messageElement,
+                isMyMessage: isMyMessage,
+                x: e.clientX || e.pageX,
+                y: e.clientY || e.pageY
+            };
+            
+            const contextMenu = document.getElementById('messageContextMenu');
+            contextMenu.classList.add('active');
+            
+            const menuWidth = 180;
+            const menuHeight = 150;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            let x = state.contextMenu.x;
+            let y = state.contextMenu.y;
+            
+            if (x + menuWidth > windowWidth) {
+                x = windowWidth - menuWidth - 10;
+            }
+            
+            if (y + menuHeight > windowHeight) {
+                y = windowHeight - menuHeight - 10;
+            }
+            
+            contextMenu.style.left = `${x}px`;
+            contextMenu.style.top = `${y}px`;
+            
+            const deleteItem = document.getElementById('contextDelete');
+            const reportItem = document.getElementById('contextReport');
+            const banItem = document.getElementById('contextBan');
+            
+            if (isMyMessage) {
+                deleteItem.style.display = 'flex';
+                reportItem.style.display = 'none';
+                banItem.style.display = state.isAdmin ? 'flex' : 'none';
+            } else {
+                deleteItem.style.display = state.isAdmin ? 'flex' : 'none';
+                reportItem.style.display = 'flex';
+                banItem.style.display = state.isAdmin ? 'flex' : 'none';
+            }
         }
 
         function hideMessageContextMenu() {
@@ -591,44 +3528,190 @@
         }
 
         async function deleteMessage() {
-            // [Код без изменений]
-            // ...
+            if (!state.contextMenu.messageId) {
+                hideMessageContextMenu();
+                return;
+            }
+            
+            showConfirm('Подтверждение', 'Удалить это сообщение?', async () => {
+                try {
+                    await db.collection('messages').doc(state.contextMenu.messageId).update({
+                        deleted: true,
+                        deletedAt: new Date().toISOString(),
+                        deletedBy: state.user.email
+                    });
+                    
+                    hideMessageContextMenu();
+                    showAlert('Успех', 'Сообщение удалено');
+                } catch (error) {
+                    console.error("❌ Ошибка удаления сообщения:", error);
+                    hideMessageContextMenu();
+                    showAlert('Ошибка', 'Ошибка удаления сообщения');
+                }
+            }, hideMessageContextMenu);
         }
 
         async function adminDeleteMessage() {
-            // [Код без изменений]
-            // ...
+            if (!state.contextMenu.messageId) {
+                hideMessageContextMenu();
+                return;
+            }
+            
+            showConfirm('Подтверждение', 'Удалить это сообщение как администратор?', async () => {
+                try {
+                    await db.collection('messages').doc(state.contextMenu.messageId).delete();
+                    hideMessageContextMenu();
+                    showAlert('Успех', 'Сообщение удалено');
+                } catch (error) {
+                    console.error("❌ Ошибка удаления сообщения:", error);
+                    hideMessageContextMenu();
+                    showAlert('Ошибка', 'Ошибка удаления сообщения');
+                }
+            }, hideMessageContextMenu);
         }
 
         function reportMessage() {
-            // [Код без изменений]
-            // ...
+            if (!state.contextMenu.messageId) {
+                hideMessageContextMenu();
+                return;
+            }
+            
+            state.reportTargetMessage = state.contextMenu.messageId;
+            hideMessageContextMenu();
+            document.getElementById('reportModal').classList.add('active');
         }
 
         async function submitReport() {
-            // [Код без изменений]
-            // ...
+            if (!state.reportTargetMessage) return;
+            
+            const reason = document.getElementById('reportReason').value;
+            const details = document.getElementById('reportDetails').value.trim();
+            
+            try {
+                const reportData = {
+                    messageId: state.reportTargetMessage,
+                    reason: reason,
+                    details: details,
+                    reporterId: state.user.uid,
+                    reporterEmail: state.user.email,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                
+                await db.collection('reports').add(reportData);
+                
+                document.getElementById('reportModal').classList.remove('active');
+                state.reportTargetMessage = null;
+                document.getElementById('reportReason').value = 'spam';
+                document.getElementById('reportDetails').value = '';
+                
+                showAlert('Успех', 'Жалоба отправлена. Администратор рассмотрит её в ближайшее время.');
+                
+            } catch (error) {
+                console.error("❌ Ошибка отправки жалобы:", error);
+                showAlert('Ошибка', 'Ошибка отправки жалобы');
+            }
         }
 
         function banUserFromContext() {
-            // [Код без изменений]
-            // ...
+            if (!state.contextMenu.messageId) {
+                hideMessageContextMenu();
+                return;
+            }
+            
+            db.collection('messages').doc(state.contextMenu.messageId).get().then(doc => {
+                if (doc.exists) {
+                    const message = doc.data();
+                    
+                    db.collection('users').doc(message.userId).get().then(userDoc => {
+                        if (userDoc.exists) {
+                            const user = userDoc.data();
+                            state.banTargetUser = {
+                                userId: message.userId,
+                                email: message.userEmail,
+                                anonymousId: message.anonymousId || '000',
+                                telegramUsername: user.telegramUsername
+                            };
+                            
+                            showBanModal();
+                        }
+                    }).catch(error => {
+                        console.error("❌ Ошибка получения данных пользователя:", error);
+                        showAlert('Ошибка', 'Не удалось получить данные пользователя');
+                    });
+                }
+            }).catch(error => {
+                console.error("❌ Ошибка получения данных сообщения:", error);
+                showAlert('Ошибка', 'Не удалось получить данные сообщения');
+            });
+            
+            hideMessageContextMenu();
         }
 
         function showBanModal() {
-            // [Код без изменений]
-            // ...
+            if (!state.banTargetUser) return;
+            
+            document.getElementById('banUserInfo').innerHTML = `
+                <div class="handshake-notification">
+                    <h4>Блокировка пользователя</h4>
+                    <p>Вы собираетесь заблокировать <strong>Аноним #${state.banTargetUser.anonymousId}</strong></p>
+                    <p>Email: <strong>${state.banTargetUser.email}</strong></p>
+                    <p>Telegram: <strong>${state.banTargetUser.telegramUsername || 'Не указан'}</strong></p>
+                    <p>После блокировки пользователь не сможет писать в чат.</p>
+                </div>
+            `;
+            
+            document.getElementById('banModal').classList.add('active');
+            document.getElementById('banReason').value = '';
+            document.getElementById('banHours').value = '24';
         }
 
         async function submitBan() {
-            // [Код без изменений]
-            // ...
+            if (!state.banTargetUser) return;
+            
+            const reason = document.getElementById('banReason').value.trim();
+            const hours = parseInt(document.getElementById('banHours').value);
+            
+            if (!reason) {
+                showAlert('Внимание', 'Укажите причину блокировки');
+                return;
+            }
+            
+            try {
+                const banData = {
+                    isBanned: true,
+                    banReason: reason,
+                    bannedAt: new Date().toISOString(),
+                    bannedBy: state.user.email,
+                    isVerified: false
+                };
+                
+                if (hours > 0) {
+                    const expiresAt = new Date();
+                    expiresAt.setHours(expiresAt.getHours() + hours);
+                    banData.banExpiresAt = expiresAt.toISOString();
+                }
+                
+                await db.collection('users').doc(state.banTargetUser.userId).update(banData);
+                
+                document.getElementById('banModal').classList.remove('active');
+                state.banTargetUser = null;
+                
+                showAlert('Успех', 'Пользователь заблокирован');
+                
+                if (state.currentAdminTab === 'banned') {
+                    await loadBannedUsers();
+                }
+                await loadAdminStats();
+                
+            } catch (error) {
+                console.error("❌ Ошибка блокировки пользователя:", error);
+                showAlert('Ошибка', 'Ошибка блокировки пользователя');
+            }
         }
 
         function loadNotifications() {
             if (!state.user || !db) return;
-            
-            console.log("🔔 Загрузка уведомлений для пользователя:", state.user.uid);
             
             // Если уже есть слушатель, отписываемся
             if (state.notificationListenerUnsubscribe) {
@@ -638,24 +3721,20 @@
             const notificationsRef = db.collection('notifications')
                 .where('userId', '==', state.user.uid)
                 .orderBy('createdAt', 'desc')
-                .limit(20);
+                .limit(50);
             
             const unsubscribe = notificationsRef.onSnapshot((snapshot) => {
                 const notificationsContainer = document.getElementById('notificationsContainer');
                 const badge = document.getElementById('notificationsBadge');
                 
-                if (!notificationsContainer) {
-                    console.error("❌ Контейнер уведомлений не найден");
-                    return;
-                }
-                
-                console.log("📬 Получены уведомления:", snapshot.size);
+                if (!notificationsContainer) return;
                 
                 notificationsContainer.innerHTML = '';
                 let unreadCount = 0;
                 
+                state.notifications = [];
+                
                 if (snapshot.empty) {
-                    console.log("ℹ️ Нет уведомлений");
                     notificationsContainer.innerHTML = `
                         <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
                             <i class="fas fa-bell-slash" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
@@ -666,36 +3745,39 @@
                     snapshot.forEach(doc => {
                         const notification = doc.data();
                         notification.id = doc.id;
-                        
-                        console.log("📩 Уведомление:", notification);
+                        state.notifications.push(notification);
                         
                         const notificationElement = document.createElement('div');
                         notificationElement.className = 'handshake-item';
                         notificationElement.style.opacity = notification.read ? '0.7' : '1';
                         
                         let actionButtons = '';
-                        if (notification.type === 'handshake' && !notification.read) {
-                            const fromUserId = notification.handshakeData?.fromUserId;
-                            if (fromUserId) {
-                                actionButtons = `
-                                    <div style="display: flex; gap: 8px; margin-top: 10px;">
-                                        <button class="btn btn-success btn-sm" onclick="acceptHandshake('${notification.id}', '${fromUserId}')">
-                                            <i class="fas fa-check"></i> Принять
-                                        </button>
-                                        <button class="btn btn-danger btn-sm" onclick="rejectHandshake('${notification.id}')">
-                                            <i class="fas fa-times"></i> Отклонить
-                                        </button>
-                                    </div>
-                                `;
-                            }
+                        if (notification.type === 'handshake' && !notification.read && notification.handshakeId) {
+                            actionButtons = `
+                                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                    <button class="btn btn-success btn-sm" onclick="acceptHandshake('${notification.id}', '${notification.handshakeId}')">
+                                        <i class="fas fa-check"></i> Принять
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="rejectHandshake('${notification.id}')">
+                                        <i class="fas fa-times"></i> Отклонить
+                                    </button>
+                                </div>
+                            `;
                         }
+                        
+                        const notificationDate = notification.createdAt ? 
+                            new Date(notification.createdAt).toLocaleString() : 
+                            'Только что';
+                            
+                        const title = notification.title || 'Уведомление';
+                        const message = notification.message || '';
                         
                         notificationElement.innerHTML = `
                             <div class="handshake-info">
-                                <strong>${notification.title || 'Уведомление'}</strong>
-                                <p>${notification.message || 'Новое уведомление'}</p>
+                                <strong>${title}</strong>
+                                <p>${message}</p>
                                 <small style="color: var(--text-secondary);">
-                                    ${notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'Только что'}
+                                    ${notificationDate}
                                 </small>
                             </div>
                             ${actionButtons}
@@ -711,34 +3793,90 @@
                     if (unreadCount > 0) {
                         badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
                         badge.classList.remove('hidden');
-                        console.log("🔴 Непрочитанных:", unreadCount);
                     } else {
                         badge.classList.add('hidden');
-                        console.log("🟢 Все уведомления прочитаны");
                     }
                 }
             }, (error) => {
                 console.error("❌ Ошибка загрузки уведомлений:", error);
-                console.error("Подробности:", error.message);
-                
-                const notificationsContainer = document.getElementById('notificationsContainer');
-                if (notificationsContainer) {
-                    notificationsContainer.innerHTML = `
-                        <div style="text-align: center; padding: 30px; color: var(--danger);">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 40px; margin-bottom: 15px;"></i>
-                            <p>Ошибка загрузки уведомлений</p>
-                            <p style="font-size: 12px;">${error.message}</p>
-                        </div>
-                    `;
-                }
             });
             
             state.notificationListenerUnsubscribe = unsubscribe;
         }
 
         async function loadContacts() {
-            // [Код без изменений]
-            // ...
+            if (!state.user || !db) return;
+            
+            try {
+                const snapshot = await db.collection('handshakes')
+                    .where('status', '==', 'accepted')
+                    .get();
+                
+                const contactsContainer = document.getElementById('contactsContainer');
+                
+                if (!contactsContainer) return;
+                
+                contactsContainer.innerHTML = '';
+                const now = new Date();
+                let hasContacts = false;
+                
+                snapshot.forEach(doc => {
+                    const handshake = doc.data();
+                    
+                    // Проверяем, связана ли рукопожатие с текущим пользователем
+                    const isFromMe = handshake.fromUserId === state.user.uid;
+                    const isToMe = handshake.toUserId === state.user.uid;
+                    
+                    if (!isFromMe && !isToMe) return;
+                    
+                    const contactTelegram = isFromMe ? handshake.toTelegram : handshake.fromTelegram;
+                    const contactAnonymousId = isFromMe ? handshake.toAnonymousId : handshake.fromAnonymousId;
+                    const expiresAt = new Date(handshake.expiresAt);
+                    const timeLeft = expiresAt - now;
+                    
+                    if (timeLeft <= 0) return; // Пропускаем истекшие контакты
+                    
+                    hasContacts = true;
+                    const hoursLeft = Math.max(Math.floor(timeLeft / (1000 * 60 * 60)), 0);
+                    
+                    const contactElement = document.createElement('div');
+                    contactElement.className = 'contact-card';
+                    
+                    const timeText = hoursLeft < 1 ? 'Меньше часа' : `${hoursLeft} ч`;
+                    
+                    contactElement.innerHTML = `
+                        <div class="contact-header">
+                            <div class="contact-avatar">${contactAnonymousId}</div>
+                            <div class="contact-details">
+                                <h4>Аноним #${contactAnonymousId}</h4>
+                                <div class="contact-telegram">
+                                    <i class="fab fa-telegram"></i> ${contactTelegram}
+                                </div>
+                            </div>
+                            <div class="contact-time">
+                                <i class="fas fa-clock"></i> ${timeText}
+                            </div>
+                        </div>
+                        <div class="contact-expires">
+                            <i class="fas fa-hourglass-end"></i> Истекает через ${timeText}
+                        </div>
+                    `;
+                    
+                    contactsContainer.appendChild(contactElement);
+                });
+                
+                if (!hasContacts) {
+                    contactsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                            <i class="fas fa-handshake" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>У вас пока нет контактов через рукопожатия</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки контактов:", error);
+            }
         }
 
         function generateAnonymousId() {
@@ -748,6 +3886,7 @@
         function formatMessageText(text) {
             if (!text) return '';
             
+            // Заменяем переносы строк на <br> и экранируем HTML
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML.replace(/\n/g, '<br>');
@@ -763,143 +3902,628 @@
         }
 
         function showAuthError(message) {
-            // [Код без изменений]
-            // ...
+            const statusElement = document.getElementById('authStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
         }
 
         function showRegisterError(message) {
-            // [Код без изменений]
-            // ...
+            const statusElement = document.getElementById('registerStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
         }
 
         function showRegisterSuccess(message) {
-            // [Код без изменений]
-            // ...
+            const statusElement = document.getElementById('registerStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="success">${message}</div>`;
+            }
         }
 
         function showVerifyError(message) {
-            // [Код без изменений]
-            // ...
+            const statusElement = document.getElementById('verifyStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
         }
 
         function showVerifySuccess(message) {
-            // [Код без изменений]
-            // ...
+            const statusElement = document.getElementById('verifyStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="success">${message}</div>`;
+            }
         }
 
         function showApplicationError(message) {
-            // [Код без изменений]
-            // ...
+            const statusElement = document.getElementById('applicationStatusMessage');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="error">${message}</div>`;
+            }
         }
 
         function showApplicationSuccess(message) {
-            // [Код без изменений]
-            // ...
+            const statusElement = document.getElementById('applicationStatusMessage');
+            if (statusElement) {
+                statusElement.innerHTML = `<div class="success">${message}</div>`;
+            }
         }
 
         async function loadAdminPanel() {
-            // [Код без изменений]
-            // ...
+            if (!state.isAdmin || !db) return;
+            
+            await loadAdminStats();
+            
+            switch(state.currentAdminTab) {
+                case 'applications':
+                    await loadApplications();
+                    break;
+                case 'approved':
+                    await loadApprovedUsers();
+                    break;
+                case 'banned':
+                    await loadBannedUsers();
+                    break;
+                case 'reports':
+                    await loadReports();
+                    break;
+                case 'admins':
+                    await loadAdmins();
+                    break;
+            }
         }
 
         async function loadAdminStats() {
-            // [Код без изменений]
-            // ...
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                document.getElementById('totalUsers').textContent = usersSnapshot.size;
+                
+                const onlineSnapshot = await db.collection('users')
+                    .where('online', '==', true)
+                    .get();
+                document.getElementById('onlineUsers').textContent = onlineSnapshot.size;
+                
+                const pendingAppsSnapshot = await db.collection('applications')
+                    .where('status', '==', 'pending')
+                    .get();
+                document.getElementById('pendingApplications').textContent = pendingAppsSnapshot.size;
+                
+                const pendingReportsSnapshot = await db.collection('reports')
+                    .where('status', '==', 'pending')
+                    .get();
+                document.getElementById('pendingReports').textContent = pendingReportsSnapshot.size;
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки статистики:", error);
+            }
         }
 
         async function loadApplications() {
-            // [Код без изменений]
-            // ...
+            try {
+                const snapshot = await db.collection('applications')
+                    .where('status', '==', 'pending')
+                    .get();
+                
+                const table = document.getElementById('applicationsTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет заявок на рассмотрении
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const app = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${app.userEmail}</td>
+                        <td>${app.telegramUsername || 'Не указан'}</td>
+                        <td>${app.note || '—'}</td>
+                        <td>${new Date(app.submittedAt).toLocaleString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--success); color: white;" onclick="approveApplication('${doc.id}', '${app.userId}')">
+                                    Одобрить
+                                </button>
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="rejectApplication('${doc.id}', '${app.userId}')">
+                                    Отклонить
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки заявок:", error);
+            }
         }
 
         async function loadApprovedUsers() {
-            // [Код без изменений]
-            // ...
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isVerified', '==', true)
+                    .where('isBanned', '==', false)
+                    .get();
+                
+                const table = document.getElementById('approvedTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет одобренных пользователей
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.telegramUsername || 'Не указан'}</td>
+                        <td>${user.verifiedAt ? new Date(user.verifiedAt).toLocaleString() : 'Не подтвержден'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="showBanUserModal('${doc.id}', '${user.email}')">
+                                    Заблокировать
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки одобренных:", error);
+            }
         }
 
         async function loadBannedUsers() {
-            // [Код без изменений]
-            // ...
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isBanned', '==', true)
+                    .get();
+                
+                const table = document.getElementById('bannedTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет заблокированных пользователей
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(async doc => {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    const expiresAt = user.banExpiresAt 
+                        ? new Date(user.banExpiresAt).toLocaleString()
+                        : 'Навсегда';
+                    
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.telegramUsername || 'Не указан'}</td>
+                        <td>${user.banReason || 'Нарушение правил'}</td>
+                        <td>${user.bannedAt ? new Date(user.bannedAt).toLocaleString() : '—'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--success); color: white;" onclick="unbanUser('${doc.id}')">
+                                    Разблокировать
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки заблокированных:", error);
+            }
         }
 
         async function loadReports() {
-            // [Код без изменений]
-            // ...
+            try {
+                const snapshot = await db.collection('reports')
+                    .where('status', '==', 'pending')
+                    .get();
+                
+                const table = document.getElementById('reportsTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет жалоб на рассмотрении
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(async doc => {
+                    const report = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    let messageText = 'Сообщение удалено';
+                    try {
+                        const messageDoc = await db.collection('messages').doc(report.messageId).get();
+                        if (messageDoc.exists) {
+                            const message = messageDoc.data();
+                            messageText = message.text.substring(0, 50) + (message.text.length > 50 ? '...' : '');
+                        }
+                    } catch (error) {
+                        console.error("Ошибка загрузки сообщения:", error);
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${report.reporterEmail}</td>
+                        <td>${messageText}</td>
+                        <td>${getReasonText(report.reason)}</td>
+                        <td>${new Date(report.createdAt).toLocaleString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--success); color: white;" onclick="resolveReport('${doc.id}')">
+                                    Рассмотрено
+                                </button>
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="deleteMessageFromReport('${doc.id}', '${report.messageId}')">
+                                    Удалить сообщение
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки жалоб:", error);
+            }
         }
 
         function getReasonText(reason) {
-            // [Код без изменений]
-            // ...
+            const reasons = {
+                'spam': 'Спам или реклама',
+                'insult': 'Оскорбления или угрозы',
+                'hate': 'Разжигание ненависти',
+                'illegal': 'Незаконный контент',
+                'fraud': 'Мошенничество',
+                'other': 'Другое'
+            };
+            return reasons[reason] || reason;
         }
 
         async function loadAdmins() {
-            // [Код без изменений]
-            // ...
+            try {
+                const snapshot = await db.collection('users')
+                    .where('isAdmin', '==', true)
+                    .get();
+                
+                const table = document.getElementById('adminsTable');
+                table.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                Нет администраторов
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${new Date(user.createdAt).toLocaleString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn" style="background: var(--danger); color: white;" onclick="removeAdmin('${doc.id}')" ${state.user.uid === doc.id ? 'disabled' : ''}>
+                                    Удалить
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    table.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error("❌ Ошибка загрузки администраторов:", error);
+            }
         }
 
         async function approveApplication(applicationId, userId) {
-            // [Код без изменений]
-            // ...
+            showConfirm('Подтверждение', 'Одобрить эту заявку?', async () => {
+                try {
+                    await db.collection('applications').doc(applicationId).update({
+                        status: 'approved',
+                        reviewedBy: state.user.email,
+                        reviewedAt: new Date().toISOString()
+                    });
+                    
+                    await db.collection('users').doc(userId).update({
+                        isVerified: true,
+                        verifiedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Заявка одобрена!');
+                    await loadApplications();
+                    await loadApprovedUsers();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка одобрения заявки:", error);
+                    showAlert('Ошибка', 'Ошибка одобрения заявки');
+                }
+            });
         }
 
         async function rejectApplication(applicationId, userId) {
-            // [Код без изменений]
-            // ...
+            showConfirm('Подтверждение', 'Отклонить эту заявку?', async () => {
+                try {
+                    await db.collection('applications').doc(applicationId).update({
+                        status: 'rejected',
+                        reviewedBy: state.user.email,
+                        reviewedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Заявка отклонена!');
+                    await loadApplications();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка отклонения заявки:", error);
+                    showAlert('Ошибка', 'Ошибка отклонения заявки');
+                }
+            });
         }
 
         window.showBanUserModal = function(userId, userEmail) {
-            // [Код без изменений]
-            // ...
+            db.collection('users').doc(userId).get().then(doc => {
+                if (doc.exists) {
+                    const user = doc.data();
+                    state.banTargetUser = {
+                        userId: userId,
+                        email: userEmail,
+                        anonymousId: user.anonymousId || '???',
+                        telegramUsername: user.telegramUsername
+                    };
+                    
+                    showBanModal();
+                }
+            }).catch(error => {
+                console.error("❌ Ошибка получения данных пользователя:", error);
+                showAlert('Ошибка', 'Не удалось получить данные пользователя');
+            });
         };
 
         async function banUser(userId, userEmail) {
-            // [Код без изменений]
-            // ...
+            state.banTargetUser = {
+                userId: userId,
+                email: userEmail,
+                anonymousId: '???'
+            };
+            
+            showBanModal();
         }
 
         async function unbanUser(userId) {
-            // [Код без изменений]
-            // ...
+            showConfirm('Подтверждение', 'Разблокировать этого пользователя?', async () => {
+                try {
+                    await db.collection('users').doc(userId).update({
+                        isBanned: false,
+                        banReason: null,
+                        bannedAt: null,
+                        bannedBy: null,
+                        banExpiresAt: null,
+                        isVerified: true
+                    });
+                    
+                    showAlert('Успех', 'Пользователь разблокирован!');
+                    await loadApprovedUsers();
+                    await loadBannedUsers();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка разблокировки пользователя:", error);
+                    showAlert('Ошибка', 'Ошибка разблокировки пользователя');
+                }
+            });
         }
 
         async function resolveReport(reportId) {
-            // [Код без изменений]
-            // ...
+            showConfirm('Подтверждение', 'Пометить жалобу как рассмотренную?', async () => {
+                try {
+                    await db.collection('reports').doc(reportId).update({
+                        status: 'resolved',
+                        resolvedBy: state.user.email,
+                        resolvedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Жалоба помечена как рассмотренная!');
+                    await loadReports();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка обработки жалобы:", error);
+                    showAlert('Ошибка', 'Ошибка обработки жалобы');
+                }
+            });
         }
 
         async function deleteMessageFromReport(reportId, messageId) {
-            // [Код без изменений]
-            // ...
+            showConfirm('Подтверждение', 'Удалить это сообщение?', async () => {
+                try {
+                    await db.collection('messages').doc(messageId).delete();
+                    
+                    await db.collection('reports').doc(reportId).update({
+                        status: 'resolved',
+                        resolvedBy: state.user.email,
+                        resolvedAt: new Date().toISOString()
+                    });
+                    
+                    showAlert('Успех', 'Сообщение удалено и жалоба обработана!');
+                    await loadReports();
+                    await loadAdminStats();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка удаления сообщения:", error);
+                    showAlert('Ошибка', 'Ошибка удаления сообщения');
+                }
+            });
         }
 
         async function addAdmin() {
-            // [Код без изменений]
-            // ...
+            const email = document.getElementById('addAdminEmail').value.trim();
+            if (!email) {
+                showAlert('Внимание', 'Введите email');
+                return;
+            }
+            
+            try {
+                const usersSnapshot = await db.collection('users')
+                    .where('email', '==', email)
+                    .limit(1)
+                    .get();
+                
+                if (usersSnapshot.empty) {
+                    showAlert('Ошибка', 'Пользователь с таким email не найден');
+                    return;
+                }
+                
+                const userDoc = usersSnapshot.docs[0];
+                
+                await userDoc.ref.update({
+                    isAdmin: true
+                });
+                
+                document.getElementById('addAdminEmail').value = '';
+                showAlert('Успех', 'Администратор добавлен!');
+                await loadAdmins();
+                
+            } catch (error) {
+                console.error("❌ Ошибка добавления администратора:", error);
+                showAlert('Ошибка', 'Ошибка добавления администратора');
+            }
         }
 
         async function removeAdmin(userId) {
-            // [Код без изменений]
-            // ...
+            showConfirm('Подтверждение', 'Удалить этого администратора?', async () => {
+                try {
+                    await db.collection('users').doc(userId).update({
+                        isAdmin: false
+                    });
+                    
+                    showAlert('Успех', 'Администратор удален!');
+                    await loadAdmins();
+                    
+                } catch (error) {
+                    console.error("❌ Ошибка удаления администратора:", error);
+                    showAlert('Ошибка', 'Ошибка удаления администратора');
+                }
+            });
         }
 
         function updateAdminTabs() {
-            // [Код без изменений]
-            // ...
+            const tabs = ['applications', 'approved', 'banned', 'reports', 'admins'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`adminTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+                const content = document.getElementById(`admin${tab.charAt(0).toUpperCase() + tab.slice(1)}Tab`);
+                
+                if (tab === state.currentAdminTab) {
+                    btn.style.backgroundColor = 'var(--accent)';
+                    btn.style.color = 'white';
+                    content.classList.remove('hidden');
+                } else {
+                    btn.style.backgroundColor = 'var(--bg-tertiary)';
+                    btn.style.color = 'var(--text-primary)';
+                    content.classList.add('hidden');
+                }
+            });
         }
 
         async function sendMessage() {
-            // [Код без изменений]
-            // ...
+            const text = document.getElementById('messageInput').value.trim();
+            if (!text || !state.user || !state.isVerified) return;
+            
+            // Проверка на блокировку
+            if (state.userData.isBanned) {
+                if (state.userData.banExpiresAt) {
+                    const expiresAt = new Date(state.userData.banExpiresAt);
+                    const now = new Date();
+                    if (expiresAt > now) {
+                        const hoursLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60));
+                        showAlert('Ошибка', `Вы заблокированы до ${expiresAt.toLocaleString()}. Причина: ${state.userData.banReason || 'Нарушение правил'}. Осталось: ${hoursLeft} часов.`);
+                        return;
+                    } else {
+                        // Автоматическая разблокировка
+                        await checkAndUnbanIfExpired();
+                    }
+                } else {
+                    showAlert('Ошибка', `Вы заблокированы навсегда. Причина: ${state.userData.banReason || 'Нарушение правил'}.`);
+                    return;
+                }
+            }
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const message = {
+                    text: text,
+                    userId: state.user.uid,
+                    userEmail: state.user.email,
+                    anonymousId: state.userData.anonymousId || generateAnonymousId(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                    deleted: false
+                };
+                
+                await db.collection('messages').add(message);
+                
+                document.getElementById('messageInput').value = '';
+                document.getElementById('messageInput').style.height = 'auto';
+                
+            } catch (error) {
+                console.error("❌ Ошибка отправки:", error);
+                showAlert('Ошибка', 'Ошибка отправки сообщения');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
         }
 
         window.offerHandshakeConfirm = function(anonymousId, targetUserId, targetUserEmail) {
-            console.log("🤝 Предложение рукопожатия для:", targetUserId);
-            
-            state.pendingHandshakeTarget = { 
-                anonymousId, 
-                targetUserId, 
-                targetUserEmail 
-            };
+            state.pendingHandshakeTarget = { anonymousId, targetUserId, targetUserEmail };
             
             document.getElementById('handshakeConfirmInfo').innerHTML = `
                 <div class="handshake-notification">
@@ -920,17 +4544,11 @@
         };
 
         async function confirmHandshake() {
-            if (!state.pendingHandshakeTarget) {
-                showAlert('Ошибка', 'Нет цели для рукопожатия');
-                return;
-            }
+            if (!state.pendingHandshakeTarget) return;
             
             const { anonymousId, targetUserId, targetUserEmail } = state.pendingHandshakeTarget;
             
-            console.log("🔄 Подтверждение рукопожатия для пользователя:", targetUserId);
-            
             try {
-                // Получаем данные целевого пользователя
                 const targetUserDoc = await db.collection('users').doc(targetUserId).get();
                 if (!targetUserDoc.exists) {
                     showAlert('Ошибка', 'Пользователь не найден');
@@ -938,9 +4556,7 @@
                 }
                 
                 const targetUser = targetUserDoc.data();
-                console.log("🎯 Данные целевого пользователя:", targetUser);
                 
-                // Проверки
                 if (!targetUser.telegramUsername) {
                     showAlert('Ошибка', 'У этого пользователя не указан Telegram');
                     return;
@@ -956,7 +4572,7 @@
                     return;
                 }
                 
-                // Проверяем, не отправляли ли уже рукопожатие
+                // Проверяем, не отправляли ли уже рукопожатие этому пользователю
                 const existingHandshake = await db.collection('handshakes')
                     .where('fromUserId', '==', state.user.uid)
                     .where('toUserId', '==', targetUserId)
@@ -971,7 +4587,7 @@
                     return;
                 }
                 
-                // Создаем данные рукопожатия
+                // Создаем рукопожатие
                 const handshakeData = {
                     fromUserId: state.user.uid,
                     fromEmail: state.user.email,
@@ -986,30 +4602,22 @@
                     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
                 };
                 
-                console.log("💾 Сохранение рукопожатия:", handshakeData);
-                
                 // Сохраняем рукопожатие
                 const handshakeRef = await db.collection('handshakes').add(handshakeData);
-                
-                console.log("✅ Рукопожатие сохранено с ID:", handshakeRef.id);
                 
                 // Создаем уведомление для получателя
                 const notificationData = {
                     userId: targetUserId,
                     type: 'handshake',
-                    title: 'Предложение рукопожатия 🤝',
-                    message: `Аноним #${state.userData.anonymousId} предлагает обменяться контактами в Telegram.`,
+                    title: 'Предложение рукопожатия',
+                    message: `Аноним #${state.userData.anonymousId} предлагает обменяться контактами.`,
                     handshakeData: handshakeData,
                     handshakeId: handshakeRef.id,
                     read: false,
                     createdAt: new Date().toISOString()
                 };
                 
-                console.log("📨 Создание уведомления:", notificationData);
-                
                 await db.collection('notifications').add(notificationData);
-                
-                console.log("✅ Уведомление создано");
                 
                 document.getElementById('confirmHandshakeModal').classList.remove('active');
                 state.pendingHandshakeTarget = null;
@@ -1018,16 +4626,14 @@
                 
             } catch (error) {
                 console.error('❌ Ошибка рукопожатия:', error);
-                console.error('Подробности:', error.message);
-                showAlert('Ошибка', `Ошибка отправки предложения рукопожатия: ${error.message}`);
+                showAlert('Ошибка', 'Ошибка отправки предложения рукопожатия');
             }
         }
 
-        window.acceptHandshake = async function(notificationId, fromUserId) {
-            console.log("✅ Принятие рукопожатия:", notificationId, "от пользователя:", fromUserId);
-            
-            showConfirm('Подтверждение', 'Вы уверены, что хотите принять рукопожатие и обменяться контактами в Telegram?', async () => {
+        window.acceptHandshake = async function(notificationId, handshakeId) {
+            showConfirm('Подтверждение', 'Вы уверены, что хотите принять рукопожатие и обменяться контактами?', async () => {
                 try {
+                    // Получаем уведомление
                     const notificationRef = db.collection('notifications').doc(notificationId);
                     const notificationDoc = await notificationRef.get();
                     
@@ -1037,20 +4643,23 @@
                     }
                     
                     const notification = notificationDoc.data();
-                    console.log("📩 Данные уведомления:", notification);
                     
-                    if (!notification.handshakeData || !notification.handshakeId) {
-                        showAlert('Ошибка', 'Ошибка данных рукопожатия');
+                    // Получаем рукопожатие
+                    const handshakeRef = db.collection('handshakes').doc(handshakeId);
+                    const handshakeDoc = await handshakeRef.get();
+                    
+                    if (!handshakeDoc.exists) {
+                        showAlert('Ошибка', 'Рукопожатие не найдено');
                         return;
                     }
                     
+                    const handshake = handshakeDoc.data();
+                    
                     // Обновляем статус рукопожатия
-                    await db.collection('handshakes').doc(notification.handshakeId).update({
+                    await handshakeRef.update({
                         status: 'accepted',
                         acceptedAt: new Date().toISOString()
                     });
-                    
-                    console.log("✅ Рукопожатие обновлено");
                     
                     // Отмечаем уведомление как прочитанное
                     await notificationRef.update({ 
@@ -1058,21 +4667,19 @@
                         updatedAt: new Date().toISOString()
                     });
                     
-                    console.log("✅ Уведомление отмечено как прочитанное");
-                    
                     // Создаем уведомление для отправителя
-                    const senderNotification = {
-                        userId: fromUserId,
-                        type: 'handshake_accepted',
-                        title: 'Рукопожатие принято 🤝',
-                        message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия. Теперь вы можете видеть контакты друг друга.`,
-                        read: false,
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    await db.collection('notifications').add(senderNotification);
-                    
-                    console.log("✅ Уведомление отправителю создано");
+                    const fromUserId = handshake.fromUserId;
+                    if (fromUserId) {
+                        await db.collection('notifications').add({
+                            userId: fromUserId,
+                            type: 'handshake_accepted',
+                            title: 'Рукопожатие принято',
+                            message: `Аноним #${state.userData.anonymousId} принял ваше предложение рукопожатия.`,
+                            read: false,
+                            createdAt: new Date().toISOString(),
+                            handshakeId: handshakeId
+                        });
+                    }
                     
                     // Обновляем контакты
                     await loadContacts();
@@ -1081,14 +4688,12 @@
                     
                 } catch (error) {
                     console.error('❌ Ошибка принятия рукопожатия:', error);
-                    showAlert('Ошибка', `Ошибка принятия рукопожатия: ${error.message}`);
+                    showAlert('Ошибка', 'Ошибка принятия рукопожатия');
                 }
             });
         };
 
         window.rejectHandshake = async function(notificationId) {
-            console.log("❌ Отклонение рукопожатия:", notificationId);
-            
             showConfirm('Подтверждение', 'Отклонить предложение рукопожатия?', async () => {
                 try {
                     await db.collection('notifications').doc(notificationId).update({ 
@@ -1103,21 +4708,11 @@
             });
         };
 
-        // === ИНИЦИАЛИЗАЦИЯ ===
+        // === ИНИЦИАЛИЗАЦИЯ СОБЫТИЙ ===
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("🚀 Инициализация приложения...");
-            
-            // Проверяем Firestore индексы
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.log("🔍 Проверка Firestore индексов...");
-                console.log("Для работы уведомлений нужны индексы:");
-                console.log("1. Коллекция 'notifications', поля: userId (ASC), createdAt (DESC)");
-                console.log("2. Коллекция 'handshakes', поля: fromUserId (ASC), toUserId (ASC), status (ASC)");
-            }
-            
             initFirebase();
             
-            // Обработчики контекстного меню
+            // Контекстное меню сообщений
             const contextBan = document.getElementById('contextBan');
             if (contextBan) {
                 contextBan.addEventListener('click', banUserFromContext);
@@ -1146,7 +4741,7 @@
                 }
             });
             
-            // Обработчики входа/регистрации
+            // Аутентификация
             const loginTab = document.getElementById('loginTab');
             const registerTab = document.getElementById('registerTab');
             const loginForm = document.getElementById('loginForm');
@@ -1179,7 +4774,6 @@
                 registerBtn.addEventListener('click', handleRegister);
             }
             
-            // Быстрые клавиши входа
             const loginEmail = document.getElementById('loginEmail');
             const loginPassword = document.getElementById('loginPassword');
             
@@ -1195,7 +4789,7 @@
                 });
             }
             
-            // Кнопки верификации email
+            // Подтверждение email
             const resendVerifyBtn = document.getElementById('resendVerifyBtn');
             const checkVerifyBtn = document.getElementById('checkVerifyBtn');
             const logoutFromVerifyBtn = document.getElementById('logoutFromVerifyBtn');
@@ -1212,7 +4806,7 @@
                 logoutFromVerifyBtn.addEventListener('click', handleLogout);
             }
             
-            // Кнопки заявки
+            // Заявка на доступ
             const submitApplicationBtn = document.getElementById('submitApplicationBtn');
             const logoutFromAppBtn = document.getElementById('logoutFromAppBtn');
             
@@ -1224,7 +4818,7 @@
                 logoutFromAppBtn.addEventListener('click', handleLogout);
             }
             
-            // Кнопки чата
+            // Чат
             const sendBtn = document.getElementById('sendBtn');
             const messageInput = document.getElementById('messageInput');
             
@@ -1247,7 +4841,7 @@
                 });
             }
             
-            // Кнопки в шапке
+            // Модальные окна
             const profileBtn = document.getElementById('profileBtn');
             const contactsBtn = document.getElementById('contactsBtn');
             const notificationsBtn = document.getElementById('notificationsBtn');
@@ -1268,7 +4862,6 @@
             
             if (notificationsBtn) {
                 notificationsBtn.addEventListener('click', () => {
-                    console.log("🔔 Открытие уведомлений...");
                     document.getElementById('notificationsModal').classList.add('active');
                 });
             }
@@ -1282,7 +4875,7 @@
                 });
             }
             
-            // Кнопки закрытия модалок
+            // Закрытие модальных окон
             const closeProfileBtn = document.getElementById('closeProfileBtn');
             const closeContactsBtn = document.getElementById('closeContactsBtn');
             const closeNotificationsBtn = document.getElementById('closeNotificationsBtn');
@@ -1336,13 +4929,13 @@
                 });
             }
             
-            // Кнопка выхода
+            // Выход
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', handleLogout);
             }
             
-            // Кнопки жалоб
+            // Жалобы
             const submitReportBtn = document.getElementById('submitReportBtn');
             const cancelReportBtn = document.getElementById('cancelReportBtn');
             
@@ -1357,7 +4950,7 @@
                 });
             }
             
-            // Кнопки блокировки
+            // Блокировки
             const submitBanBtn = document.getElementById('submitBanBtn');
             const cancelBanBtn = document.getElementById('cancelBanBtn');
             
@@ -1372,7 +4965,7 @@
                 });
             }
             
-            // Вкладки админ панели
+            // Админ панель
             const adminTabApplications = document.getElementById('adminTabApplications');
             const adminTabApproved = document.getElementById('adminTabApproved');
             const adminTabBanned = document.getElementById('adminTabBanned');
@@ -1419,7 +5012,6 @@
                 });
             }
             
-            // Добавление админов
             const addAdminBtn = document.getElementById('addAdminBtn');
             const addAdminEmail = document.getElementById('addAdminEmail');
             
@@ -1433,7 +5025,7 @@
                 });
             }
             
-            // Переключение темы
+            // Тема
             const themeToggle = document.getElementById('themeToggle');
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
@@ -1448,7 +5040,6 @@
                 });
             }
             
-            // Загрузка сохраненной темы
             const savedTheme = localStorage.getItem('neznakomka-theme') || 'light';
             state.theme = savedTheme;
             document.body.classList.add(savedTheme + '-theme');
@@ -1457,7 +5048,7 @@
                 icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             }
             
-            // Обработка сенсорных устройств
+            // Touch события
             if (state.isTouchDevice) {
                 document.body.classList.add('touch-device');
                 
@@ -1471,7 +5062,7 @@
                 }, false);
             }
             
-            // Кнопки рукопожатия
+            // Рукопожатия
             const confirmHandshakeBtn = document.getElementById('confirmHandshakeBtn');
             const cancelHandshakeBtn = document.getElementById('cancelHandshakeBtn');
             
@@ -1494,11 +5085,9 @@
                     document.getElementById('customAlert').classList.remove('active');
                 });
             }
-            
-            console.log("✅ Приложение инициализировано");
         });
 
-        // Экспорт функций для глобального использования
+        // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ===
         window.approveApplication = approveApplication;
         window.rejectApplication = rejectApplication;
         window.banUser = banUser;
