@@ -2175,9 +2175,7 @@
                             <h2>Анонимный чат "Незнакомка"</h2>
                             <p>
                                 <i class="fas fa-users"></i>
-                                <span id="onlineCount">0</span> онлайн • 
-                                <i class="fas fa-clock"></i>
-                                Сообщения удаляются через 24 часа
+                                Сообщения удаляются через 24 часа • Макс. 100 сообщений
                             </p>
                         </div>
                         <div class="user-info">
@@ -2564,7 +2562,6 @@
             isVerified: false,
             emailVerified: false,
             messages: [],
-            onlineUsers: [],
             theme: 'light',
             pendingHandshakeTarget: null,
             reportTargetMessage: null,
@@ -2592,7 +2589,11 @@
                 messageId: null,
                 messageElement: null,
                 isMyMessage: false
-            }
+            },
+            // Исправление дублирования сообщений
+            processedMessages: new Set(),
+            isSendingMessage: false,
+            MAX_MESSAGES: 100 // Максимальное количество сообщений
         };
 
         // === УТИЛИТЫ ===
@@ -2698,7 +2699,6 @@
             state.isVerified = false;
             state.emailVerified = false;
             state.messages = [];
-            state.onlineUsers = [];
             state.pendingHandshakeTarget = null;
             state.reportTargetMessage = null;
             state.banTargetUser = null;
@@ -2706,6 +2706,8 @@
             state.messagesLoaded = false;
             state.lastTapTime = 0;
             state.lastTapMessageId = null;
+            state.processedMessages.clear();
+            state.isSendingMessage = false;
         }
 
         async function continueAfterTerms() {
@@ -2810,9 +2812,9 @@
                     await userRef.set(state.userData);
                 }
                 
+                // Обновляем только lastSeen, online только для админов
                 await userRef.update({
-                    lastSeen: new Date().toISOString(),
-                    online: true
+                    lastSeen: new Date().toISOString()
                 });
                 
             } catch (error) {
@@ -2861,7 +2863,7 @@
                             <p><strong>3. Система рукопожатий:</strong></p>
                             <ul>
                                 <li>Вы можете предложить обменяться контактами через кнопку 🤝</li>
-                                <li>Рукопожатие действует только при взаимном согласии</li>
+                                <li> Обмен контактами (Рукопожатие) действует только при взаимном согласии</li>
                                 <li>Контакты хранятся 24 часа, затем автоматически удаляются</li>
                                 <li>Администрация не проверяет достоверность контактов</li>
                                 <li>Администрация не несет ответственности за последствия обмена</li>
@@ -3400,7 +3402,6 @@
                 if (state.user && db) {
                     const userRef = db.collection('users').doc(state.user.uid);
                     await userRef.update({
-                        online: false,
                         lastSeen: new Date().toISOString()
                     });
                 }
@@ -3432,69 +3433,90 @@
         }
 
         function loadMessages() {
-            if (!db || !state.isVerified || state.messagesLoaded) return;
+            if (!db || !state.isVerified) return;
             
             document.getElementById('messagesContainer').innerHTML = '';
+            state.processedMessages.clear();
             
             if (state.messageListenerUnsubscribe) {
                 state.messageListenerUnsubscribe();
             }
             
-            db.collection('messages')
-                .orderBy('timestamp', 'asc')
-                .limit(100)
-                .get()
-                .then((snapshot) => {
-                    snapshot.forEach((doc) => {
-                        const message = doc.data();
-                        message.id = doc.id;
+            // Загружаем сообщения из Firestore
+            const messagesRef = db.collection('messages')
+                .orderBy('timestamp', 'desc')
+                .limit(state.MAX_MESSAGES);
+            
+            // Используем только onSnapshot для загрузки и отслеживания изменений
+            const unsubscribe = messagesRef.onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    const message = change.doc.data();
+                    message.id = change.doc.id;
+                    
+                    if (state.processedMessages.has(message.id)) {
+                        return; // Пропускаем уже обработанные сообщения
+                    }
+                    
+                    if (change.type === 'added') {
                         if (!message.deleted) {
+                            state.processedMessages.add(message.id);
                             addMessageToUI(message);
                         }
-                    });
-                    scrollToBottom();
-                    state.messagesLoaded = true;
-                })
-                .catch((error) => {
-                    console.error("❌ Ошибка загрузки сообщений:", error);
+                    } else if (change.type === 'modified') {
+                        if (message.deleted) {
+                            const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+                            if (messageElement) {
+                                messageElement.remove();
+                            }
+                        } else {
+                            const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+                            if (messageElement) {
+                                messageElement.remove();
+                            }
+                            addMessageToUI(message);
+                        }
+                    } else if (change.type === 'removed') {
+                        const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+                        if (messageElement) {
+                            messageElement.remove();
+                        }
+                        state.processedMessages.delete(message.id);
+                    }
                 });
+                
+                scrollToBottom();
+                
+                // Проверяем количество сообщений и удаляем лишние
+                checkAndDeleteOldMessages();
+                
+            }, (error) => {
+                console.error("❌ Ошибка подписки на сообщения:", error);
+                showAlert('Ошибка', 'Ошибка загрузки сообщений. Пожалуйста, обновите страницу.');
+            });
             
-            const unsubscribe = db.collection('messages')
-                .orderBy('timestamp', 'asc')
-                .limit(100)
-                .onSnapshot((snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') {
-                            const message = change.doc.data();
-                            message.id = change.doc.id;
-                            
-                            if (!message.deleted && !document.querySelector(`[data-message-id="${message.id}"]`)) {
-                                addMessageToUI(message);
-                            }
-                        } else if (change.type === 'removed') {
-                            const messageElement = document.querySelector(`[data-message-id="${change.doc.id}"]`);
-                            if (messageElement) {
-                                messageElement.remove();
-                            }
-                        } else if (change.type === 'modified') {
-                            const messageElement = document.querySelector(`[data-message-id="${change.doc.id}"]`);
-                            if (messageElement) {
-                                messageElement.remove();
-                                const message = change.doc.data();
-                                message.id = change.doc.id;
-                                if (!message.deleted) {
-                                    addMessageToUI(message);
-                                }
-                            }
+            state.messageListenerUnsubscribe = unsubscribe;
+        }
+
+        async function checkAndDeleteOldMessages() {
+            try {
+                const snapshot = await db.collection('messages')
+                    .orderBy('timestamp', 'asc')
+                    .get();
+                
+                if (snapshot.size > state.MAX_MESSAGES) {
+                    const messagesToDelete = [];
+                    snapshot.forEach((doc, index) => {
+                        if (index < snapshot.size - state.MAX_MESSAGES) {
+                            messagesToDelete.push(doc.ref.delete());
                         }
                     });
                     
-                    scrollToBottom();
-                }, (error) => {
-                    console.error("❌ Ошибка подписки на сообщения:", error);
-                });
-            
-            state.messageListenerUnsubscribe = unsubscribe;
+                    await Promise.all(messagesToDelete);
+                    console.log(`🗑️ Удалено ${messagesToDelete.length} старых сообщений`);
+                }
+            } catch (error) {
+                console.error("❌ Ошибка проверки сообщений:", error);
+            }
         }
 
         function addMessageToUI(message) {
@@ -3540,7 +3562,13 @@
             setupMessageContextMenu(messageElement, message, isMyMessage);
             
             const container = document.getElementById('messagesContainer');
-            container.appendChild(messageElement);
+            
+            // Добавляем в начало для правильного порядка (новые снизу)
+            if (isMyMessage) {
+                container.appendChild(messageElement);
+            } else {
+                container.appendChild(messageElement);
+            }
         }
 
         function setupMessageContextMenu(messageElement, message, isMyMessage) {
@@ -4752,6 +4780,12 @@
         }
 
         async function sendMessage() {
+            // Защита от множественной отправки
+            if (state.isSendingMessage) {
+                console.log("⚠️ Сообщение уже отправляется, пропускаем");
+                return;
+            }
+            
             const text = document.getElementById('messageInput').value.trim();
             if (!text || !state.user || !state.isVerified) return;
             
@@ -4772,6 +4806,7 @@
                 }
             }
             
+            state.isSendingMessage = true;
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -4783,21 +4818,27 @@
                     userEmail: state.user.email,
                     anonymousId: state.userData.anonymousId || generateAnonymousId(),
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
                     deleted: false
                 };
                 
                 await db.collection('messages').add(message);
                 
+                // Очищаем поле ввода
                 document.getElementById('messageInput').value = '';
                 document.getElementById('messageInput').style.height = 'auto';
                 
+                console.log("✅ Сообщение отправлено:", text);
+                
             } catch (error) {
                 console.error("❌ Ошибка отправки:", error);
-                showAlert('Ошибка', 'Ошибка отправки сообщения');
+                showAlert('Ошибка', 'Ошибка отправки сообщения: ' + error.message);
             } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                // Разблокируем кнопку через небольшую задержку
+                setTimeout(() => {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    state.isSendingMessage = false;
+                }, 500);
             }
         }
 
@@ -4813,7 +4854,7 @@
                         <li>Ваш Telegram (<strong>${state.userData.telegramUsername}</strong>) будет отправлен пользователю</li>
                         <li>Вы получите Telegram пользователя в ответ</li>
                         <li>Контакты будут доступны 24 часа</li>
-                        <li>Рукопожатие действует только при взаимном согласии</li>
+                        <li>Обмен контактами (Рукопожатие) действует только при взаимном согласии</li>
                     </ul>
                     <p><strong>Администрация не несет ответственности за последствия обмена контактами.</strong></p>
                 </div>
