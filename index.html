@@ -2128,8 +2128,8 @@
                         Администратор проверит её в ручном режиме.
                     </p>
                     
-                    <div class="status-indicator" id="applicationStatus">
-                        <i class="fas fa-clock"></i> Заявка на рассмотрении
+                    <div id="applicationStatus" class="hidden">
+                        <!-- Статус будет показан только после отправки заявки -->
                     </div>
                     
                     <div class="form-group">
@@ -2144,7 +2144,7 @@
                         </small>
                     </div>
                     
-                    <!-- <div class="form-group">
+                   <!-- <div class="form-group">
                         <label for="applicationNote">Дополнительная информация (необязательно)</label>
                         <textarea id="applicationNote" class="form-control" 
                                   placeholder="Расскажите немного о себе..." 
@@ -3272,6 +3272,7 @@
                 return;
             }
             
+            // Проверяем уникальность Telegram username
             const isUnique = await checkTelegramUsernameUnique(telegramUsername);
             if (!isUnique) {
                 showApplicationError('Этот Telegram username уже привязан к другому аккаунту. Пожалуйста, используйте другой.');
@@ -3283,15 +3284,19 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
             
             try {
+                // Сохраняем заявку в коллекции applications
                 const applicationData = {
-                    telegramUsername,
-                    note,
+                    telegramUsername: telegramUsername,
+                    note: note,
                     status: 'pending',
                     submittedAt: new Date().toISOString(),
                     userId: state.user.uid,
                     userEmail: state.user.email
                 };
                 
+                await db.collection('applications').add(applicationData);
+                
+                // Обновляем данные пользователя
                 await db.collection('users').doc(state.user.uid).update({
                     application: applicationData,
                     telegramUsername: telegramUsername,
@@ -3301,19 +3306,18 @@
                 state.userData.application = applicationData;
                 state.userData.telegramUsername = telegramUsername;
                 
-                await db.collection('applications').add({
-                    ...applicationData,
-                    reviewedBy: null,
-                    reviewedAt: null
-                });
+                // Показываем статус заявки
+                const statusElement = document.getElementById('applicationStatus');
+                statusElement.innerHTML = `<div class="status-indicator"><i class="fas fa-clock"></i> Заявка отправлена на рассмотрение</div>`;
+                statusElement.classList.remove('hidden');
                 
-                showApplicationSuccess('Заявка отправлена на рассмотрение!');
+                showApplicationSuccess('Заявка отправлена на рассмотрение! Администратор проверит её в ближайшее время.');
                 updateApplicationStatusUI();
                 updateProfileUI();
                 
             } catch (error) {
                 console.error("❌ Ошибка отправки заявки:", error);
-                showApplicationError('Ошибка отправки заявки');
+                showApplicationError('Ошибка отправки заявки: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить заявку';
@@ -3326,11 +3330,14 @@
             const statusElement = document.getElementById('applicationStatus');
             if (statusElement) {
                 if (state.userData.isVerified) {
-                    statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Заявка одобрена';
-                    statusElement.classList.add('verified');
+                    statusElement.innerHTML = '<div class="status-indicator verified"><i class="fas fa-check-circle"></i> Заявка одобрена</div>';
+                    statusElement.classList.remove('hidden');
+                } else if (state.userData.application) {
+                    statusElement.innerHTML = '<div class="status-indicator"><i class="fas fa-clock"></i> Заявка на рассмотрении</div>';
+                    statusElement.classList.remove('hidden');
                 } else {
-                    statusElement.innerHTML = '<i class="fas fa-clock"></i> Заявка на рассмотрении';
-                    statusElement.classList.remove('verified');
+                    statusElement.innerHTML = '';
+                    statusElement.classList.add('hidden');
                 }
             }
         }
@@ -3339,6 +3346,7 @@
             if (!state.user || !db || !state.userData) return;
             
             try {
+                // Проверяем, есть ли у пользователя заявка
                 const userRef = db.collection('users').doc(state.user.uid);
                 const doc = await userRef.get();
                 
@@ -3346,6 +3354,7 @@
                     const userData = doc.data();
                     state.userData = userData;
                     
+                    // Обновляем UI в зависимости от статуса
                     if (userData.isVerified) {
                         state.isVerified = true;
                         showChatScreen();
@@ -3353,9 +3362,17 @@
                         loadNotifications();
                         loadContacts();
                         updateApplicationStatusUI();
-                    } else {
+                    } else if (userData.application) {
                         showApplicationScreen();
                         updateApplicationStatusUI();
+                    } else {
+                        // Нет заявки - показываем форму для подачи
+                        showApplicationScreen();
+                        const statusElement = document.getElementById('applicationStatus');
+                        if (statusElement) {
+                            statusElement.innerHTML = '';
+                            statusElement.classList.add('hidden');
+                        }
                     }
                 }
             } catch (error) {
@@ -3394,7 +3411,22 @@
                 }
             });
             
-            updateApplicationStatusUI();
+            // Сбрасываем статус при показе экрана
+            const statusElement = document.getElementById('applicationStatus');
+            if (statusElement) {
+                statusElement.innerHTML = '';
+                statusElement.classList.add('hidden');
+            }
+            
+            // Заполняем форму, если есть данные
+            if (state.userData && state.userData.telegramUsername) {
+                document.getElementById('telegramUsername').value = state.userData.telegramUsername;
+            }
+            
+            // Проверяем статус заявки
+            if (state.userData && state.userData.application) {
+                updateApplicationStatusUI();
+            }
         }
 
         async function handleLogout() {
@@ -4601,12 +4633,14 @@
         async function approveApplication(applicationId, userId) {
             showConfirm('Подтверждение', 'Одобрить эту заявку?', async () => {
                 try {
+                    // Обновляем заявку в коллекции applications
                     await db.collection('applications').doc(applicationId).update({
                         status: 'approved',
                         reviewedBy: state.user.email,
                         reviewedAt: new Date().toISOString()
                     });
                     
+                    // Обновляем пользователя
                     await db.collection('users').doc(userId).update({
                         isVerified: true,
                         verifiedAt: new Date().toISOString()
