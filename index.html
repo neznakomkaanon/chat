@@ -3442,13 +3442,16 @@
                 state.messageListenerUnsubscribe();
             }
             
-            // Загружаем сообщения из Firestore
+            // Загружаем сообщения из Firestore по возрастанию времени (старые сверху, новые снизу)
             const messagesRef = db.collection('messages')
-                .orderBy('timestamp', 'desc')
+                .orderBy('timestamp', 'asc')
                 .limit(state.MAX_MESSAGES);
             
             // Используем только onSnapshot для загрузки и отслеживания изменений
             const unsubscribe = messagesRef.onSnapshot((snapshot) => {
+                const container = document.getElementById('messagesContainer');
+                const wasAtBottom = isAtBottom();
+                
                 snapshot.docChanges().forEach((change) => {
                     const message = change.doc.data();
                     message.id = change.doc.id;
@@ -3484,7 +3487,10 @@
                     }
                 });
                 
-                scrollToBottom();
+                // Если пользователь был внизу, скроллим вниз
+                if (wasAtBottom) {
+                    scrollToBottom();
+                }
                 
                 // Проверяем количество сообщений и удаляем лишние
                 checkAndDeleteOldMessages();
@@ -3495,6 +3501,12 @@
             });
             
             state.messageListenerUnsubscribe = unsubscribe;
+        }
+
+        function isAtBottom() {
+            const container = document.getElementById('messagesContainer');
+            if (!container) return true;
+            return container.scrollHeight - container.scrollTop - container.clientHeight < 100;
         }
 
         async function checkAndDeleteOldMessages() {
@@ -3528,9 +3540,27 @@
             messageElement.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
             messageElement.setAttribute('data-message-id', message.id);
             
-            const time = message.timestamp?.toDate 
-                ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const timestamp = message.timestamp?.toDate 
+                ? message.timestamp.toDate() 
+                : new Date();
+            
+            // Форматируем дату и время
+            const now = new Date();
+            const messageDate = new Date(timestamp);
+            const isToday = messageDate.toDateString() === now.toDateString();
+            const isYesterday = new Date(now.getTime() - 86400000).toDateString() === messageDate.toDateString();
+            
+            let dateText = '';
+            if (isToday) {
+                dateText = 'Сегодня';
+            } else if (isYesterday) {
+                dateText = 'Вчера';
+            } else {
+                dateText = messageDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            }
+            
+            const timeText = messageDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            const fullTimeText = `${dateText} в ${timeText}`;
             
             const displayName = isMyMessage ? 'Вы' : `Аноним #${message.anonymousId || '000'}`;
             
@@ -3551,10 +3581,13 @@
                 <div class="message-sender">
                     <i class="fas ${isMyMessage ? 'fa-user' : 'fa-user-secret'}"></i> 
                     ${displayName}
+                    <span style="font-size: 9px; color: var(--text-secondary); margin-left: 5px;" title="${fullTimeText}">
+                        ${timeText}
+                    </span>
                 </div>
                 <div class="message-bubble">
                     <div class="message-text">${formatMessageText(message.text)}</div>
-                    <div class="message-time">${time}</div>
+                    <div class="message-time">${fullTimeText}</div>
                 </div>
                 ${handshakeButton}
             `;
@@ -3563,12 +3596,8 @@
             
             const container = document.getElementById('messagesContainer');
             
-            // Добавляем в начало для правильного порядка (новые снизу)
-            if (isMyMessage) {
-                container.appendChild(messageElement);
-            } else {
-                container.appendChild(messageElement);
-            }
+            // Добавляем сообщение в конец (новые снизу)
+            container.appendChild(messageElement);
         }
 
         function setupMessageContextMenu(messageElement, message, isMyMessage) {
