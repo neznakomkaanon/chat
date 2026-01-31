@@ -2140,16 +2140,9 @@
                         <input type="text" id="telegramUsername" class="form-control" 
                                placeholder="@username (обязательно с @)" required>
                         <small style="color: var(--text-secondary); display: block; margin-top: 6px; font-size: 12px;">
-                            Этот username будет использоваться для связи при обмене контактами (рукопожатие). Каждый Telegram можно использовать только в одной заявке.
+                            Этот username будет использоваться для связи при обмене контактами (рукопожатие).
                         </small>
                     </div>
-                    
-                   <!-- <div class="form-group">
-                        <label for="applicationNote">Дополнительная информация (необязательно)</label>
-                        <textarea id="applicationNote" class="form-control" 
-                                  placeholder="Расскажите немного о себе..." 
-                                  rows="3"></textarea>
-                    </div> -->
                     
                     <div class="handshake-notification">
                         <i class="fas fa-handshake" style="color: var(--accent); margin-right: 6px;"></i>
@@ -2339,7 +2332,6 @@
                                 <tr>
                                     <th>Email</th>
                                     <th>Telegram</th>
-                                    <th>Заметка</th>
                                     <th>Дата</th>
                                     <th>Действия</th>
                                 </tr>
@@ -3246,36 +3238,13 @@
             }
         }
 
-        async function checkTelegramUsernameUnique(username) {
-            if (!db) return true;
-            
-            try {
-                const usersSnapshot = await db.collection('users')
-                    .where('telegramUsername', '==', username)
-                    .where('isVerified', '==', true)
-                    .limit(1)
-                    .get();
-                
-                return usersSnapshot.empty;
-            } catch (error) {
-                console.error("❌ Ошибка проверки username:", error);
-                return true;
-            }
-        }
-
+        // Убрали проверку уникальности Telegram username
+        
         async function submitApplication() {
             const telegramUsername = document.getElementById('telegramUsername').value.trim();
-            const note = document.getElementById('applicationNote').value.trim();
             
             if (!telegramUsername || !telegramUsername.startsWith('@')) {
                 showApplicationError('Введите Telegram username в формате @username');
-                return;
-            }
-            
-            // Проверяем уникальность Telegram username
-            const isUnique = await checkTelegramUsernameUnique(telegramUsername);
-            if (!isUnique) {
-                showApplicationError('Этот Telegram username уже привязан к другому аккаунту. Пожалуйста, используйте другой.');
                 return;
             }
             
@@ -3287,7 +3256,6 @@
                 // Сохраняем заявку в коллекции applications
                 const applicationData = {
                     telegramUsername: telegramUsername,
-                    note: note,
                     status: 'pending',
                     submittedAt: new Date().toISOString(),
                     userId: state.user.uid,
@@ -3303,6 +3271,7 @@
                     isVerified: false
                 });
                 
+                // Обновляем state
                 state.userData.application = applicationData;
                 state.userData.telegramUsername = telegramUsername;
                 
@@ -3346,7 +3315,6 @@
             if (!state.user || !db || !state.userData) return;
             
             try {
-                // Проверяем, есть ли у пользователя заявка
                 const userRef = db.collection('users').doc(state.user.uid);
                 const doc = await userRef.get();
                 
@@ -3354,7 +3322,6 @@
                     const userData = doc.data();
                     state.userData = userData;
                     
-                    // Обновляем UI в зависимости от статуса
                     if (userData.isVerified) {
                         state.isVerified = true;
                         showChatScreen();
@@ -3366,7 +3333,6 @@
                         showApplicationScreen();
                         updateApplicationStatusUI();
                     } else {
-                        // Нет заявки - показываем форму для подачи
                         showApplicationScreen();
                         const statusElement = document.getElementById('applicationStatus');
                         if (statusElement) {
@@ -3411,19 +3377,16 @@
                 }
             });
             
-            // Сбрасываем статус при показе экрана
             const statusElement = document.getElementById('applicationStatus');
             if (statusElement) {
                 statusElement.innerHTML = '';
                 statusElement.classList.add('hidden');
             }
             
-            // Заполняем форму, если есть данные
             if (state.userData && state.userData.telegramUsername) {
                 document.getElementById('telegramUsername').value = state.userData.telegramUsername;
             }
             
-            // Проверяем статус заявки
             if (state.userData && state.userData.application) {
                 updateApplicationStatusUI();
             }
@@ -3474,12 +3437,10 @@
                 state.messageListenerUnsubscribe();
             }
             
-            // Загружаем сообщения из Firestore по возрастанию времени (старые сверху, новые снизу)
             const messagesRef = db.collection('messages')
                 .orderBy('timestamp', 'asc')
                 .limit(state.MAX_MESSAGES);
             
-            // Используем только onSnapshot для загрузки и отслеживания изменений
             const unsubscribe = messagesRef.onSnapshot((snapshot) => {
                 const container = document.getElementById('messagesContainer');
                 const wasAtBottom = isAtBottom();
@@ -3489,7 +3450,7 @@
                     message.id = change.doc.id;
                     
                     if (state.processedMessages.has(message.id)) {
-                        return; // Пропускаем уже обработанные сообщения
+                        return;
                     }
                     
                     if (change.type === 'added') {
@@ -3519,12 +3480,10 @@
                     }
                 });
                 
-                // Если пользователь был внизу, скроллим вниз
                 if (wasAtBottom) {
                     scrollToBottom();
                 }
                 
-                // Проверяем количество сообщений и удаляем лишние
                 checkAndDeleteOldMessages();
                 
             }, (error) => {
@@ -3576,7 +3535,6 @@
                 ? message.timestamp.toDate() 
                 : new Date();
             
-            // Форматируем дату и время
             const now = new Date();
             const messageDate = new Date(timestamp);
             const isToday = messageDate.toDateString() === now.toDateString();
@@ -3627,28 +3585,23 @@
             setupMessageContextMenu(messageElement, message, isMyMessage);
             
             const container = document.getElementById('messagesContainer');
-            
-            // Добавляем сообщение в конец (новые снизу)
             container.appendChild(messageElement);
         }
 
         function setupMessageContextMenu(messageElement, message, isMyMessage) {
             const messageBubble = messageElement.querySelector('.message-bubble');
             
-            // Для десктопа - правый клик
             messageBubble.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 showMessageContextMenu(e, message, isMyMessage, messageElement);
             });
             
-            // Для мобильных устройств - двойное нажатие
             if (state.isTouchDevice) {
                 let lastTap = 0;
                 let tapCount = 0;
                 let tapTimeout;
                 
                 messageBubble.addEventListener('touchstart', (e) => {
-                    // Останавливаем долгое нажатие
                     if (state.touchTimer) {
                         clearTimeout(state.touchTimer);
                         state.touchTimer = null;
@@ -3658,20 +3611,16 @@
                     const tapLength = currentTime - lastTap;
                     
                     if (tapCount > 0 && tapLength < 300 && tapLength > 0) {
-                        // Двойное нажатие!
                         e.preventDefault();
                         tapCount++;
                         
-                        // Добавляем анимацию обратной связи
                         messageBubble.classList.add('tap-feedback');
                         setTimeout(() => {
                             messageBubble.classList.remove('tap-feedback');
                         }, 300);
                         
-                        // Показываем мобильное меню
                         showMobileContextMenu(message, isMyMessage, messageElement);
                         
-                        // Сбрасываем счетчик
                         tapCount = 0;
                         if (tapTimeout) clearTimeout(tapTimeout);
                     } else {
@@ -3685,7 +3634,6 @@
                     lastTap = currentTime;
                 }, { passive: true });
                 
-                // Также оставляем долгое нажатие как запасной вариант
                 messageBubble.addEventListener('touchstart', (e) => {
                     if (state.touchTimer) clearTimeout(state.touchTimer);
                     
@@ -3729,7 +3677,6 @@
             buttonsContainer.innerHTML = '';
             
             if (isMyMessage) {
-                // Своё сообщение - только удаление
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'mobile-context-btn delete';
                 deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Удалить сообщение';
@@ -3740,9 +3687,7 @@
                 buttonsContainer.appendChild(deleteBtn);
                 
             } else {
-                // Чужое сообщение
                 if (state.isAdmin) {
-                    // Админ видит все кнопки
                     const banBtn = document.createElement('button');
                     banBtn.className = 'mobile-context-btn ban';
                     banBtn.innerHTML = '<i class="fas fa-ban"></i> Заблокировать пользователя';
@@ -3763,7 +3708,6 @@
                 };
                 buttonsContainer.appendChild(reportBtn);
                 
-                // Кнопка рукопожатия (только если есть Telegram username)
                 if (state.userData && state.userData.telegramUsername && state.userData.isVerified) {
                     const handshakeBtn = document.createElement('button');
                     handshakeBtn.className = 'mobile-context-btn handshake';
@@ -3776,7 +3720,6 @@
                 }
             }
             
-            // Кнопка отмены
             const cancelBtn = document.createElement('button');
             cancelBtn.className = 'mobile-context-btn cancel';
             cancelBtn.innerHTML = '<i class="fas fa-times"></i> Отмена';
@@ -3786,7 +3729,6 @@
             document.getElementById('mobileContextOverlay').classList.add('active');
             document.getElementById('mobileContextMenu').classList.add('active');
             
-            // Название меню
             const title = document.getElementById('mobileContextTitle');
             if (isMyMessage) {
                 title.textContent = 'Ваше сообщение';
@@ -3824,7 +3766,6 @@
                 return;
             }
             
-            // На мобильных устройствах используем мобильное меню
             if (state.isTouchDevice) {
                 showMobileContextMenu(message, isMyMessage, messageElement);
                 return;
@@ -4074,9 +4015,6 @@
                 state.notificationListenerUnsubscribe();
             }
             
-            console.log("🔄 Загрузка уведомлений для пользователя:", state.user.uid);
-            
-            // УПРОЩЕННЫЙ ЗАПРОС БЕЗ СОРТИРОВКИ ПО ВРЕМЕНИ
             const notificationsRef = db.collection('notifications')
                 .where('userId', '==', state.user.uid)
                 .limit(20);
@@ -4090,10 +4028,7 @@
                 notificationsContainer.innerHTML = '';
                 let unreadCount = 0;
                 
-                console.log("📊 Получено уведомлений:", snapshot.size);
-                
                 if (snapshot.empty) {
-                    console.log("ℹ️ Нет уведомлений");
                     notificationsContainer.innerHTML = `
                         <div style="text-align: center; padding: 30px; color: var(--text-secondary);">
                             <i class="fas fa-bell-slash" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
@@ -4101,7 +4036,6 @@
                         </div>
                     `;
                 } else {
-                    // Сортируем вручную на клиенте
                     const notifications = [];
                     snapshot.forEach(doc => {
                         const notification = doc.data();
@@ -4109,7 +4043,6 @@
                         notifications.push(notification);
                     });
                     
-                    // Сортировка по дате создания (новые сверху)
                     notifications.sort((a, b) => {
                         const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
                         const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
@@ -4117,8 +4050,6 @@
                     });
                     
                     notifications.forEach(notification => {
-                        console.log("📨 Уведомление:", notification);
-                        
                         const notificationElement = document.createElement('div');
                         notificationElement.className = 'handshake-item';
                         notificationElement.style.opacity = notification.read ? '0.7' : '1';
@@ -4381,7 +4312,7 @@
                 if (snapshot.empty) {
                     table.innerHTML = `
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-secondary);">
                                 Нет заявок на рассмотрении
                             </td>
                         </tr>
@@ -4396,7 +4327,6 @@
                     row.innerHTML = `
                         <td>${app.userEmail}</td>
                         <td>${app.telegramUsername || 'Не указан'}</td>
-                        <td>${app.note || '—'}</td>
                         <td>${new Date(app.submittedAt).toLocaleString()}</td>
                         <td>
                             <div class="action-buttons">
@@ -4633,14 +4563,12 @@
         async function approveApplication(applicationId, userId) {
             showConfirm('Подтверждение', 'Одобрить эту заявку?', async () => {
                 try {
-                    // Обновляем заявку в коллекции applications
                     await db.collection('applications').doc(applicationId).update({
                         status: 'approved',
                         reviewedBy: state.user.email,
                         reviewedAt: new Date().toISOString()
                     });
                     
-                    // Обновляем пользователя
                     await db.collection('users').doc(userId).update({
                         isVerified: true,
                         verifiedAt: new Date().toISOString()
@@ -4843,7 +4771,6 @@
         }
 
         async function sendMessage() {
-            // Защита от множественной отправки
             if (state.isSendingMessage) {
                 console.log("⚠️ Сообщение уже отправляется, пропускаем");
                 return;
@@ -4886,7 +4813,6 @@
                 
                 await db.collection('messages').add(message);
                 
-                // Очищаем поле ввода
                 document.getElementById('messageInput').value = '';
                 document.getElementById('messageInput').style.height = 'auto';
                 
@@ -4896,7 +4822,6 @@
                 console.error("❌ Ошибка отправки:", error);
                 showAlert('Ошибка', 'Ошибка отправки сообщения: ' + error.message);
             } finally {
-                // Разблокируем кнопку через небольшую задержку
                 setTimeout(() => {
                     sendBtn.disabled = false;
                     sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
@@ -5112,7 +5037,6 @@
                 }
             });
             
-            // Закрытие мобильного меню при клике на overlay
             document.getElementById('mobileContextOverlay').addEventListener('click', hideMobileContextMenu);
             
             const loginTab = document.getElementById('loginTab');
