@@ -5565,5 +5565,84 @@ firebase.auth().onAuthStateChanged(async user => {
 });
 </script>
 
+
+<!-- Emoji Avatar Picker Modal -->
+<div class="modal-overlay" id="avatarPickerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Выбор аватара</h2>
+      <button class="modal-close" onclick="closeAvatarPicker()">&times;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,50px);gap:12px;font-size:26px;text-align:center;">
+      <span onclick="selectAvatar('😀')">😀</span>
+      <span onclick="selectAvatar('😎')">😎</span>
+      <span onclick="selectAvatar('🥰')">🥰</span>
+      <span onclick="selectAvatar('😈')">😈</span>
+      <span onclick="selectAvatar('👻')">👻</span>
+      <span onclick="selectAvatar('🤡')">🤡</span>
+      <span onclick="selectAvatar('🐱')">🐱</span>
+      <span onclick="selectAvatar('🐶')">🐶</span>
+      <span onclick="selectAvatar('🦊')">🦊</span>
+      <span onclick="selectAvatar('🐼')">🐼</span>
+      <span onclick="selectAvatar('🐸')">🐸</span>
+      <span onclick="selectAvatar('🐵')">🐵</span>
+      <span onclick="selectAvatar('🔥')">🔥</span>
+      <span onclick="selectAvatar('💀')">💀</span>
+      <span onclick="selectAvatar('💜')">💜</span>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const EMOJIS = ['😀','😎','🥰','😈','👻','🤡','🐱','🐶','🦊','🐼','🐸','🐵','🔥','💀','💜'];
+const DEFAULT_AVATAR = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+
+async function getUserAvatar(uid){
+  const doc = await firebase.firestore().collection("users").doc(uid).get();
+  if(doc.exists && doc.data().avatar) return doc.data().avatar;
+  await firebase.firestore().collection("users").doc(uid).set({avatar:DEFAULT_AVATAR},{merge:true});
+  return DEFAULT_AVATAR;
+}
+
+function openAvatarPicker(){
+  document.getElementById("avatarPickerModal").classList.add("active");
+}
+function closeAvatarPicker(){
+  document.getElementById("avatarPickerModal").classList.remove("active");
+}
+async function selectAvatar(emoji){
+  const uid = firebase.auth().currentUser.uid;
+  await firebase.firestore().collection("users").doc(uid).set({avatar:emoji},{merge:true});
+  document.getElementById("userAvatar").innerText = emoji;
+  document.getElementById("profileAvatar").innerText = emoji;
+  closeAvatarPicker();
+}
+
+// bind button
+document.getElementById("changeAvatarBtn")?.addEventListener("click",openAvatarPicker);
+
+// message avatar render
+const origAddMessage = window.addMessageToChat;
+window.addMessageToChat = async function(msg,isMine){
+  const row = document.createElement("div");
+  row.className = "message-row " + (isMine ? "my" : "other");
+  const av = document.createElement("div");
+  av.className = "message-avatar";
+  av.innerText = await getUserAvatar(msg.uid);
+  const bubble = origAddMessage(msg,isMine);
+  if(isMine){row.appendChild(bubble);row.appendChild(av);}
+  else{row.appendChild(av);row.appendChild(bubble);}
+  return row;
+}
+
+firebase.auth().onAuthStateChanged(async u=>{
+  if(!u) return;
+  const av = await getUserAvatar(u.uid);
+  document.getElementById("userAvatar").innerText = av;
+  document.getElementById("profileAvatar").innerText = av;
+});
+</script>
+
 </body>
 </html>
