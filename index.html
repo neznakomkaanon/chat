@@ -1983,7 +1983,7 @@
     </style>
 </head>
 <body class="light-theme">
-    <div class="version-badge">v.0.11</div>
+    <div class="version-badge">v.0.10</div>
     
     <div class="custom-alert-overlay" id="customAlertOverlay"></div>
     <div class="custom-alert" id="customAlert">
@@ -5679,6 +5679,62 @@ async function syncAvatarsForMessages() {
 document.addEventListener("DOMContentLoaded", () => {
     setTimeout(syncAvatarsForMessages, 1500);
 });
+</script>
+
+
+<script>
+// ===== HARD AVATAR OVERRIDE v0.10 =====
+// ЕДИНЫЙ дефолт для ВСЕХ
+const DEFAULT_AVATAR = "🐵";
+
+const avatarCache = {};
+
+// получить аватар ТОЛЬКО из Firestore
+async function fetchAvatar(uid) {
+    if (avatarCache[uid]) return avatarCache[uid];
+    try {
+        const doc = await firebase.firestore().collection("users").doc(uid).get();
+        const avatar = (doc.exists && doc.data().avatar) ? doc.data().avatar : DEFAULT_AVATAR;
+        avatarCache[uid] = avatar;
+        return avatar;
+    } catch (e) {
+        return DEFAULT_AVATAR;
+    }
+}
+
+// ЖЁСТКО применить аватар ко всем сообщениям пользователя
+async function forceApplyAvatar(uid) {
+    const avatar = await fetchAvatar(uid);
+    document.querySelectorAll('[data-user-id="' + uid + '"] .message-avatar').forEach(el => {
+        el.textContent = avatar;
+    });
+}
+
+// Отслеживаем ЛЮБОЕ добавление сообщений и ПЕРЕЗАТИРАЕМ рандом
+const observer = new MutationObserver(async mutations => {
+    for (const m of mutations) {
+        m.addedNodes.forEach(async node => {
+            if (node.nodeType === 1 && node.hasAttribute("data-user-id")) {
+                const uid = node.getAttribute("data-user-id");
+                forceApplyAvatar(uid);
+            }
+        });
+    }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    observer.observe(document.body, { childList: true, subtree: true });
+});
+
+// Смена аватара пользователем
+window.onAvatarChange = async function(avatar) {
+    if (!window.currentUser) return;
+    await firebase.firestore().collection("users").doc(currentUser.uid).set({
+        avatar: avatar
+    }, { merge: true });
+    avatarCache[currentUser.uid] = avatar;
+    forceApplyAvatar(currentUser.uid);
+};
 </script>
 
 </body>
