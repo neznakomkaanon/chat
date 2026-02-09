@@ -1933,7 +1933,29 @@
         .mobile-context-overlay.active {
             display: block;
         }
-    </style>
+    
+.message-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+.message-row.my {
+    justify-content: flex-end;
+}
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    background: white;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+</style>
 </head>
 <body class="light-theme">
     <div class="version-badge">v.0.8</div>
@@ -5409,6 +5431,7 @@
       <span class="avatar-option">🦊</span>
       <span class="avatar-option">🐼</span>
       <span class="avatar-option">🐵</span>
+      <span class="avatar-option">🦎</span>
     </div>
   </div>
 </div>
