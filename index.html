@@ -867,17 +867,27 @@
             }
         }
 
-        .message {
+        .message-row {
             display: flex;
-            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
             max-width: 85%;
             animation: messageAppear 0.3s ease-out;
         }
 
         @media (min-width: 768px) {
-            .message {
+            .message-row {
                 max-width: 75%;
             }
+        }
+
+        .message-row.my-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-row.other-message {
+            align-self: flex-start;
         }
 
         @keyframes messageAppear {
@@ -885,27 +895,48 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .message.my-message {
-            align-self: flex-end;
-            align-items: flex-end;
-            margin-right: 5px;
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-bottom: 5px;
         }
 
         @media (min-width: 768px) {
-            .message.my-message {
-                margin-right: 10px;
+            .message-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 22px;
             }
         }
 
-        .message.other-message {
-            align-self: flex-start;
-            align-items: flex-start;
-            margin-left: 5px;
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            max-width: calc(100% - 40px);
+        }
+
+        .message-sender {
+            font-size: 11px;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         @media (min-width: 768px) {
-            .message.other-message {
-                margin-left: 10px;
+            .message-sender {
+                font-size: 12px;
+                margin-bottom: 6px;
+                gap: 6px;
             }
         }
 
@@ -935,23 +966,6 @@
             background-color: var(--other-message);
             color: var(--other-text);
             border-bottom-left-radius: 8px;
-        }
-
-        .message-sender {
-            font-size: 11px;
-            margin-bottom: 4px;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        @media (min-width: 768px) {
-            .message-sender {
-                font-size: 12px;
-                margin-bottom: 6px;
-                gap: 6px;
-            }
         }
 
         .message-time {
@@ -1933,29 +1947,40 @@
         .mobile-context-overlay.active {
             display: block;
         }
-    
-.message-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-}
-.message-row.my {
-    justify-content: flex-end;
-}
-.message-avatar {
-    width: 32px;
-    height: 32px;
-    background: white;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-</style>
+        
+        .avatar-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .avatar-option {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+        }
+        
+        .avatar-option:hover {
+            border-color: var(--accent);
+            background-color: var(--bg-tertiary);
+            transform: scale(1.1);
+        }
+        
+        .avatar-option.selected {
+            border-color: var(--accent);
+            background-color: var(--accent);
+            color: white;
+        }
+    </style>
 </head>
 <body class="light-theme">
     <div class="version-badge">v.0.9</div>
@@ -2200,7 +2225,7 @@
                             </p>
                         </div>
                         <div class="user-info">
-                            <div class="user-avatar" id="userAvatar">А</div>
+                            <div class="user-avatar" id="userAvatar">🙂</div>
                             <div class="user-details">
                                 <div class="username" id="displayUsername">Загрузка...</div>
                                 <div class="status">
@@ -2257,7 +2282,7 @@
             <div class="modal-body">
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div class="user-avatar" style="width: 70px; height: 70px; margin: 0 auto 12px; font-size: 28px;" id="profileAvatar">
-                        А
+                        🙂
                     </div>
                     <h3 id="profileName" style="font-size: 18px;">Пользователь</h3>
                     <p style="color: var(--text-secondary); font-size: 14px;" id="profileEmail">
@@ -2276,12 +2301,11 @@
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    
-<button class="btn btn-primary" id="changeAvatarBtn" style="margin-top:10px;">
-<i class="fas fa-smile"></i> Изменить аватар
-</button>
+                    <button class="btn btn-primary" id="changeAvatarBtn" style="margin-top:10px;">
+                        <i class="fas fa-smile"></i> Изменить аватар
+                    </button>
 
-<button class="btn" id="logoutBtn" style="background: var(--danger); color: white; padding: 10px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 14px;">
+                    <button class="btn" id="logoutBtn" style="background: var(--danger); color: white; padding: 10px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 14px;">
                         <i class="fas fa-sign-out-alt"></i> Выйти
                     </button>
                 </div>
@@ -2567,6 +2591,21 @@
         </div>
     </div>
 
+    <!-- Модальное окно выбора аватара -->
+    <div class="modal-overlay" id="avatarModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Выберите аватар</h2>
+                <button class="modal-close" id="closeAvatarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-picker-grid" id="avatarPickerGrid">
+                    <!-- Аватары добавляются динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // === КОНФИГУРАЦИЯ FIREBASE ===
         const FIREBASE_CONFIG = {
@@ -2578,6 +2617,10 @@
             appId: "1:245961594712:web:e1c8ba71af1289b1bc372d",
             measurementId: "G-QJ2Q13VB4T"
         };
+
+        // === АВАТАРЫ ===
+        const DEFAULT_AVATARS = ['🙂', '😎', '🥰', '😈', '👻', '🤡', '🐱', '🐶', '🦊', '🐼', '🐸', '🐵', '🔥', '💀', '💜', '🤖', '👾', '🐙', '🦄', '🐉'];
+        let userAvatar = '🙂';
 
         // === СОСТОЯНИЕ ===
         const state = {
@@ -2665,6 +2708,95 @@
             };
         }
 
+        // === АВАТАРЫ ===
+        function getRandomAvatar() {
+            return DEFAULT_AVATARS[Math.floor(Math.random() * DEFAULT_AVATARS.length)];
+        }
+
+        async function ensureUserHasAvatar(uid) {
+            try {
+                const userRef = db.collection('users').doc(uid);
+                const doc = await userRef.get();
+                
+                if (!doc.exists) return getRandomAvatar();
+                
+                const userData = doc.data();
+                
+                // Если у пользователя нет аватара - устанавливаем случайный
+                if (!userData.avatar) {
+                    const randomAvatar = getRandomAvatar();
+                    await userRef.update({
+                        avatar: randomAvatar
+                    });
+                    return randomAvatar;
+                }
+                
+                return userData.avatar;
+            } catch (error) {
+                console.error("❌ Ошибка проверки аватара:", error);
+                return getRandomAvatar();
+            }
+        }
+
+        async function saveUserAvatar(uid, avatar) {
+            try {
+                await db.collection('users').doc(uid).update({
+                    avatar: avatar,
+                    updatedAt: new Date().toISOString()
+                });
+                
+                // Обновляем в state
+                if (state.userData) {
+                    state.userData.avatar = avatar;
+                }
+                
+                // Обновляем UI
+                document.getElementById('userAvatar').textContent = avatar;
+                document.getElementById('profileAvatar').textContent = avatar;
+                
+                return true;
+            } catch (error) {
+                console.error("❌ Ошибка сохранения аватара:", error);
+                return false;
+            }
+        }
+
+        function showAvatarModal() {
+            const grid = document.getElementById('avatarPickerGrid');
+            grid.innerHTML = '';
+            
+            DEFAULT_AVATARS.forEach(avatar => {
+                const avatarElement = document.createElement('div');
+                avatarElement.className = 'avatar-option';
+                avatarElement.textContent = avatar;
+                avatarElement.title = `Выбрать ${avatar}`;
+                
+                if (avatar === userAvatar) {
+                    avatarElement.classList.add('selected');
+                }
+                
+                avatarElement.addEventListener('click', async () => {
+                    await saveUserAvatar(state.user.uid, avatar);
+                    userAvatar = avatar;
+                    
+                    // Обновляем выделение
+                    document.querySelectorAll('.avatar-option').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    avatarElement.classList.add('selected');
+                    
+                    // Закрываем модалку через секунду
+                    setTimeout(() => {
+                        document.getElementById('avatarModal').classList.remove('active');
+                    }, 300);
+                });
+                
+                grid.appendChild(avatarElement);
+            });
+            
+            document.getElementById('avatarModal').classList.add('active');
+        }
+
         // === ИНИЦИАЛИЗАЦИЯ FIREBASE ===
         let auth, db;
 
@@ -2681,6 +2813,11 @@
                     if (user) {
                         state.user = user;
                         state.emailVerified = user.emailVerified;
+                        
+                        // Загружаем или создаем аватар для пользователя
+                        if (user.uid) {
+                            userAvatar = await ensureUserHasAvatar(user.uid);
+                        }
                         
                         if (!user.emailVerified) {
                             showVerifyEmailScreen();
@@ -2805,6 +2942,13 @@
                 if (doc.exists) {
                     state.userData = doc.data();
                     
+                    // Устанавливаем аватар из данных пользователя
+                    if (state.userData.avatar) {
+                        userAvatar = state.userData.avatar;
+                        document.getElementById('userAvatar').textContent = userAvatar;
+                        document.getElementById('profileAvatar').textContent = userAvatar;
+                    }
+                    
                     state.hasAcceptedTerms = state.userData.hasAcceptedTerms || false;
                     
                     if (state.userData.isAdmin) {
@@ -2831,7 +2975,8 @@
                         banReason: null,
                         bannedAt: null,
                         bannedBy: null,
-                        hasAcceptedTerms: false
+                        hasAcceptedTerms: false,
+                        avatar: userAvatar
                     };
                     
                     await userRef.set(state.userData);
@@ -3023,7 +3168,8 @@
                     anonymousId: generateAnonymousId(),
                     isBanned: false,
                     hasAcceptedTerms: true,
-                    termsAcceptedAt: new Date().toISOString()
+                    termsAcceptedAt: new Date().toISOString(),
+                    avatar: getRandomAvatar()
                 });
                 
                 showRegisterSuccess('Регистрация успешна! Проверьте email для подтверждения.');
@@ -3181,21 +3327,9 @@
                 }
             }
             
-            const avatar = document.getElementById('profileAvatar');
-            if (avatar) {
-                const initial = state.userData.email[0].toUpperCase();
-                avatar.textContent = initial;
-            }
-            
             const displayUsername = document.getElementById('displayUsername');
             if (displayUsername) {
                 displayUsername.textContent = state.userData.email.split('@')[0];
-            }
-            
-            const userAvatar = document.getElementById('userAvatar');
-            if (userAvatar) {
-                const initial = state.userData.email[0].toUpperCase();
-                userAvatar.textContent = initial;
             }
         }
 
@@ -3558,11 +3692,11 @@
         function addMessageToUI(message) {
             if (message.deleted) return;
             
-            const messageElement = document.createElement('div');
+            const messageRow = document.createElement('div');
             const isMyMessage = message.userId === state.user.uid;
             
-            messageElement.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
-            messageElement.setAttribute('data-message-id', message.id);
+            messageRow.className = `message-row ${isMyMessage ? 'my-message' : 'other-message'}`;
+            messageRow.setAttribute('data-message-id', message.id);
             
             const timestamp = message.timestamp?.toDate 
                 ? message.timestamp.toDate() 
@@ -3600,7 +3734,16 @@
                 </button>
             ` : '';
             
-            messageElement.innerHTML = `
+            // Создаем аватар
+            const avatarElement = document.createElement('div');
+            avatarElement.className = 'message-avatar';
+            avatarElement.textContent = message.avatar || getRandomAvatar();
+            
+            // Создаем контент сообщения
+            const contentElement = document.createElement('div');
+            contentElement.className = 'message-content';
+            
+            contentElement.innerHTML = `
                 <div class="message-sender">
                     <i class="fas ${isMyMessage ? 'fa-user' : 'fa-user-secret'}"></i> 
                     ${displayName}
@@ -3615,10 +3758,19 @@
                 ${handshakeButton}
             `;
             
-            setupMessageContextMenu(messageElement, message, isMyMessage);
+            // Собираем строку сообщения
+            if (isMyMessage) {
+                messageRow.appendChild(contentElement);
+                messageRow.appendChild(avatarElement);
+            } else {
+                messageRow.appendChild(avatarElement);
+                messageRow.appendChild(contentElement);
+            }
+            
+            setupMessageContextMenu(messageRow, message, isMyMessage);
             
             const container = document.getElementById('messagesContainer');
-            container.appendChild(messageElement);
+            container.appendChild(messageRow);
         }
 
         function setupMessageContextMenu(messageElement, message, isMyMessage) {
@@ -4835,11 +4987,15 @@
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             
             try {
+                // Получаем текущий аватар пользователя
+                const userAvatar = state.userData.avatar || getRandomAvatar();
+                
                 const message = {
                     text: text,
                     userId: state.user.uid,
                     userEmail: state.user.email,
                     anonymousId: state.userData.anonymousId || generateAnonymousId(),
+                    avatar: userAvatar, // Сохраняем аватар в сообщении
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     deleted: false
                 };
@@ -5039,6 +5195,7 @@
             });
         };
 
+        // === ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ ===
         document.addEventListener('DOMContentLoaded', () => {
             initFirebase();
             
@@ -5208,6 +5365,8 @@
             const closeConfirmHandshakeBtn = document.getElementById('closeConfirmHandshakeBtn');
             const closeReportBtn = document.getElementById('closeReportBtn');
             const closeBanBtn = document.getElementById('closeBanBtn');
+            const closeAvatarModal = document.getElementById('closeAvatarModal');
+            const changeAvatarBtn = document.getElementById('changeAvatarBtn');
             
             if (closeProfileBtn) {
                 closeProfileBtn.addEventListener('click', () => {
@@ -5251,6 +5410,18 @@
                 closeBanBtn.addEventListener('click', () => {
                     document.getElementById('banModal').classList.remove('active');
                     state.banTargetUser = null;
+                });
+            }
+            
+            if (closeAvatarModal) {
+                closeAvatarModal.addEventListener('click', () => {
+                    document.getElementById('avatarModal').classList.remove('active');
+                });
+            }
+            
+            if (changeAvatarBtn) {
+                changeAvatarBtn.addEventListener('click', () => {
+                    showAvatarModal();
                 });
             }
             
@@ -5404,6 +5575,7 @@
             }
         });
 
+        // Экспортируем функции для глобального использования
         window.approveApplication = approveApplication;
         window.rejectApplication = rejectApplication;
         window.banUser = banUser;
@@ -5413,236 +5585,5 @@
         window.removeAdmin = removeAdmin;
 
     </script>
-
-<div class="modal-overlay" id="avatarModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Выберите аватар</h2>
-      <button class="modal-close" id="closeAvatarModal">&times;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:10px;font-size:28px;text-align:center;">
-      <span class="avatar-option">🙂</span>
-      <span class="avatar-option">😎</span>
-      <span class="avatar-option">🥷</span>
-      <span class="avatar-option">👩</span>
-      <span class="avatar-option">👨</span>
-      <span class="avatar-option">🐶</span>
-      <span class="avatar-option">🐱</span>
-      <span class="avatar-option">🦊</span>
-      <span class="avatar-option">🐼</span>
-      <span class="avatar-option">🐵</span>
-      <span class="avatar-option">🦎</span>
-    </div>
-  </div>
-</div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-
-const avatarModal = document.getElementById("avatarModal");
-const changeAvatarBtn = document.getElementById("changeAvatarBtn");
-const closeAvatarModal = document.getElementById("closeAvatarModal");
-const profileAvatar = document.getElementById("profileAvatar");
-const userAvatar = document.getElementById("userAvatar");
-
-if(changeAvatarBtn){
-changeAvatarBtn.onclick = () => avatarModal.classList.add("active");
-}
-
-if(closeAvatarModal){
-closeAvatarModal.onclick = () => avatarModal.classList.remove("active");
-}
-
-document.querySelectorAll(".avatar-option").forEach(el=>{
-el.style.cursor="pointer";
-el.onclick = async function(){
-const selected = this.textContent;
-profileAvatar.textContent = selected;
-userAvatar.textContent = selected;
-avatarModal.classList.remove("active");
-
-if(firebase.auth().currentUser){
-await firebase.firestore().collection("users")
-.doc(firebase.auth().currentUser.uid)
-.set({avatar:selected},{merge:true});
-}
-}
-});
-
-// Load avatar on start
-firebase.auth().onAuthStateChanged(async user=>{
-if(user){
-const doc = await firebase.firestore().collection("users").doc(user.uid).get();
-if(doc.exists && doc.data().avatar){
-profileAvatar.textContent = doc.data().avatar;
-userAvatar.textContent = doc.data().avatar;
-}
-}
-});
-
-});
-</script>
-
-
-<!-- === EMOJI AVATAR SYSTEM (PERSISTENT, FIREBASE) === -->
-<script>
-// ===== Emoji Avatar System =====
-// Stores avatar as emoji in Firestore: users/{uid}.avatar
-// Adds avatar to each message render for all users
-
-const AVATAR_DEFAULT = "🙂";
-let currentAvatar = AVATAR_DEFAULT;
-
-// Save avatar
-async function saveAvatar(emoji) {
-    if (!firebase.auth().currentUser) return;
-    const uid = firebase.auth().currentUser.uid;
-    currentAvatar = emoji;
-    await firebase.firestore().collection("users").doc(uid).set({
-        avatar: emoji,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-}
-
-// Load avatar
-async function loadAvatar(uid) {
-    const doc = await firebase.firestore().collection("users").doc(uid).get();
-    if (doc.exists && doc.data().avatar) {
-        return doc.data().avatar;
-    }
-    return AVATAR_DEFAULT;
-}
-
-// Simple emoji picker (click on profile button)
-const profileBtn = document.getElementById("profileBtn");
-if (profileBtn) {
-    profileBtn.addEventListener("click", async () => {
-        const emoji = prompt("Выбери эмодзи для аватарки (например 😎🔥💜):", currentAvatar);
-        if (emoji && emoji.trim()) {
-            await saveAvatar(emoji.trim());
-            alert("Аватарка сохранена!");
-        }
-    });
-}
-
-// Inject avatar into message rendering
-const _renderMessage = window.renderMessage;
-window.renderMessage = async function(messageData, isMine) {
-    const avatar = await loadAvatar(messageData.uid);
-    const row = document.createElement("div");
-    row.className = "message-row " + (isMine ? "my" : "other");
-
-    const avatarEl = document.createElement("div");
-    avatarEl.className = "message-avatar";
-    avatarEl.textContent = avatar;
-
-    const msg = _renderMessage(messageData, isMine);
-
-    if (isMine) {
-        row.appendChild(msg);
-        row.appendChild(avatarEl);
-    } else {
-        row.appendChild(avatarEl);
-        row.appendChild(msg);
-    }
-    return row;
-};
-
-// Attach avatar to outgoing messages
-const _sendMessage = window.sendMessage;
-window.sendMessage = async function() {
-    if (!firebase.auth().currentUser) return;
-    const uid = firebase.auth().currentUser.uid;
-    const avatar = await loadAvatar(uid);
-    window.currentUserAvatar = avatar;
-    return _sendMessage();
-};
-
-firebase.auth().onAuthStateChanged(async user => {
-    if (user) {
-        currentAvatar = await loadAvatar(user.uid);
-    }
-});
-</script>
-
-
-<!-- Emoji Avatar Picker Modal -->
-<div class="modal-overlay" id="avatarPickerModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Выбор аватара</h2>
-      <button class="modal-close" onclick="closeAvatarPicker()">&times;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,50px);gap:12px;font-size:26px;text-align:center;">
-      <span onclick="selectAvatar('😀')">😀</span>
-      <span onclick="selectAvatar('😎')">😎</span>
-      <span onclick="selectAvatar('🥰')">🥰</span>
-      <span onclick="selectAvatar('😈')">😈</span>
-      <span onclick="selectAvatar('👻')">👻</span>
-      <span onclick="selectAvatar('🤡')">🤡</span>
-      <span onclick="selectAvatar('🐱')">🐱</span>
-      <span onclick="selectAvatar('🐶')">🐶</span>
-      <span onclick="selectAvatar('🦊')">🦊</span>
-      <span onclick="selectAvatar('🐼')">🐼</span>
-      <span onclick="selectAvatar('🐸')">🐸</span>
-      <span onclick="selectAvatar('🐵')">🐵</span>
-      <span onclick="selectAvatar('🔥')">🔥</span>
-      <span onclick="selectAvatar('💀')">💀</span>
-      <span onclick="selectAvatar('💜')">💜</span>
-    </div>
-  </div>
-</div>
-
-
-<script>
-const EMOJIS = ['😀','😎','🥰','😈','👻','🤡','🐱','🐶','🦊','🐼','🐸','🐵','🔥','💀','💜'];
-const DEFAULT_AVATAR = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-
-async function getUserAvatar(uid){
-  const doc = await firebase.firestore().collection("users").doc(uid).get();
-  if(doc.exists && doc.data().avatar) return doc.data().avatar;
-  await firebase.firestore().collection("users").doc(uid).set({avatar:DEFAULT_AVATAR},{merge:true});
-  return DEFAULT_AVATAR;
-}
-
-function openAvatarPicker(){
-  document.getElementById("avatarPickerModal").classList.add("active");
-}
-function closeAvatarPicker(){
-  document.getElementById("avatarPickerModal").classList.remove("active");
-}
-async function selectAvatar(emoji){
-  const uid = firebase.auth().currentUser.uid;
-  await firebase.firestore().collection("users").doc(uid).set({avatar:emoji},{merge:true});
-  document.getElementById("userAvatar").innerText = emoji;
-  document.getElementById("profileAvatar").innerText = emoji;
-  closeAvatarPicker();
-}
-
-// bind button
-document.getElementById("changeAvatarBtn")?.addEventListener("click",openAvatarPicker);
-
-// message avatar render
-const origAddMessage = window.addMessageToChat;
-window.addMessageToChat = async function(msg,isMine){
-  const row = document.createElement("div");
-  row.className = "message-row " + (isMine ? "my" : "other");
-  const av = document.createElement("div");
-  av.className = "message-avatar";
-  av.innerText = await getUserAvatar(msg.uid);
-  const bubble = origAddMessage(msg,isMine);
-  if(isMine){row.appendChild(bubble);row.appendChild(av);}
-  else{row.appendChild(av);row.appendChild(bubble);}
-  return row;
-}
-
-firebase.auth().onAuthStateChanged(async u=>{
-  if(!u) return;
-  const av = await getUserAvatar(u.uid);
-  document.getElementById("userAvatar").innerText = av;
-  document.getElementById("profileAvatar").innerText = av;
-});
-</script>
-
 </body>
 </html>
