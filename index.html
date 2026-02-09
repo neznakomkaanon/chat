@@ -5627,5 +5627,59 @@ window.onAvatarChange = function(avatar) {
 };
 </script>
 
+
+<script>
+// ===== GLOBAL AVATAR SYSTEM v0.10 =====
+const DEFAULT_AVATAR = "🙂";
+
+// save avatar to Firestore (shared for everyone)
+async function saveAvatarToServer(uid, avatar) {
+    await firebase.firestore().collection("users").doc(uid).set({
+        avatar: avatar
+    }, { merge: true });
+}
+
+// get avatar from Firestore
+async function getAvatarFromServer(uid) {
+    const doc = await firebase.firestore().collection("users").doc(uid).get();
+    if (!doc.exists) return DEFAULT_AVATAR;
+    return doc.data().avatar || DEFAULT_AVATAR;
+}
+
+// apply avatar to ALL messages of user
+async function applyAvatar(uid) {
+    const avatar = await getAvatarFromServer(uid);
+    document.querySelectorAll('[data-user-id="' + uid + '"] .message-avatar').forEach(el => {
+        el.textContent = avatar;
+    });
+}
+
+// override avatar change handler
+window.onAvatarChange = async function(avatar) {
+    if (!window.currentUser) return;
+    await saveAvatarToServer(currentUser.uid, avatar);
+    applyAvatar(currentUser.uid);
+};
+
+// load avatars for visible messages
+async function syncAvatarsForMessages() {
+    const avatarsCache = {};
+    const messageNodes = document.querySelectorAll("[data-user-id]");
+    for (const node of messageNodes) {
+        const uid = node.getAttribute("data-user-id");
+        if (!avatarsCache[uid]) {
+            avatarsCache[uid] = await getAvatarFromServer(uid);
+        }
+        const avatarEl = node.querySelector(".message-avatar");
+        if (avatarEl) avatarEl.textContent = avatarsCache[uid];
+    }
+}
+
+// run after messages load
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(syncAvatarsForMessages, 1500);
+});
+</script>
+
 </body>
 </html>
