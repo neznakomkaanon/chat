@@ -1983,7 +1983,7 @@
     </style>
 </head>
 <body class="light-theme">
-    <div class="version-badge">v.0.9</div>
+    <div class="version-badge">v.0.10</div>
     
     <div class="custom-alert-overlay" id="customAlertOverlay"></div>
     <div class="custom-alert" id="customAlert">
@@ -5585,5 +5585,47 @@
         window.removeAdmin = removeAdmin;
 
     </script>
+
+<script>
+// ===== AVATAR FIX v0.10 =====
+const DEFAULT_AVATAR = "🙂"; // единый дефолтный аватар для ВСЕХ
+
+function getUserAvatar(uid) {
+    const saved = localStorage.getItem("avatar_" + uid);
+    return saved ? saved : DEFAULT_AVATAR;
+}
+
+function setUserAvatar(uid, avatar) {
+    localStorage.setItem("avatar_" + uid, avatar);
+}
+
+// Переопределяем генерацию аватара (убираем рандом полностью)
+window.generateAvatar = function(uid) {
+    return getUserAvatar(uid);
+};
+
+// Применение аватара ко всем сообщениям пользователя
+function applyAvatarToMessages(uid) {
+    const avatar = getUserAvatar(uid);
+    document.querySelectorAll('[data-user-id="' + uid + '"] .message-avatar').forEach(el => {
+        el.textContent = avatar;
+    });
+}
+
+// Хук после загрузки сообщений
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.currentUser && window.currentUser.uid) {
+        applyAvatarToMessages(window.currentUser.uid);
+    }
+});
+
+// При смене аватара — обновляем ВСЕ сообщения (старые и новые)
+window.onAvatarChange = function(avatar) {
+    if (!window.currentUser || !window.currentUser.uid) return;
+    setUserAvatar(window.currentUser.uid, avatar);
+    applyAvatarToMessages(window.currentUser.uid);
+};
+</script>
+
 </body>
 </html>
