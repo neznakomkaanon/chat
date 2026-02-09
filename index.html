@@ -766,6 +766,9 @@
         }
 
         .user-avatar {
+            background: white !important;
+            border: 2px solid var(--border);
+            color: black !important;
             width: 35px;
             height: 35px;
             background: linear-gradient(135deg, var(--accent), var(--accent-hover));
@@ -781,6 +784,9 @@
 
         @media (min-width: 768px) {
             .user-avatar {
+            background: white !important;
+            border: 2px solid var(--border);
+            color: black !important;
                 width: 40px;
                 height: 40px;
                 font-size: 18px;
@@ -1930,7 +1936,7 @@
     </style>
 </head>
 <body class="light-theme">
-    <div class="version-badge">v.0.6</div>
+    <div class="version-badge">v.0.8</div>
     
     <div class="custom-alert-overlay" id="customAlertOverlay"></div>
     <div class="custom-alert" id="customAlert">
@@ -2248,7 +2254,12 @@
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button class="btn" id="logoutBtn" style="background: var(--danger); color: white; padding: 10px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 14px;">
+                    
+<button class="btn btn-primary" id="changeAvatarBtn" style="margin-top:10px;">
+<i class="fas fa-smile"></i> Изменить аватар
+</button>
+
+<button class="btn" id="logoutBtn" style="background: var(--danger); color: white; padding: 10px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 14px;">
                         <i class="fas fa-sign-out-alt"></i> Выйти
                     </button>
                 </div>
@@ -5380,5 +5391,74 @@
         window.removeAdmin = removeAdmin;
 
     </script>
+
+<div class="modal-overlay" id="avatarModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Выберите аватар</h2>
+      <button class="modal-close" id="closeAvatarModal">&times;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:10px;font-size:28px;text-align:center;">
+      <span class="avatar-option">🙂</span>
+      <span class="avatar-option">😎</span>
+      <span class="avatar-option">🥷</span>
+      <span class="avatar-option">👩</span>
+      <span class="avatar-option">👨</span>
+      <span class="avatar-option">🐶</span>
+      <span class="avatar-option">🐱</span>
+      <span class="avatar-option">🦊</span>
+      <span class="avatar-option">🐼</span>
+      <span class="avatar-option">🐵</span>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+const avatarModal = document.getElementById("avatarModal");
+const changeAvatarBtn = document.getElementById("changeAvatarBtn");
+const closeAvatarModal = document.getElementById("closeAvatarModal");
+const profileAvatar = document.getElementById("profileAvatar");
+const userAvatar = document.getElementById("userAvatar");
+
+if(changeAvatarBtn){
+changeAvatarBtn.onclick = () => avatarModal.classList.add("active");
+}
+
+if(closeAvatarModal){
+closeAvatarModal.onclick = () => avatarModal.classList.remove("active");
+}
+
+document.querySelectorAll(".avatar-option").forEach(el=>{
+el.style.cursor="pointer";
+el.onclick = async function(){
+const selected = this.textContent;
+profileAvatar.textContent = selected;
+userAvatar.textContent = selected;
+avatarModal.classList.remove("active");
+
+if(firebase.auth().currentUser){
+await firebase.firestore().collection("users")
+.doc(firebase.auth().currentUser.uid)
+.set({avatar:selected},{merge:true});
+}
+}
+});
+
+// Load avatar on start
+firebase.auth().onAuthStateChanged(async user=>{
+if(user){
+const doc = await firebase.firestore().collection("users").doc(user.uid).get();
+if(doc.exists && doc.data().avatar){
+profileAvatar.textContent = doc.data().avatar;
+userAvatar.textContent = doc.data().avatar;
+}
+}
+});
+
+});
+</script>
+
 </body>
 </html>
