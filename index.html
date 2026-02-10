@@ -5569,5 +5569,124 @@ firebase.auth().onAuthStateChanged(async u=>{
 </script>
 <!-- ===== END AVATAR SYSTEM ADDON ===== -->
 
+
+<!-- ===== FINAL AVATAR SYSTEM (FULLY WORKING) ===== -->
+<script>
+const DEFAULT_AVATAR = "🙂";
+
+// Ensure user always has avatar
+async function ensureUserAvatar() {
+    if (!state.user) return DEFAULT_AVATAR;
+    const ref = db.collection("users").doc(state.user.uid);
+    const snap = await ref.get();
+
+    if (snap.exists && snap.data().avatar) {
+        state.userData.avatar = snap.data().avatar;
+        return snap.data().avatar;
+    }
+
+    await ref.set({ avatar: DEFAULT_AVATAR }, { merge: true });
+    state.userData.avatar = DEFAULT_AVATAR;
+    return DEFAULT_AVATAR;
+}
+
+// Override sendMessage to attach avatar
+const originalSendMessage = sendMessage;
+sendMessage = async function() {
+    if (!state.userData.avatar) {
+        await ensureUserAvatar();
+    }
+
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
+    if (!messageText) return;
+
+    const messageData = {
+        text: messageText,
+        userId: state.user.uid,
+        avatar: state.userData.avatar || DEFAULT_AVATAR,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        deleted: false
+    };
+
+    await db.collection('messages').add(messageData);
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+};
+
+// Override addMessageToUI to show avatar near every message
+addMessageToUI = function(message) {
+    if (message.deleted) return;
+
+    const container = document.getElementById('messagesContainer');
+    const isMyMessage = message.userId === state.user.uid;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message-with-avatar' + (isMyMessage ? ' my' : '');
+
+    const avatarEl = document.createElement('div');
+    avatarEl.className = 'message-avatar';
+    avatarEl.textContent = message.avatar || DEFAULT_AVATAR;
+
+    const messageElement = document.createElement('div');
+    messageElement.className = 'message ' + (isMyMessage ? 'my-message' : 'other-message');
+    messageElement.setAttribute('data-message-id', message.id);
+
+    const timestamp = message.timestamp?.toDate 
+        ? message.timestamp.toDate() 
+        : new Date();
+
+    const timeText = timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+    messageElement.innerHTML = `
+        <div class="message-text">${message.text}</div>
+        <div class="message-time">${timeText}</div>
+    `;
+
+    wrapper.appendChild(avatarEl);
+    wrapper.appendChild(messageElement);
+    container.appendChild(wrapper);
+};
+
+// Update profile UI to use avatar
+const originalUpdateProfileUI = updateProfileUI;
+updateProfileUI = function() {
+    originalUpdateProfileUI();
+    if (!state.userData) return;
+
+    const avatar = document.getElementById('profileAvatar');
+    const userAvatar = document.getElementById('userAvatar');
+
+    const av = state.userData.avatar || DEFAULT_AVATAR;
+
+    if (avatar) avatar.textContent = av;
+    if (userAvatar) userAvatar.textContent = av;
+};
+
+firebase.auth().onAuthStateChanged(async (user) => {
+    if (user) {
+        await ensureUserAvatar();
+    }
+});
+</script>
+
+<style>
+.message-with-avatar {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.message-with-avatar.my {
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    font-size: 22px;
+    line-height: 1;
+}
+</style>
+<!-- ===== END FINAL AVATAR SYSTEM ===== -->
+
 </body>
 </html>
