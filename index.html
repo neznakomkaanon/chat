@@ -5414,100 +5414,300 @@
 
     </script>
 
+<div class="modal-overlay" id="avatarModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Выберите аватар</h2>
+      <button class="modal-close" id="closeAvatarModal">&times;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:10px;font-size:28px;text-align:center;">
+      <span class="avatar-option">🙂</span>
+      <span class="avatar-option">😎</span>
+      <span class="avatar-option">🥷</span>
+      <span class="avatar-option">👩</span>
+      <span class="avatar-option">👨</span>
+      <span class="avatar-option">🐶</span>
+      <span class="avatar-option">🐱</span>
+      <span class="avatar-option">🦊</span>
+      <span class="avatar-option">🐼</span>
+      <span class="avatar-option">🐵</span>
+      <span class="avatar-option">🦎</span>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+const avatarModal = document.getElementById("avatarModal");
+const changeAvatarBtn = document.getElementById("changeAvatarBtn");
+const closeAvatarModal = document.getElementById("closeAvatarModal");
+const profileAvatar = document.getElementById("profileAvatar");
+const userAvatar = document.getElementById("userAvatar");
+
+if(changeAvatarBtn){
+changeAvatarBtn.onclick = () => avatarModal.classList.add("active");
+}
+
+if(closeAvatarModal){
+closeAvatarModal.onclick = () => avatarModal.classList.remove("active");
+}
+
+document.querySelectorAll(".avatar-option").forEach(el=>{
+el.style.cursor="pointer";
+el.onclick = async function(){
+const selected = this.textContent;
+profileAvatar.textContent = selected;
+userAvatar.textContent = selected;
+avatarModal.classList.remove("active");
+
+if(firebase.auth().currentUser){
+await firebase.firestore().collection("users")
+.doc(firebase.auth().currentUser.uid)
+.set({avatar:selected},{merge:true});
+}
+}
+});
+
+// Load avatar on start
+firebase.auth().onAuthStateChanged(async user=>{
+if(user){
+const doc = await firebase.firestore().collection("users").doc(user.uid).get();
+if(doc.exists && doc.data().avatar){
+profileAvatar.textContent = doc.data().avatar;
+userAvatar.textContent = doc.data().avatar;
+}
+}
+});
+
+});
+</script>
 
 
+<!-- ===== AVATAR SYSTEM ADDON (NON-DESTRUCTIVE) ===== -->
+<style>
+.message-with-avatar{display:flex;align-items:flex-end;gap:6px}
+.message-with-avatar.my{flex-direction:row-reverse}
+.message-avatar{font-size:22px;line-height:1}
+.avatar-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,40px);gap:10px;font-size:24px}
+.avatar-picker-grid span{cursor:pointer;border-radius:10px;padding:4px;text-align:center}
+.avatar-picker-grid span:hover{background:rgba(255,255,255,0.1)}
+</style>
+
+<div class="modal-overlay" id="avatarPickerModal">
+ <div class="modal">
+  <div class="modal-header">
+   <h2>Аватар</h2>
+   <button class="modal-close" onclick="closeAvatarPicker()">&times;</button>
+  </div>
+  <div class="avatar-picker-grid" id="avatarGrid"></div>
+ </div>
+</div>
+
+<script>
+const AVATAR_SET=['😀','😎','🥰','😈','👻','🤡','🐱','🐶','🦊','🐼','🐸','🐵','🔥','💀','💜'];
+const usersRef=firebase.firestore().collection("users");
+
+function randAvatar(){return AVATAR_SET[Math.floor(Math.random()*AVATAR_SET.length)]}
+
+async function ensureAvatar(uid){
+ const ref=usersRef.doc(uid);
+ const snap=await ref.get();
+ if(snap.exists && snap.data().avatar) return snap.data().avatar;
+ const a=randAvatar();
+ await ref.set({avatar:a},{merge:true});
+ return a;
+}
+
+function openAvatarPicker(){document.getElementById('avatarPickerModal').classList.add('active')}
+function closeAvatarPicker(){document.getElementById('avatarPickerModal').classList.remove('active')}
+
+const grid=document.getElementById('avatarGrid');
+AVATAR_SET.forEach(e=>{
+ const s=document.createElement('span');
+ s.textContent=e;
+ s.onclick=async()=>{
+  const u=firebase.auth().currentUser;
+  if(!u) return;
+  await usersRef.doc(u.uid).set({avatar:e},{merge:true});
+  closeAvatarPicker();
+ };
+ grid.appendChild(s);
+});
+
+document.getElementById('changeAvatarBtn')?.addEventListener('click',openAvatarPicker);
+
+// wrap existing message render
+if(window.addMessageToChat){
+ const orig=window.addMessageToChat;
+ window.addMessageToChat=async function(m,isMine){
+  const wrap=document.createElement('div');
+  wrap.className='message-with-avatar'+(isMine?' my':'');
+  const av=document.createElement('div');
+  av.className='message-avatar';
+  av.textContent=m.avatar||'🙂';
+  const msg=await orig(m,isMine);
+  wrap.append(av,msg);
+  return wrap;
+ }
+}
+
+// attach avatar on send
+if(window.sendMessage){
+ const origSend=window.sendMessage;
+ window.sendMessage=async function(){
+  const u=firebase.auth().currentUser;
+  if(u){window.currentUserAvatar=await ensureAvatar(u.uid);}
+  return origSend();
+ }
+}
+
+firebase.auth().onAuthStateChanged(async u=>{
+ if(!u) return;
+ await ensureAvatar(u.uid);
+});
+</script>
+<!-- ===== END AVATAR SYSTEM ADDON ===== -->
 
 
-
-
-<!-- ===== CLEAN AVATAR FIX ===== -->
+<!-- ===== PRO MESSENGER AVATAR SYSTEM ===== -->
 <script>
 const DEFAULT_AVATAR = "🙂";
 
-async function ensureAvatar() {
-    if (!state.user) return;
+// Ensure avatar exists in Firestore + state
+async function ensureAvatarSynced(){
+    if(!state.user) return;
     const ref = db.collection("users").doc(state.user.uid);
     const snap = await ref.get();
-    if (!snap.exists || !snap.data().avatar) {
-        await ref.set({ avatar: DEFAULT_AVATAR }, { merge: true });
+
+    if(!snap.exists){
+        await ref.set({ avatar: DEFAULT_AVATAR }, { merge:true });
         state.userData.avatar = DEFAULT_AVATAR;
-    } else {
-        state.userData.avatar = snap.data().avatar;
+        return;
+    }
+
+    const data = snap.data();
+    if(!data.avatar){
+        await ref.set({ avatar: DEFAULT_AVATAR }, { merge:true });
+        state.userData.avatar = DEFAULT_AVATAR;
+    }else{
+        state.userData.avatar = data.avatar;
     }
 }
 
-firebase.auth().onAuthStateChanged(async (user)=>{
+// Sync on login
+firebase.auth().onAuthStateChanged(async user=>{
     if(user){
-        await ensureAvatar();
+        await ensureAvatarSynced();
+        updateProfileAvatarUI();
     }
 });
 
-// ---- FIX SEND MESSAGE (no duplicates) ----
-const oldSend = sendMessage;
+// Update profile + header avatar
+function updateProfileAvatarUI(){
+    if(!state.userData) return;
+    const avatar = state.userData.avatar || DEFAULT_AVATAR;
+
+    const profileAvatar = document.getElementById("profileAvatar");
+    const userAvatar = document.getElementById("userAvatar");
+
+    if(profileAvatar) profileAvatar.textContent = avatar;
+    if(userAvatar) userAvatar.textContent = avatar;
+}
+
+// Hook avatar picker buttons
+document.addEventListener("click", async function(e){
+    if(e.target.classList.contains("avatar-option")){
+        const selected = e.target.textContent;
+        if(!state.user) return;
+
+        await db.collection("users").doc(state.user.uid)
+            .set({ avatar:selected }, { merge:true });
+
+        state.userData.avatar = selected;
+        updateProfileAvatarUI();
+    }
+});
+
+// ---- SAFE MESSAGE RENDER EXTENSION ----
+// We DO NOT replace original renderer.
+// We decorate message after it is added.
+
+const originalAddMessageToUI = addMessageToUI;
+
+addMessageToUI = function(message){
+
+    originalAddMessageToUI(message);
+
+    if(message.deleted) return;
+
+    const messageElement = document.querySelector('[data-message-id="'+message.id+'"]');
+    if(!messageElement) return;
+
+    // Avoid double wrapping
+    if(messageElement.parentElement.classList.contains("message-with-avatar")) return;
+
+    const isMine = message.userId === state.user.uid;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "message-with-avatar" + (isMine ? " my" : "");
+
+    const avatarEl = document.createElement("div");
+    avatarEl.className = "message-avatar";
+    avatarEl.textContent = message.avatar || DEFAULT_AVATAR;
+
+    // Insert wrapper in place
+    messageElement.parentNode.insertBefore(wrapper, messageElement);
+    wrapper.appendChild(avatarEl);
+    wrapper.appendChild(messageElement);
+};
+
+// ---- ENSURE avatar stored in NEW messages ----
+// Patch Firestore add via sendMessage wrapping minimally
+
+const originalSendMessage = sendMessage;
+
 sendMessage = async function(){
-    await ensureAvatar();
-    const messageInput = document.getElementById('messageInput');
-    const text = messageInput.value.trim();
+
+    await ensureAvatarSynced();
+
+    const input = document.getElementById("messageInput");
+    const text = input.value.trim();
     if(!text) return;
 
-    await db.collection('messages').add({
+    const messageData = {
         text: text,
         userId: state.user.uid,
         avatar: state.userData.avatar || DEFAULT_AVATAR,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         deleted: false
-    });
+    };
 
-    messageInput.value = '';
-    messageInput.style.height = 'auto';
+    await db.collection("messages").add(messageData);
+
+    input.value = "";
+    input.style.height = "auto";
 };
 
-// Rebind button to new sendMessage (prevents double call)
-document.addEventListener("DOMContentLoaded", function(){
-    const btn = document.getElementById("sendBtn");
-    if(btn){
-        btn.replaceWith(btn.cloneNode(true));
-        document.getElementById("sendBtn").addEventListener("click", sendMessage);
-    }
-});
-
-// ---- FIX MESSAGE RENDER (keep original bubble styles) ----
-const oldAddMessageToUI = addMessageToUI;
-addMessageToUI = function(message){
-
-    if (message.deleted) return;
-
-    const isMyMessage = message.userId === state.user.uid;
-
-    const wrapper = document.createElement("div");
-    wrapper.style.display = "flex";
-    wrapper.style.alignItems = "flex-end";
-    wrapper.style.gap = "6px";
-    if(isMyMessage) wrapper.style.flexDirection = "row-reverse";
-
-    const avatar = document.createElement("div");
-    avatar.style.fontSize = "22px";
-    avatar.textContent = message.avatar || DEFAULT_AVATAR;
-
-    const bubble = document.createElement("div");
-    bubble.className = "message " + (isMyMessage ? "my-message" : "other-message");
-    bubble.setAttribute("data-message-id", message.id);
-
-    const timestamp = message.timestamp?.toDate ? message.timestamp.toDate() : new Date();
-    const timeText = timestamp.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-
-    bubble.innerHTML = `
-        <div class="message-text">${message.text}</div>
-        <div class="message-time">${timeText}</div>
-    `;
-
-    wrapper.appendChild(avatar);
-    wrapper.appendChild(bubble);
-
-    document.getElementById("messagesContainer").appendChild(wrapper);
-};
 </script>
-<!-- ===== END CLEAN AVATAR FIX ===== -->
+
+<style>
+.message-with-avatar{
+    display:flex;
+    align-items:flex-end;
+    gap:6px;
+}
+
+.message-with-avatar.my{
+    flex-direction:row-reverse;
+}
+
+.message-avatar{
+    font-size:22px;
+    line-height:1;
+}
+</style>
+<!-- ===== END PRO MESSENGER AVATAR SYSTEM ===== -->
 
 </body>
 </html>
